@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Circle of Music</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* PP Writer — drop the file at ./fonts/PPWriter.woff2 (or .otf/.ttf) and it'll pick up.
+     Until then, falls through to the italic serif fallback. */
+  @font-face {
+    font-family: 'PP Writer';
+    src: url('./fonts/PPWriter.woff2') format('woff2'),
+         url('./fonts/PPWriter.otf') format('opentype'),
+         url('./fonts/PPWriter.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal italic;
+    font-display: swap;
+  }
+
+  :root {
+    --bg-frame: #8a8a8a;
+    --bg-stage: #efefee;
+    --ink: #0a0a0a;
+    --ink-soft: #2b2b2b;
+    --accent: #1f2bd6;
+    --rule: #b8b8b8;
+    --shadow: 0 18px 60px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.08);
+    --shadow-soft: 0 6px 24px rgba(0,0,0,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg-frame);
+    font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* outer frame */
+  #frame {
+    position: fixed;
+    inset: 28px;
+    background: var(--bg-stage);
+    overflow: hidden;
+    border-radius: 4px;
+    isolation: isolate;
+  }
+
+  /* title */
+  #title {
+    position: absolute;
+    top: 38px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'PP Writer', 'Cormorant Garamond', 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 38px;
+    color: var(--accent);
+    letter-spacing: 0.005em;
+    text-wrap: balance;
+    z-index: 30;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* small heart */
+  #heart {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    z-index: 6;
+    transition: opacity 0.4s ease;
+  }
+
+  /* center text — 'Populating music' state */
+  #center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    color: rgba(0,0,0,0.45);
+    letter-spacing: 0.01em;
+    z-index: 7;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  #center-text.show { opacity: 1; }
+
+  /* circle wrappers */
+  .circle {
+    position: absolute;
+    top: 50%;
+    width: 32%;
+    height: 90%;
+    transform: translateY(-50%);
+    perspective: 1200px;
+    pointer-events: auto;
+  }
+  #circle-left  { left: 8%; }
+  #circle-right { right: 8%; }
+
+  .circle-track {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  /* a card on the wheel — sits on the surface of a vertical 3D ring */
+  .card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 150px;
+    height: 96px;
+    margin-left: -75px;
+    margin-top: -48px;
+    border-radius: 6px;
+    background: #fff;
+    transform-style: preserve-3d;
+    transition-property: transform, box-shadow, opacity;
+    transition-duration: 0.55s, 0.4s, 0.4s;
+    transition-timing-function: cubic-bezier(.2,.8,.2,1);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+  .card .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 5px;     /* concentric: 6 outer - 1 effective inset */
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    /* subtle image outline (light mode) per design-detail principle */
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10),
+                0 1px 0 rgba(0,0,0,0.06);
+  }
+  .card .spine {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 7px;
+    transform-origin: top center;
+    transform: rotateX(-90deg) translateY(-3.5px);
+    background: linear-gradient(180deg, rgba(0,0,0,0.22), rgba(0,0,0,0.04));
+    border-radius: 6px 6px 0 0;
+  }
+
+  /* selected (flat) card */
+  .card.selected {
+    box-shadow:
+      0 14px 36px rgba(0,0,0,0.18),
+      0 2px 6px rgba(0,0,0,0.10),
+      0 0 0 1.5px #111;
+  }
+
+  /* connector line — appears in selected state */
+  .connector {
+    position: absolute;
+    top: 50%;
+    height: 1px;
+    background: #111;
+    z-index: 4;
+    transform-origin: left center;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.4s;
+  }
+  .connector.show { opacity: 1; }
+  #connector-left  { left: 0; right: 50%; }
+  #connector-right { left: 50%; right: 0; }
+
+  /* country / genre label tag attached to selected card */
+  .tag {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: #fff;
+    background: #111;
+    padding: 6px 14px;
+    z-index: 8;
+    transition: opacity 0.4s ease;
+  }
+  #tag-left  { right: calc(100% - 27%); }   /* sits to the left of the center card on the left wheel */
+  #tag-right { left:  calc(100% - 27%); }
+
+  /* alphabetical dial (extreme left/right) */
+  .dial {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    z-index: 12;
+    user-select: none;
+    cursor: ns-resize;
+  }
+  #dial-left  { left: 18px; }
+  #dial-right { right: 18px; }
+
+  .dial .ticks {
+    position: relative;
+    width: 100%;
+    height: 360px;
+  }
+  .dial .tick {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #6a6a6a;
+    opacity: 0.45;
+  }
+  .dial .tick.long { width: 100%; }
+  .dial .tick.short { width: 50%; }
+
+  .dial .read-out {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 1px solid #2a2a2a;
+    border-radius: 1px;
+    background: var(--bg-stage);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: #111;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition-property: top;
+    transition-duration: 0.22s;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  #dial-left  .read-out { left: -26px; }
+  #dial-right .read-out { right: -26px; }
+
+  /* center floating cards (selected state) — stacked front-to-back along Z */
+  #center-stack {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 220px;
+    z-index: 5;
+    pointer-events: none;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+  }
+  .album-card {
+    position: absolute;
+    inset: 0;
+    background: #ddd;
+    border-radius: 10px;
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.22),
+      0 8px 18px rgba(0,0,0,0.10),
+      0 0 0 1px rgba(0,0,0,0.08);   /* subtle outline so depth reads cleanly */
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition-property: transform, opacity, filter, box-shadow;
+    transition-duration: 0.6s;
+    transition-timing-function: cubic-bezier(.2,.8,.2,1);
+    will-change: transform, opacity, filter;
+    pointer-events: auto;
+    cursor: grab;
+    opacity: 0;
+    filter: blur(14px);
+  }
+  .album-card.dissolved {
+    opacity: 1;
+    filter: blur(0);
+  }
+  .album-card:active { transform: translateZ(var(--z, 0)) scale(0.96); }
+  .album-card .cover {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: #2a2a2a;
+  }
+  .album-card .meta {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+  .album-card .meta .t {
+    font-weight: 500;
+    font-size: 16px;
+  }
+  .album-card .meta .a {
+    font-weight: 300;
+    font-size: 12px;
+    opacity: 0.9;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
+  }
+  .album-card .play {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #111;
+  }
+
+  /* liquid-glass top + bottom strips */
+  .glass {
+    position: absolute;
+    left: 0; right: 0;
+    height: 110px;
+    z-index: 9;
+    pointer-events: none;
+    backdrop-filter: blur(14px) saturate(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(1.05);
+    /* a subtle refraction-ish overlay */
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 60%, rgba(255,255,255,0) 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 60%, transparent 100%);
+  }
+  .glass.bottom {
+    bottom: 0;
+    top: auto;
+    background:
+      linear-gradient(0deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 60%, rgba(255,255,255,0) 100%);
+    mask-image: linear-gradient(0deg, #000 0%, #000 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 60%, transparent 100%);
+  }
+  .glass.top { top: 0; }
+
+  /* SVG displacement-driven refraction layer (placed inside glass strips) */
+  .refract {
+    position: absolute;
+    inset: 0;
+    filter: url(#liquid);
+    background: rgba(255,255,255,0.001); /* needed to anchor filter */
+  }
+
+  /* hand tracking camera frame */
+  #cam {
+    position: absolute;
+    right: 28px;
+    bottom: 28px;
+    width: 220px;
+    height: 150px;
+    background: #f3f3f3;
+    border-radius: 8px;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.06),
+      0 12px 36px rgba(0,0,0,0.18),
+      0 0 0 1px rgba(0,0,0,0.18);
+    z-index: 20;
+    overflow: hidden;
+  }
+  #cam video, #cam canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+  }
+  #cam .placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0,0,0,0.5);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  #cam .frame-corners::before,
+  #cam .frame-corners::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #4cd07d;
+  }
+  #cam .frame-corners::before { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+  #cam .frame-corners::after  { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+  /* bottom-center icon container — pill outer, perfectly round inner buttons */
+  #icon-dock {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 10px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.06),
+      0 8px 24px rgba(0,0,0,0.10),
+      0 0 0 1px rgba(0,0,0,0.04);
+    z-index: 20;
+  }
+  #icon-dock button {
+    background: transparent;
+    border: 0;
+    width: 40px;          /* min hit area 40×40 */
+    height: 40px;
+    cursor: pointer;
+    color: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    transition-property: background-color, transform;
+    transition-duration: 0.18s, 0.12s;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  #icon-dock button:hover  { background: #f3f3f3; }
+  #icon-dock button:active { transform: scale(0.96); }
+
+  /* settings popover */
+  #settings {
+    position: absolute;
+    bottom: 86px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+    z-index: 22;
+    width: 320px;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  #settings.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  #settings h3 {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+  #settings p {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  #settings p { text-wrap: pretty; }
+  #settings input {
+    width: 100%;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;       /* concentric: 14 outer - 6 padding */
+    padding: 9px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    transition-property: border-color, box-shadow;
+    transition-duration: 0.15s;
+  }
+  #settings input:focus {
+    outline: 0;
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+  }
+  #settings .row { display: flex; gap: 8px; margin-top: 10px; }
+  #settings button {
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-family: inherit; font-size: 11px;
+    cursor: pointer;
+    transition-property: background-color, transform, border-color;
+    transition-duration: 0.15s, 0.12s, 0.15s;
+  }
+  #settings button:active { transform: scale(0.96); }
+  #settings button.primary {
+    background: #111; color: #fff;
+    border: 1px solid #111;
+  }
+  #settings button.primary:hover { background: #2a2a2a; }
+  #settings button.ghost {
+    background: transparent; color: #444;
+    border: 1px solid #d8d8d8;
+  }
+  #settings button.ghost:hover { background: #f3f3f3; }
+
+  /* tiny help/hint */
+  #hint {
+    position: absolute;
+    bottom: 12px;
+    left: 28px;
+    font-size: 10.5px;
+    color: rgba(0,0,0,0.55);
+    letter-spacing: 0.04em;
+    z-index: 25;
+  }
+
+  /* spinner ring under "populating" */
+  .ring {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.15);
+    border-top-color: rgba(0,0,0,0.5);
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* kebab menu in top-right of frame (decorative, matches reference) */
+  #menu {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    width: 22px;
+    height: 18px;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+  }
+  #menu span {
+    display: block;
+    height: 2px;
+    background: #2a2a2a;
+  }
+  #menu span:nth-child(1) { width: 60%; align-self: flex-end; }
+  #menu span:nth-child(2) { width: 100%; }
+  #menu span:nth-child(3) { width: 80%; align-self: flex-end; }
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="liquid" x="0%" y="0%" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.04" numOctaves="2" seed="3" result="t"/>
+    <feDisplacementMap in="SourceGraphic" in2="t" scale="14" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div id="frame">
+
+  <div id="title">Circle of Music</div>
+
+  <div id="menu" title="menu">
+    <span></span><span></span><span></span>
+  </div>
+
+  <!-- left circle (countries) -->
+  <div class="circle" id="circle-left">
+    <div class="circle-track" id="track-left"></div>
+  </div>
+
+  <!-- right circle (genres) -->
+  <div class="circle" id="circle-right">
+    <div class="circle-track" id="track-right"></div>
+  </div>
+
+  <!-- connector lines from selected cards to center -->
+  <div class="connector" id="connector-left"></div>
+  <div class="connector" id="connector-right"></div>
+
+  <!-- selected state tags -->
+  <div class="tag" id="tag-left"  style="opacity:0">UNITED KINGDOM</div>
+  <div class="tag" id="tag-right" style="opacity:0">JUNGLE</div>
+
+  <!-- centered heart / populating text -->
+  <div id="heart">&lt;3</div>
+  <div id="center-text"><div class="ring"></div>Populating music</div>
+
+  <!-- center stack of album cards -->
+  <div id="center-stack"></div>
+
+  <!-- left dial -->
+  <div class="dial" id="dial-left">
+    <div class="ticks" id="ticks-left"></div>
+    <div class="read-out" id="read-left">U</div>
+  </div>
+  <!-- right dial -->
+  <div class="dial" id="dial-right">
+    <div class="ticks" id="ticks-right"></div>
+    <div class="read-out" id="read-right">J</div>
+  </div>
+
+  <!-- glass strips -->
+  <div class="glass top"><div class="refract"></div></div>
+  <div class="glass bottom"><div class="refract"></div></div>
+
+  <!-- bottom-center dock -->
+  <div id="icon-dock">
+    <button id="btn-info" title="info">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v5h1"/>
+      </svg>
+    </button>
+    <button id="btn-msg" title="send a recommendation">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 5h18v12H7l-4 4z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- settings popover -->
+  <div id="settings">
+    <h3>Spotify connection</h3>
+    <p>Paste a Web API access token to play real previews. Get one from
+       developer.spotify.com → Console → Get token.</p>
+    <input id="spotify-token" type="password" placeholder="BQ…" autocomplete="off"/>
+    <div class="row">
+      <button class="primary" id="save-token">Save & connect</button>
+      <button class="ghost" id="clear-token">Clear</button>
+    </div>
+    <p id="conn-state" style="margin-top:8px"></p>
+  </div>
+
+  <!-- hand tracking camera box -->
+  <div id="cam">
+    <div class="placeholder" id="cam-placeholder">camera off</div>
+    <video id="webcam" autoplay playsinline muted style="display:none"></video>
+    <canvas id="hand-canvas"></canvas>
+    <div class="frame-corners"></div>
+  </div>
+
+  <div id="hint">↕ scroll a wheel · ✋ raise a hand to track (left/right side controls each wheel) · 🤏 pinch to commit · ⓘ Spotify</div>
+
+</div>
+
+<script>
+/* =========================================================================
+   DATA
+   ========================================================================= */
+const COUNTRIES = [
+  'argentina','brazil','canada','denmark','egypt','france','germany','hungary',
+  'india','japan','kenya','lebanon','mexico','nigeria','oman','peru',
+  'qatar','romania','spain','turkey','united kingdom','vietnam','wales','xinjiang',
+  'yemen','zambia'
+];
+
+const GENRES = [
+  'ambient','blues','classical','disco','electronica','funk','grime','house',
+  'indie','jazz','klezmer','lo-fi','metal','new wave','opera','punk',
+  'qawwali','reggae','soul','techno','uk garage','vaporwave','world','xtatic',
+  'yacht rock','zydeco','jungle'
+];
+
+/* tiny SVG art generator used for spines / placeholder covers when offline */
+function makeArt(seed, palette) {
+  const rand = mulberry32(seed);
+  const c1 = palette[Math.floor(rand()*palette.length)];
+  const c2 = palette[Math.floor(rand()*palette.length)];
+  const shapes = [];
+  for (let i = 0; i < 3 + Math.floor(rand()*4); i++) {
+    const cx = rand() * 150;
+    const cy = rand() * 96;
+    const r  = 10 + rand() * 30;
+    const fill = rand() > 0.5 ? c1 : c2;
+    shapes.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" opacity="${0.5 + rand()*0.4}"/>`);
+  }
+  const bg = palette[Math.floor(rand()*palette.length)];
+  return `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 96">
+      <rect width="150" height="96" fill="${bg}"/>
+      ${shapes.join('')}
+    </svg>`
+  )}`;
+}
+
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+const PALETTES = [
+  ['#e7d8c1','#cf6655','#274c77','#f3a712','#0e1116'],
+  ['#f4f1de','#e07a5f','#3d405b','#81b29a','#f2cc8f'],
+  ['#0a2463','#fb3640','#247ba0','#e9c46a','#264653'],
+  ['#102f26','#fbf8cc','#f4978e','#a4c3b2','#cce3de'],
+  ['#22223b','#4a4e69','#9a8c98','#c9ada7','#f2e9e4'],
+];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+const state = {
+  countryIdx: COUNTRIES.indexOf('united kingdom'),
+  genreIdx:   GENRES.indexOf('jungle'),
+  selected: false,           // becomes true once both wheels are committed
+  populating: false,
+  tracks: [],
+  trackIdx: 0,
+  spotifyToken: localStorage.getItem('spotify_token') || '',
+  audio: null,
+};
+
+/* =========================================================================
+   WHEEL RENDERING
+   ========================================================================= */
+const VISIBLE_RANGE = 6;          // cards above/below the selected one we draw
+const ANGLE_STEP    = 18;         // degrees between adjacent cards on the ring
+const RING_RADIUS   = 220;        // px — depth of the ring
+const SPINE_BIAS    = 62;         // extra tilt added to non-selected cards (so we see spine, not face)
+const MAX_TILT      = 86;         // cap so cards never flip past edge-on
+
+function buildWheel(trackEl, items, getPalette) {
+  trackEl.innerHTML = '';
+  items.forEach((label, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = i;
+    card.dataset.label = label;
+
+    const face = document.createElement('div');
+    face.className = 'face';
+    const palette = getPalette(i);
+    face.style.backgroundImage = `url("${makeArt(i * 31 + 7, palette)}")`;
+    face.style.backgroundColor = palette[0];
+
+    const spine = document.createElement('div');
+    spine.className = 'spine';
+    spine.style.background = `linear-gradient(180deg, ${palette[1]}, ${palette[2]})`;
+
+    card.appendChild(face);
+    card.appendChild(spine);
+    trackEl.appendChild(card);
+  });
+}
+
+/**
+ * Lay each card on the surface of a vertical 3D ring.
+ *
+ *   y     = R · sin(θ)        — vertical position along the arc
+ *   z     = R · cos(θ) − R    — center sits at z=0, others curve back
+ *   rotX  = θ                 — face is tangent to the ring (true arc)
+ *
+ * For every non-selected card we add SPINE_BIAS so the rotation jumps to a
+ * spine-heavy view — this matches the design where ONLY the center card
+ * pops flat to the camera and everything else reads as a stacked spine.
+ */
+function layoutWheel(trackEl, selectedIdx, total) {
+  const cards = trackEl.querySelectorAll('.card');
+  cards.forEach((card, i) => {
+    let delta = i - selectedIdx;
+    if (delta >  total / 2) delta -= total;
+    if (delta < -total / 2) delta += total;
+
+    const dist = Math.abs(delta);
+    if (dist > VISIBLE_RANGE) {
+      card.style.opacity = 0;
+      card.style.transform =
+        `translateY(${Math.sign(delta) * 260}px) translateZ(-260px) rotateX(${Math.sign(delta) * MAX_TILT}deg)`;
+      card.classList.remove('selected');
+      return;
+    }
+
+    const θdeg = delta * ANGLE_STEP;
+    const θ    = θdeg * Math.PI / 180;
+    const y    = Math.sin(θ) * RING_RADIUS;
+    const z    = Math.cos(θ) * RING_RADIUS - RING_RADIUS;
+
+    let rotX;
+    if (delta === 0) {
+      rotX = 0;
+    } else {
+      // arc-tangent rotation + spine bias, capped so we never flip past edge-on
+      const biased = θdeg + Math.sign(delta) * SPINE_BIAS;
+      rotX = Math.max(-MAX_TILT, Math.min(MAX_TILT, biased));
+    }
+
+    card.style.transform =
+      `translateY(${y.toFixed(1)}px) translateZ(${z.toFixed(1)}px) rotateX(${rotX.toFixed(1)}deg)`;
+    card.style.opacity   = (1 - (dist / (VISIBLE_RANGE + 1)) * 0.55).toFixed(2);
+    card.style.zIndex    = 100 - dist;
+
+    if (delta === 0) card.classList.add('selected');
+    else             card.classList.remove('selected');
+  });
+}
+
+/* =========================================================================
+   DIAL (alphabetical readout)
+   ========================================================================= */
+function buildDial(ticksEl, count) {
+  ticksEl.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const t = document.createElement('div');
+    t.className = 'tick ' + (i % 2 === 0 ? 'long' : 'short');
+    t.style.top = `${(i / (count - 1)) * 100}%`;
+    ticksEl.appendChild(t);
+  }
+}
+
+function updateDial(readEl, ticksEl, item) {
+  if (!item) return;
+  const ch = item[0].toUpperCase();
+  readEl.textContent = ch;
+  // position read-out where the matching tick is, mapped A..Z onto the bar
+  const code = ch.charCodeAt(0) - 65;
+  const ratio = Math.max(0, Math.min(1, code / 25));
+  readEl.style.top = `${ratio * 100}%`;
+}
+
+/* =========================================================================
+   SELECTED-STATE: connectors, tags, populate + cards
+   ========================================================================= */
+function refresh() {
+  const country = COUNTRIES[state.countryIdx];
+  const genre   = GENRES[state.genreIdx];
+
+  layoutWheel(document.getElementById('track-left'),  state.countryIdx, COUNTRIES.length);
+  layoutWheel(document.getElementById('track-right'), state.genreIdx,   GENRES.length);
+
+  updateDial(document.getElementById('read-left'),  document.getElementById('ticks-left'),  country);
+  updateDial(document.getElementById('read-right'), document.getElementById('ticks-right'), genre);
+
+  document.getElementById('tag-left').textContent  = country.toUpperCase();
+  document.getElementById('tag-right').textContent = genre.toUpperCase();
+
+  if (state.selected) {
+    document.getElementById('tag-left').style.opacity  = 1;
+    document.getElementById('tag-right').style.opacity = 1;
+    document.getElementById('connector-left').classList.add('show');
+    document.getElementById('connector-right').classList.add('show');
+    document.getElementById('heart').style.opacity = 0;
+  } else {
+    document.getElementById('tag-left').style.opacity  = 0;
+    document.getElementById('tag-right').style.opacity = 0;
+    document.getElementById('connector-left').classList.remove('show');
+    document.getElementById('connector-right').classList.remove('show');
+    document.getElementById('heart').style.opacity = 1;
+  }
+
+  document.getElementById('center-text').classList.toggle('show', state.populating);
+}
+
+/* render up to 5 album cards in the center stack with depth offsets */
+function renderCenterStack() {
+  const stack = document.getElementById('center-stack');
+  stack.innerHTML = '';
+
+  state.tracks.slice(0, 6).forEach((track, i) => {
+    const card = document.createElement('div');
+    card.className = 'album-card';
+    const offset = i - state.trackIdx;
+    const dist = Math.abs(offset);
+
+    card.innerHTML = `
+      <div class="cover" style="background-image:url('${track.image || makeArt(i * 7 + 1, PALETTES[i % PALETTES.length])}')"></div>
+      <div class="play">▶</div>
+      <div class="meta">
+        <div class="t">${escapeHtml(track.title)}</div>
+        <div class="a">${escapeHtml(track.artist)}</div>
+      </div>
+    `;
+    // pure front-to-back stack: z-depth + a touch of vertical drift + scale
+    const z     = -dist * 70;
+    const yDrift =  offset * 4;
+    const scale =  1 - dist * 0.04;
+    card.style.setProperty('--z', `${z}px`);
+    card.style.transform =
+      `translateZ(${z}px) translateY(${yDrift}px) scale(${scale.toFixed(3)})`;
+    card.style.zIndex = 100 - dist;
+    if (offset !== 0) card.style.filter = `blur(${Math.min(2.4, dist * 0.7).toFixed(2)}px)`;
+
+    card.addEventListener('click', () => playTrack(track));
+    stack.appendChild(card);
+
+    // staggered dissolve-in
+    requestAnimationFrame(() => {
+      setTimeout(() => card.classList.add('dissolved'), i * 90);
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+/* =========================================================================
+   GESTURES
+   ========================================================================= */
+function attachWheelGestures(circleEl, onChange) {
+  let accum = 0;
+  circleEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    accum += e.deltaY;
+    if (Math.abs(accum) > 24) {
+      onChange(Math.sign(accum));
+      accum = 0;
+    }
+  }, { passive: false });
+
+  // touch / mouse drag
+  let lastY = null;
+  const start = e => { lastY = (e.touches ? e.touches[0].clientY : e.clientY); };
+  const move  = e => {
+    if (lastY == null) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = y - lastY;
+    if (Math.abs(dy) > 18) {
+      onChange(Math.sign(dy));
+      lastY = y;
+    }
+  };
+  const end = () => { lastY = null; };
+  circleEl.addEventListener('mousedown', start);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  circleEl.addEventListener('touchstart', start, { passive: true });
+  circleEl.addEventListener('touchmove',  move,  { passive: true });
+  circleEl.addEventListener('touchend',   end);
+}
+
+/* =========================================================================
+   SPOTIFY (lightweight client — token-based, search + previews)
+   ========================================================================= */
+async function spotifyFetch(path) {
+  if (!state.spotifyToken) throw new Error('no token');
+  const res = await fetch(`https://api.spotify.com/v1${path}`, {
+    headers: { Authorization: `Bearer ${state.spotifyToken}` }
+  });
+  if (!res.ok) throw new Error(`spotify ${res.status}`);
+  return res.json();
+}
+
+async function searchTracks(country, genre) {
+  // Spotify doesn't have a "country origin" field; we approximate with a query
+  const q = encodeURIComponent(`${country} ${genre}`);
+  const data = await spotifyFetch(`/search?q=${q}&type=track&limit=12`);
+  return data.tracks.items.map(t => ({
+    title: t.name,
+    artist: t.artists.map(a => a.name).join(', '),
+    image: t.album.images[1]?.url || t.album.images[0]?.url,
+    preview: t.preview_url,
+    uri: t.uri,
+  }));
+}
+
+/* mock data so the UI demos without a token */
+function mockTracks(country, genre) {
+  const base = [
+    ['Soft Compass',     'Marin Vale'],
+    ['Halfway River',    'Coba & The Bow'],
+    ['Tin Roof Mornings','Kade Ito'],
+    ['Bluebird, Bluebird','Norah Lin'],
+    ['Echo Hill Drive',  'Sun Atlas'],
+    ['Late Mango',       'Pelo de Mar'],
+  ];
+  return base.map(([t, a], i) => ({
+    title: t,
+    artist: `${a} · ${capitalize(country)} ${capitalize(genre)}`,
+    image: makeArt(i * 13 + country.length + genre.length, PALETTES[i % PALETTES.length]),
+    preview: null,
+    uri: null,
+  }));
+}
+
+function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
+
+async function commitSelection() {
+  state.selected = true;
+  state.populating = true;
+  state.tracks = [];
+  refresh();
+  document.getElementById('center-stack').innerHTML = '';
+
+  const country = COUNTRIES[state.countryIdx];
+  const genre   = GENRES[state.genreIdx];
+
+  let tracks;
+  try {
+    if (state.spotifyToken) {
+      tracks = await searchTracks(country, genre);
+    } else {
+      await new Promise(r => setTimeout(r, 900)); // simulate latency
+      tracks = mockTracks(country, genre);
+    }
+  } catch (e) {
+    console.warn('falling back to mock:', e.message);
+    tracks = mockTracks(country, genre);
+  }
+
+  state.tracks = tracks;
+  state.trackIdx = 0;
+  state.populating = false;
+  refresh();
+  renderCenterStack();
+}
+
+function playTrack(track) {
+  if (state.audio) { state.audio.pause(); state.audio = null; }
+  if (track.preview) {
+    state.audio = new Audio(track.preview);
+    state.audio.play().catch(() => {});
+  } else {
+    // no preview — flash the card border to acknowledge click
+    console.log('no preview for', track.title);
+  }
+}
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+function init() {
+  buildWheel(document.getElementById('track-left'),  COUNTRIES, i => PALETTES[i % PALETTES.length]);
+  buildWheel(document.getElementById('track-right'), GENRES,    i => PALETTES[(i+2) % PALETTES.length]);
+  buildDial(document.getElementById('ticks-left'),  26);
+  buildDial(document.getElementById('ticks-right'), 26);
+  refresh();
+
+  attachWheelGestures(document.getElementById('circle-left'),  dir => window.__cof.spinLeft(dir));
+  attachWheelGestures(document.getElementById('circle-right'), dir => window.__cof.spinRight(dir));
+
+  // double-click either wheel to commit selection
+  document.getElementById('circle-left').addEventListener('dblclick',  commitSelection);
+  document.getElementById('circle-right').addEventListener('dblclick', commitSelection);
+
+  // settings popover
+  const settings = document.getElementById('settings');
+  document.getElementById('btn-info').addEventListener('click', e => {
+    e.stopPropagation();
+    settings.classList.toggle('open');
+    refreshConnState();
+  });
+  document.getElementById('btn-msg').addEventListener('click', () => {
+    const country = COUNTRIES[state.countryIdx];
+    const genre   = GENRES[state.genreIdx];
+    const subject = encodeURIComponent(`Recommendation for ${country} × ${genre}`);
+    window.location.href = `mailto:?subject=${subject}&body=Add an artist or album you'd recommend for this combo: `;
+  });
+  document.getElementById('save-token').addEventListener('click', () => {
+    state.spotifyToken = document.getElementById('spotify-token').value.trim();
+    localStorage.setItem('spotify_token', state.spotifyToken);
+    refreshConnState();
+    if (state.selected) commitSelection();
+  });
+  document.getElementById('clear-token').addEventListener('click', () => {
+    state.spotifyToken = '';
+    localStorage.removeItem('spotify_token');
+    document.getElementById('spotify-token').value = '';
+    refreshConnState();
+  });
+  document.addEventListener('click', e => {
+    if (!settings.contains(e.target) && e.target.id !== 'btn-info') {
+      settings.classList.remove('open');
+    }
+  });
+
+  // entrance: delay first commit so user sees the empty state first
+  setTimeout(() => commitSelection(), 1200);
+}
+
+function refreshConnState() {
+  const el = document.getElementById('conn-state');
+  if (!el) return;
+  if (state.spotifyToken) {
+    el.style.color = '#1a8a4a';
+    el.textContent = 'Connected — playing real previews when available.';
+    document.getElementById('spotify-token').value = state.spotifyToken;
+  } else {
+    el.style.color = '#888';
+    el.textContent = 'Not connected — running on mock data.';
+  }
+}
+
+/* =========================================================================
+   CAMERA / hand tracking — implemented in the module below; this file
+   exposes hooks the module calls into.
+   ========================================================================= */
+window.__cof = {
+  spinLeft:  dir => {
+    state.countryIdx = (state.countryIdx + dir + COUNTRIES.length) % COUNTRIES.length;
+    state.selected = false;
+    refresh();
+    scheduleAutoCommit();
+  },
+  spinRight: dir => {
+    state.genreIdx = (state.genreIdx + dir + GENRES.length) % GENRES.length;
+    state.selected = false;
+    refresh();
+    scheduleAutoCommit();
+  },
+  commit: () => { if (!state.selected) commitSelection(); },
+};
+
+let _autoCommitTimer = null;
+function scheduleAutoCommit() {
+  if (_autoCommitTimer) clearTimeout(_autoCommitTimer);
+  _autoCommitTimer = setTimeout(() => {
+    if (!state.selected) commitSelection();
+  }, 1200);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- =========================================================================
+     MediaPipe Hand Landmarker — drawn on the cam canvas, plus gestures
+     ========================================================================= -->
+<script type="importmap">
+{ "imports": { "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/vision_bundle.mjs" } }
+</script>
+<script type="module">
+import { HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
+
+const cam         = document.getElementById('cam');
+const placeholder = document.getElementById('cam-placeholder');
+const video       = document.getElementById('webcam');
+const canvas      = document.getElementById('hand-canvas');
+const ctx         = canvas.getContext('2d');
+
+const HAND_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[0,17],[17,18],[18,19],[19,20]
+];
+
+let handLandmarker = null;
+let lastVideoTime  = -1;
+
+async function initCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 320 }, height: { ideal: 240 }, facingMode: 'user' },
+      audio: false
+    });
+    video.srcObject = stream;
+    await new Promise(r => (video.onloadedmetadata = r));
+    await video.play();
+    video.style.display = 'block';
+    placeholder.style.display = 'none';
+
+    const sizeCanvas = () => {
+      canvas.width  = video.videoWidth  || 320;
+      canvas.height = video.videoHeight || 240;
+    };
+    sizeCanvas();
+    return true;
+  } catch (e) {
+    placeholder.textContent = 'allow camera to enable hand tracking';
+    return false;
+  }
+}
+
+async function initMediaPipe() {
+  try {
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm'
+    );
+    handLandmarker = await HandLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath:
+          'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+        delegate: 'GPU'
+      },
+      runningMode: 'VIDEO',
+      numHands: 2
+    });
+  } catch (e) {
+    console.warn('MediaPipe init failed — hand tracking disabled:', e);
+  }
+}
+
+/* ----- gesture state ----- */
+const SCROLL_COOLDOWN = 240;     // ms between auto-spin ticks
+const PINCH_RATIO     = 0.36;    // index–thumb / hand size below this = pinch
+let lastScrollAt = { left: 0, right: 0 };
+let lastPinchAt  = 0;
+
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+function drawSkeleton(landmarks, isLeft) {
+  const w = canvas.width, h = canvas.height;
+  // green when on left (controls country wheel), magenta when on right (controls genre wheel)
+  const stroke = isLeft ? 'rgba(60, 220, 130, 0.95)' : 'rgba(255, 100, 200, 0.95)';
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = stroke;
+  for (const [a, b] of HAND_CONNECTIONS) {
+    ctx.beginPath();
+    ctx.moveTo(landmarks[a].x * w, landmarks[a].y * h);
+    ctx.lineTo(landmarks[b].x * w, landmarks[b].y * h);
+    ctx.stroke();
+  }
+  ctx.fillStyle = stroke;
+  for (const lm of landmarks) {
+    ctx.beginPath();
+    ctx.arc(lm.x * w, lm.y * h, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function gestureFor(landmarks, now) {
+  const wrist  = landmarks[0];
+  // mirrored video: x<0.5 visually = right side; we flip so user-perceived
+  // left maps to the country wheel, right to the genre wheel.
+  const userLeft = wrist.x > 0.5;
+  const side = userLeft ? 'left' : 'right';
+
+  // pinch detection — prioritized
+  const pinch    = dist(landmarks[4], landmarks[8]);
+  const handSize = dist(landmarks[0], landmarks[9]);
+  const pinchRatio = pinch / Math.max(0.001, handSize);
+  if (pinchRatio < PINCH_RATIO) {
+    if (now - lastPinchAt > 700) {
+      lastPinchAt = now;
+      window.__cof?.commit();
+    }
+    return;
+  }
+
+  // vertical position drives spin direction; |y - 0.5| drives speed
+  const dy = landmarks[9].y - 0.5;     // middle-finger MCP, more stable than wrist
+  const mag = Math.abs(dy);
+  if (mag < 0.10) return;              // dead zone — hand near center
+
+  const cooldown = Math.max(80, SCROLL_COOLDOWN - mag * 600);
+  if (now - lastScrollAt[side] < cooldown) return;
+  lastScrollAt[side] = now;
+
+  const dir = dy > 0 ? 1 : -1;         // hand below center → next; above → prev
+  if (side === 'left') window.__cof?.spinLeft(dir);
+  else                 window.__cof?.spinRight(dir);
+}
+
+function tick() {
+  if (handLandmarker && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    const result = handLandmarker.detectForVideo(video, performance.now());
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (result.landmarks?.length) {
+      const now = performance.now();
+      result.landmarks.forEach(lm => {
+        const isLeft = lm[0].x > 0.5; // mirrored
+        drawSkeleton(lm, isLeft);
+        gestureFor(lm, now);
+      });
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+(async () => {
+  const ok = await initCamera();
+  if (!ok) return;
+  await initMediaPipe();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
