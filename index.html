@@ -332,37 +332,92 @@
     color: #111;
   }
 
-  /* liquid-glass top + bottom strips */
+  /* =========================================================================
+     Liquid-glass strips
+     ─────────────────────────────────────────────────────────────────────────
+     Composition (back-to-front):
+       1. backdrop-filter   — blurs + saturates the wheels behind the strip,
+                              and on browsers that support url() in backdrop-
+                              filter the noise-driven displacement actually
+                              warps card edges. Other browsers get the blur.
+       2. background        — a soft white gradient gives the frosted body.
+       3. ::before sheen    — animated specular highlight ribbon, slow drift.
+       4. ::after edge      — 1px bright line at the leading edge of the glass.
+     ========================================================================= */
   .glass {
     position: absolute;
     left: 0; right: 0;
-    height: 110px;
+    height: 130px;
     z-index: 9;
     pointer-events: none;
-    backdrop-filter: blur(14px) saturate(1.05);
-    -webkit-backdrop-filter: blur(14px) saturate(1.05);
-    /* a subtle refraction-ish overlay */
+    overflow: hidden;
+    /* progressive enhancement: url(#liquid) gives true warp on Safari/Chrome.
+       Browsers that don't parse it still apply blur/saturate/brightness. */
+    backdrop-filter: blur(18px) saturate(1.25) brightness(1.04) url(#liquid);
+    -webkit-backdrop-filter: blur(18px) saturate(1.25) brightness(1.04);
     background:
-      linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 60%, rgba(255,255,255,0) 100%);
-    mask-image: linear-gradient(180deg, #000 0%, #000 60%, transparent 100%);
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 60%, transparent 100%);
+      linear-gradient(180deg,
+        rgba(255,255,255,0.62) 0%,
+        rgba(255,255,255,0.42) 35%,
+        rgba(255,255,255,0.18) 70%,
+        rgba(255,255,255,0)    100%);
+    mask-image:         linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
   }
+  /* drifting specular sheen — slow, subtle, reinforces the "alive glass" feel */
+  .glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg,
+      transparent 30%,
+      rgba(255,255,255,0.35) 48%,
+      rgba(255,255,255,0.55) 50%,
+      rgba(255,255,255,0.35) 52%,
+      transparent 70%);
+    mix-blend-mode: screen;
+    transform: translateX(-30%);
+    animation: sheen 14s linear infinite;
+    opacity: 0.55;
+  }
+  /* leading edge highlight */
+  .glass::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0)    0%,
+      rgba(255,255,255,0.70) 25%,
+      rgba(255,255,255,0.90) 50%,
+      rgba(255,255,255,0.70) 75%,
+      rgba(255,255,255,0)    100%);
+    opacity: 0.6;
+  }
+  .glass.top { top: 0; }
   .glass.bottom {
     bottom: 0;
     top: auto;
+    height: 160px;       /* stronger glass at the bottom — matches the reference */
     background:
-      linear-gradient(0deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 60%, rgba(255,255,255,0) 100%);
-    mask-image: linear-gradient(0deg, #000 0%, #000 60%, transparent 100%);
-    -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 60%, transparent 100%);
+      linear-gradient(0deg,
+        rgba(255,255,255,0.62) 0%,
+        rgba(255,255,255,0.42) 35%,
+        rgba(255,255,255,0.18) 70%,
+        rgba(255,255,255,0)    100%);
+    mask-image:         linear-gradient(0deg, #000 0%, #000 72%, transparent 100%);
+    -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 72%, transparent 100%);
   }
-  .glass.top { top: 0; }
+  .glass.bottom::after { top: auto; bottom: 0; }
+  .glass.bottom::before {
+    /* bottom strip drifts the opposite direction so the two read as a pair */
+    animation-direction: reverse;
+  }
 
-  /* SVG displacement-driven refraction layer (placed inside glass strips) */
-  .refract {
-    position: absolute;
-    inset: 0;
-    filter: url(#liquid);
-    background: rgba(255,255,255,0.001); /* needed to anchor filter */
+  @keyframes sheen {
+    0%   { transform: translateX(-40%); }
+    100% { transform: translateX( 40%); }
   }
 
   /* hand tracking camera frame */
@@ -565,11 +620,28 @@
 </head>
 
 <body>
+<!-- Liquid-glass filter: animated turbulence drives a per-channel displacement
+     map so colors split slightly at the displacement frontier (chromatic
+     dispersion), then a soft blur composites it back into a smooth pane. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="liquid" x="0%" y="0%" width="100%" height="100%">
-    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.04" numOctaves="2" seed="3" result="t"/>
-    <feDisplacementMap in="SourceGraphic" in2="t" scale="14" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
+  <defs>
+    <filter id="liquid" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.011 0.022" numOctaves="2" seed="4" result="noise">
+        <animate attributeName="baseFrequency" dur="22s" values="0.011 0.022; 0.013 0.018; 0.010 0.024; 0.011 0.022" repeatCount="indefinite"/>
+      </feTurbulence>
+      <!-- per-channel displacement: red / green / blue offset slightly differently
+           to create a faint prismatic edge along the glass frontier. -->
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="22" xChannelSelector="R" yChannelSelector="G" result="r"/>
+      <feColorMatrix in="r" type="matrix" values="1 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 1 0" result="rOnly"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0   0 1 0 0 0   0 0 0 0 0   0 0 0 1 0" result="gOnly"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" result="b"/>
+      <feColorMatrix in="b" type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 1 0 0   0 0 0 1 0" result="bOnly"/>
+      <feBlend in="rOnly" in2="gOnly" mode="screen" result="rg"/>
+      <feBlend in="rg"    in2="bOnly" mode="screen" result="rgb"/>
+      <feGaussianBlur in="rgb" stdDeviation="0.4"/>
+    </filter>
+  </defs>
 </svg>
 
 <div id="frame">
@@ -616,9 +688,10 @@
     <div class="read-out" id="read-right">J</div>
   </div>
 
-  <!-- glass strips -->
-  <div class="glass top"><div class="refract"></div></div>
-  <div class="glass bottom"><div class="refract"></div></div>
+  <!-- glass strips (top + bottom). Cards behind warp through the SVG
+       displacement filter referenced by backdrop-filter: url(#liquid). -->
+  <div class="glass top"></div>
+  <div class="glass bottom"></div>
 
   <!-- bottom-center dock -->
   <div id="icon-dock">
