@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* PP Writer — drop the file at /public/fonts/PPWriter.woff2 (or .otf/.ttf)
+   and it'll pick up. Until then, falls through to the italic serif fallback. */
+@font-face {
+  font-family: 'PP Writer';
+  src: url('/fonts/PPWriter.woff2') format('woff2'),
+       url('/fonts/PPWriter.otf')   format('opentype'),
+       url('/fonts/PPWriter.ttf')   format('truetype');
+  font-weight: 100 900;
+  font-style: normal italic;
+  font-display: swap;
+}
+
+:root {
+  --bg-frame: #8a8a8a;
+  --bg-stage: #efefee;
+  --ink: #0a0a0a;
+  --accent: #1f2bd6;
+}
+
+@theme inline {
+  --font-mono: var(--font-plex-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-display: 'PP Writer', 'Cormorant Garamond', 'Times New Roman', serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  margin: 0;
+  background: var(--bg-frame);
+  color: var(--ink);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Liquid-glass SVG filter is mounted once in layout; strip CSS lives here. */
+.glass {
+  position: absolute;
+  left: 0; right: 0;
+  z-index: 9;
+  pointer-events: none;
+  overflow: hidden;
+  backdrop-filter: blur(18px) saturate(1.25) brightness(1.04) url(#liquid);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25) brightness(1.04);
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.62) 0%,
+    rgba(255,255,255,0.42) 35%,
+    rgba(255,255,255,0.18) 70%,
+    rgba(255,255,255,0)    100%);
+  mask-image:         linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+}
+.glass.bottom {
+  background: linear-gradient(0deg,
+    rgba(255,255,255,0.62) 0%,
+    rgba(255,255,255,0.42) 35%,
+    rgba(255,255,255,0.18) 70%,
+    rgba(255,255,255,0)    100%);
+  mask-image:         linear-gradient(0deg, #000 0%, #000 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 72%, transparent 100%);
+}
+.glass::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    rgba(255,255,255,0.35) 48%,
+    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0.35) 52%,
+    transparent 70%);
+  mix-blend-mode: screen;
+  animation: sheen 14s linear infinite;
+  opacity: 0.55;
+}
+.glass.bottom::before { animation-direction: reverse; }
+.glass::after {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  top: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(255,255,255,0.7) 25%, rgba(255,255,255,0.9) 50%,
+    rgba(255,255,255,0.7) 75%, transparent 100%);
+  opacity: 0.6;
+}
+.glass.bottom::after { top: auto; bottom: 0; }
+
+@keyframes sheen {
+  0%   { transform: translateX(-40%); }
+  100% { transform: translateX( 40%); }
+}
+
+/* Frame */
+.frame {
+  position: fixed; inset: 28px;
+  background: var(--bg-stage);
+  overflow: hidden;
+  border-radius: 4px;
+  isolation: isolate;
+}
+
+/* Title */
+.title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+}
+
+/* Tabular numerals on dial readouts */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Subtle image outline (light-mode rule from feel-better skill) */
+.img-outline { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10); }
