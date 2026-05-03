@@ -5,39 +5,63 @@ import { useFrame, useLoader, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeArt, paletteFor } from '@/lib/art';
 
-type WheelProps = {
-  /** Items to lay around the ring (countries OR genres). */
+export type WheelTuning = {
+  /* layout */
+  radius: number;
+  cardSize: number;
+  cardThickness: number;
+  /* rotation — all three axes are modulated by flatness so the
+   * active card remains face-on, upright, untilted */
+  spineAngleDeg: number;     // Y-axis tilt (existing — face↔spine)
+  xTiltDeg: number;          // X-axis tilt (forward/backward lean)
+  extraZDeg: number;         // extra Z rotation on top of tangent alignment
+  tangentAmount: number;     // 0..1 multiplier on the tangent (spoke) alignment
+  flipSpine: boolean;        // mirror the Y-axis spine direction
+  /* active card emphasis */
+  popZ: number;
+  popScale: number;
+  recedeZ: number;
+  /* angular padding around active card (radians) */
+  paddingAmount: number;
+  paddingDecay: number;
+};
+
+type WheelProps = WheelTuning & {
   items: readonly string[];
-  /** 0..items.length-1; the card currently at the front of the ring. */
   selectedIdx: number;
-  /** Position of the wheel center in world space. */
   position: [number, number, number];
-  /** Direction sign — flips the ring so left/right wheels mirror each other.
-   *  +1 spins one way, -1 the other; doesn't change layout, only feel. */
   facing?: 1 | -1;
-  /** Called when the user drags or scrolls; dir = ±1 per click. */
   onSpin: (dir: number) => void;
-  /** Called when a card is clicked instead of dragged — caller may snap to it. */
   onPick?: (i: number) => void;
 };
 
-const RADIUS         = 2.4;     // ring radius (world units)
-const ANGLE_STEP_DEG = 18;      // degrees between adjacent cards
-const VISIBLE_RANGE  = 7;       // cards above/below selected we render
-const CARD_SIZE      = 1.6;     // square cards — vinyl aspect
-const SPINE_BIAS_DEG = 62;      // extra tilt added to non-selected cards
-const MAX_TILT_DEG   = 86;      // cap so cards never flip past edge-on
+/* ---------- reusable math objects ---------- */
+const _qX      = new THREE.Quaternion();
+const _qY      = new THREE.Quaternion();
+const _qZ      = new THREE.Quaternion();
+const _qTmp    = new THREE.Quaternion();
+const _qResult = new THREE.Quaternion();
+const _axisX   = new THREE.Vector3(1, 0, 0);
+const _axisY   = new THREE.Vector3(0, 1, 0);
+const _axisZ   = new THREE.Vector3(0, 0, 1);
 
-const DEG = Math.PI / 180;
-
-/**
- * A single card on the ring. Memoized on (idx, palette) so geometry +
- * texture aren't rebuilt every frame — only the parent group re-renders.
- */
-function Card({ idx, side }: { idx: number; side: 'left' | 'right' }) {
-  // distinct palette stripe per side so the two wheels feel different
+/* ---------- single card ---------- */
+function Card({
+  idx,
+  side,
+  cardSize,
+  cardThickness,
+}: {
+  idx: number;
+  side: 'left' | 'right';
+  cardSize: number;
+  cardThickness: number;
+}) {
   const palette = paletteFor(idx + (side === 'right' ? 2 : 0));
-  const dataUrl = useMemo(() => makeArt(idx * 31 + (side === 'right' ? 17 : 7), palette), [idx, side, palette]);
+  const dataUrl = useMemo(
+    () => makeArt(idx * 31 + (side === 'right' ? 17 : 7), palette),
+    [idx, side, palette],
+  );
   const texture = useLoader(THREE.TextureLoader, dataUrl);
 
   useEffect(() => {
@@ -48,25 +72,25 @@ function Card({ idx, side }: { idx: number; side: 'left' | 'right' }) {
 
   return (
     <group>
-      {/* front face — vinyl cover */}
-      <mesh>
-        <planeGeometry args={[CARD_SIZE, CARD_SIZE]} />
+      {/* card body — a proper box so the spine has visible thickness */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[cardSize, cardSize, cardThickness]} />
+        <meshBasicMaterial color="#212222" toneMapped={false} />
+      </mesh>
+      {/* front face — vinyl cover, sits just in front of the box */}
+      <mesh position={[0, 0, cardThickness / 2 + 0.001]}>
+        <planeGeometry args={[cardSize, cardSize]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
-      </mesh>
-      {/* back face — solid dark so the card has presence when seen edge-on */}
-      <mesh rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[CARD_SIZE, CARD_SIZE]} />
-        <meshBasicMaterial color="#1a1a1a" toneMapped={false} />
-      </mesh>
-      {/* spine extrusion — gives the card thickness when tilted */}
-      <mesh position={[0, CARD_SIZE / 2, -0.01]}>
-        <boxGeometry args={[CARD_SIZE, 0.04, 0.04]} />
-        <meshBasicMaterial color="#0a0a0a" toneMapped={false} />
       </mesh>
     </group>
   );
 }
 
+/* ================================================================
+ *  Wheel — a large circle, mostly clipped off-canvas. Spinning
+ *  rotates the wheel so the SELECTED card lands at the fixed
+ *  active position (3 o'clock for left, 9 o'clock for right).
+ * ================================================================ */
 export default function Wheel({
   items,
   selectedIdx,
@@ -74,37 +98,51 @@ export default function Wheel({
   facing = 1,
   onSpin,
   onPick,
+  /* tuning */
+  radius,
+  cardSize,
+  cardThickness,
+  spineAngleDeg,
+  xTiltDeg,
+  extraZDeg,
+  tangentAmount,
+  flipSpine,
+  popZ,
+  popScale,
+  recedeZ,
+  paddingAmount,
+  paddingDecay,
 }: WheelProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const targetIdx = useRef<number>(selectedIdx);
-  const renderedIdx = useRef<number>(selectedIdx);
-  // continuous, fractional version of selectedIdx — animates between integers
-  const fractional = useRef<number>(selectedIdx);
+  const groupRef    = useRef<THREE.Group>(null);
+  const targetRot   = useRef(0);
+  const wheelRot    = useRef(0);
+  const total       = items.length;
+  const angleStep   = (2 * Math.PI) / total;
+  const isLeft      = position[0] < 0;
+  const activeAngle = isLeft ? 0 : Math.PI;
 
   useEffect(() => {
-    targetIdx.current = selectedIdx;
-  }, [selectedIdx]);
+    targetRot.current = activeAngle - selectedIdx * angleStep;
+  }, [selectedIdx, activeAngle, angleStep]);
 
-  // drag-to-spin local state
+  /* ---- drag state ---- */
   const [dragging, setDragging] = useState(false);
   const dragStartY = useRef(0);
   const dragAccum  = useRef(0);
-
-  // wheel/scroll-to-spin local accumulator
   const wheelAccum = useRef(0);
 
+  /* lerp wheel rotation toward target, taking shortest path */
   useFrame(() => {
-    // critically damped lerp toward the target index
-    const target = targetIdx.current;
-    fractional.current += (target - fractional.current) * 0.18;
-    renderedIdx.current = fractional.current;
+    let diff = targetRot.current - wheelRot.current;
+    while (diff >  Math.PI) diff -= 2 * Math.PI;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    wheelRot.current += diff * 0.13;
   });
 
-  /* ---------- pointer drag ---------- */
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     setDragging(true);
     dragStartY.current = e.clientY;
-    dragAccum.current = 0;
+    dragAccum.current  = 0;
     (e.target as Element)?.setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
@@ -112,182 +150,191 @@ export default function Wheel({
     const dy = e.clientY - dragStartY.current;
     dragStartY.current = e.clientY;
     dragAccum.current += dy * facing;
-    while (dragAccum.current > 22) {
-      onSpin(1);
-      dragAccum.current -= 22;
-    }
-    while (dragAccum.current < -22) {
-      onSpin(-1);
-      dragAccum.current += 22;
-    }
+    while (dragAccum.current >  22) { onSpin(1);  dragAccum.current -= 22; }
+    while (dragAccum.current < -22) { onSpin(-1); dragAccum.current += 22; }
   };
   const onPointerUp = (e: ThreeEvent<PointerEvent>) => {
     setDragging(false);
     (e.target as Element)?.releasePointerCapture?.(e.pointerId);
   };
 
-  /* ---------- wheel scroll (mouse + trackpad) ---------- */
   useEffect(() => {
-    const el = groupRef.current;
-    if (!el) return;
-    // we attach to window because R3F's onWheel doesn't easily bubble through Canvas
     const handler = (e: WheelEvent) => {
-      // scope: only when pointer is over our half of the screen
-      const half = window.innerWidth / 2;
+      const half    = window.innerWidth / 2;
       const inLeft  = e.clientX <  half;
       const inRight = e.clientX >= half;
       const meLeft  = position[0] < 0;
       if ((meLeft && !inLeft) || (!meLeft && !inRight)) return;
       e.preventDefault();
       wheelAccum.current += e.deltaY * facing;
-      while (wheelAccum.current > 24) {
-        onSpin(1);
-        wheelAccum.current -= 24;
-      }
-      while (wheelAccum.current < -24) {
-        onSpin(-1);
-        wheelAccum.current += 24;
-      }
+      while (wheelAccum.current >  24) { onSpin(1);  wheelAccum.current -= 24; }
+      while (wheelAccum.current < -24) { onSpin(-1); wheelAccum.current += 24; }
     };
     window.addEventListener('wheel', handler, { passive: false });
     return () => window.removeEventListener('wheel', handler);
   }, [onSpin, facing, position]);
 
-  /* ---------- card layout ---------- */
-  const total = items.length;
-  const cardSlots = useMemo(() => {
-    const arr: number[] = [];
-    for (let d = -VISIBLE_RANGE; d <= VISIBLE_RANGE; d++) arr.push(d);
-    return arr;
-  }, []);
+  const platePosX = isLeft ? radius * 0.7 : -radius * 0.7;
 
   return (
     <group ref={groupRef} position={position}>
-      {/* invisible drag plate — catches pointer events for the whole wheel column */}
+      {/* invisible drag plate — only over the visible arc */}
       <mesh
+        position={[platePosX, 0, 1.0]}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        <planeGeometry args={[CARD_SIZE * 2, RADIUS * 4]} />
+        <planeGeometry args={[radius * 1.0, radius * 2.2]} />
         <meshBasicMaterial visible={false} />
       </mesh>
 
-      <CardRing
+      <CircleRing
         items={items}
         total={total}
-        cardSlots={cardSlots}
-        renderedIdxRef={renderedIdx}
-        side={position[0] < 0 ? 'left' : 'right'}
+        angleStep={angleStep}
+        wheelRotRef={wheelRot}
+        activeAngle={activeAngle}
+        isLeft={isLeft}
         onPick={onPick}
+        radius={radius}
+        cardSize={cardSize}
+        cardThickness={cardThickness}
+        spineAngleDeg={spineAngleDeg}
+        xTiltDeg={xTiltDeg}
+        extraZDeg={extraZDeg}
+        tangentAmount={tangentAmount}
+        flipSpine={flipSpine}
+        popZ={popZ}
+        popScale={popScale}
+        recedeZ={recedeZ}
+        paddingAmount={paddingAmount}
+        paddingDecay={paddingDecay}
       />
     </group>
   );
 }
 
-/**
- * Pulled into its own component so we can call useFrame for per-frame
- * card transforms without re-rendering React on every tick.
- */
-function CardRing({
-  items, total, cardSlots, renderedIdxRef, side, onPick,
+/* ================================================================
+ *  CircleRing — every frame, place each card at its current world
+ *  angle (localAngle + wheelRotation + padding-push) and rotate it
+ *  to show spine or face based on proximity to the active angle.
+ * ================================================================ */
+function CircleRing({
+  items,
+  total,
+  angleStep,
+  wheelRotRef,
+  activeAngle,
+  isLeft,
+  onPick,
+  radius,
+  cardSize,
+  cardThickness,
+  spineAngleDeg,
+  xTiltDeg,
+  extraZDeg,
+  tangentAmount,
+  flipSpine,
+  popZ,
+  popScale,
+  recedeZ,
+  paddingAmount,
+  paddingDecay,
 }: {
   items: readonly string[];
   total: number;
-  cardSlots: number[];
-  renderedIdxRef: React.RefObject<number>;
-  side: 'left' | 'right';
+  angleStep: number;
+  wheelRotRef: React.RefObject<number>;
+  activeAngle: number;
+  isLeft: boolean;
   onPick?: (i: number) => void;
-}) {
-  // refs to each card's group so we can mutate transforms cheaply
+} & WheelTuning) {
   const refs = useRef<(THREE.Group | null)[]>([]);
+  // Flatness reach: only the card AT the active position is fully face-on.
+  const FLATNESS_REACH = 1 / angleStep;
 
   useFrame(() => {
-    const fractional = renderedIdxRef.current ?? 0;
-    cardSlots.forEach((slot, i) => {
+    const wheelRot      = wheelRotRef.current ?? 0;
+    const spineAngleRad = spineAngleDeg * (Math.PI / 180);
+    const xTiltRad      = xTiltDeg     * (Math.PI / 180);
+    const extraZRad     = extraZDeg    * (Math.PI / 180);
+    // Mirror signs across the canvas vertical axis (right wheel mirrors left):
+    //   • X rotation is invariant under mirror → same sign on both wheels.
+    //   • Y and Z rotations flip sign under mirror → multiplied by the side sign.
+    //   • The tangent term `(worldAngle - activeAngle)` already auto-mirrors
+    //     because activeAngle differs (0 vs π) between the two wheels.
+    const sideSign      = isLeft ? 1 : -1;
+    const ySign         = sideSign * (flipSpine ? -1 : 1);
+    const sigma         = Math.max(1e-6, paddingDecay * angleStep);
+
+    for (let i = 0; i < total; i++) {
       const g = refs.current[i];
-      if (!g) return;
+      if (!g) continue;
 
-      // The card at this slot represents (round(fractional) + slot) of the items
-      const baseIdx = Math.round(fractional) + slot;
-      // delta is the *fractional* distance from the camera-front of the ring
-      const delta = (baseIdx - fractional);
+      const localAngle     = i * angleStep;
+      const baseWorldAngle = localAngle + wheelRot;
 
-      const dist = Math.abs(delta);
-      if (dist > VISIBLE_RANGE) {
-        g.visible = false;
-        return;
-      }
-      g.visible = true;
+      // ----- distance to active position (shortest path around circle) -----
+      let dist = baseWorldAngle - activeAngle;
+      while (dist >  Math.PI) dist -= 2 * Math.PI;
+      while (dist < -Math.PI) dist += 2 * Math.PI;
 
-      const θdeg = delta * ANGLE_STEP_DEG;
-      const θ = θdeg * DEG;
-      // ring math: y descends with delta, z curves back away from camera
-      g.position.y = -Math.sin(θ) * RADIUS;
-      g.position.z =  Math.cos(θ) * RADIUS - RADIUS;
+      // ----- angular padding push around the active position -----
+      // Tanh: 0 at dist=0, MONOTONICALLY increases, saturates at ±paddingAmount.
+      // (A derivative-of-Gaussian would peak at ±sigma and then DECAY, which
+      //  causes the card right next to active to overshoot the card after it
+      //  — visible overlap. Tanh avoids that.)
+      const push = paddingAmount * Math.tanh(dist / sigma);
+      const worldAngle = baseWorldAngle + push;
 
-      // rotation: arc-tangent + spine bias, capped so we never flip past edge-on
-      // Selected card pops to face camera (rotX → 0 as |delta| → 0).
-      const flatness = Math.max(0, 1 - Math.abs(delta) * 1.6); // 1 at center, 0 by |delta|≥0.625
-      const arcTilt   = -θdeg;                     // matches ring tangent
-      const spineTilt = -Math.sign(delta) * SPINE_BIAS_DEG;
-      const tiltDeg   = (arcTilt + spineTilt) * (1 - flatness) + 0 * flatness;
-      const tiltClamped = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, tiltDeg));
-      g.rotation.x = tiltClamped * DEG;
+      // Smoothstep easing: ramps 0→1 with zero derivative at both ends so
+      // the active card's pop/scale/rotation enter and exit gracefully.
+      const linear = Math.max(0, Math.min(1, 1 - Math.abs(dist) * FLATNESS_REACH));
+      const flatness = linear * linear * (3 - 2 * linear);
 
-      // selected card lifts forward — matches Cash App-style scroll interaction
-      g.position.z += flatness * 0.6;
-      g.scale.setScalar(1 + flatness * 0.08);
-    });
+      // ----- position on circle -----
+      g.position.x = radius * Math.cos(worldAngle);
+      g.position.y = radius * Math.sin(worldAngle);
+      g.position.z = flatness * popZ + (1 - flatness) * recedeZ;
+
+      // ----- rotation: X tilt → Y spine → Z (tangent + extra) -----
+      // Each axis modulated by (1 - flatness) so the active card is unrotated.
+      // qResult = qZ · qY · qX  (X applied first in card frame, then Y, then Z in world frame)
+      // X stays the same sign across wheels; Y and Z flip sign for mirror symmetry.
+      const xAngle = xTiltRad      * (1 - flatness);
+      const yAngle = spineAngleRad * (1 - flatness) * ySign;
+      const zAngle = (worldAngle - activeAngle) * tangentAmount
+                     + extraZRad * (1 - flatness) * sideSign;
+      _qX.setFromAxisAngle(_axisX, xAngle);
+      _qY.setFromAxisAngle(_axisY, yAngle);
+      _qZ.setFromAxisAngle(_axisZ, zAngle);
+      _qTmp.multiplyQuaternions(_qY, _qX);     // qY · qX
+      _qResult.multiplyQuaternions(_qZ, _qTmp); // qZ · (qY · qX)
+      g.quaternion.copy(_qResult);
+
+      // ----- scale -----
+      g.scale.setScalar(1 + flatness * popScale);
+    }
   });
 
   return (
     <>
-      {cardSlots.map((slot, i) => {
-        // baseIdx wraps modulo total — picked at render time by useFrame
-        const idx = ((Math.round(slot) % total) + total) % total;
-        return (
-          <group
-            key={`slot-${slot}`}
-            ref={(el) => { refs.current[i] = el; }}
-            onClick={() => onPick?.(idx)}
-          >
-            <CardSlot slot={slot} side={side} items={items} total={total} renderedIdxRef={renderedIdxRef} />
-          </group>
-        );
-      })}
+      {items.map((_, i) => (
+        <group
+          key={i}
+          ref={(el) => { refs.current[i] = el; }}
+          onClick={() => onPick?.(i)}
+        >
+          <Card
+            idx={i}
+            side={isLeft ? 'left' : 'right'}
+            cardSize={cardSize}
+            cardThickness={cardThickness}
+          />
+        </group>
+      ))}
     </>
   );
-}
-
-/**
- * Renders the actual textured Card based on which item *currently* lives in
- * this slot. Since slots are stable but the item they display rotates, we
- * remount the Card when the item changes (cheap — just texture swap).
- */
-function CardSlot({
-  slot, side, items, total, renderedIdxRef,
-}: {
-  slot: number;
-  side: 'left' | 'right';
-  items: readonly string[];
-  total: number;
-  renderedIdxRef: React.RefObject<number>;
-}) {
-  const [itemIdx, setItemIdx] = useState(() => {
-    const f = renderedIdxRef.current ?? 0;
-    return ((Math.round(f) + slot) % total + total) % total;
-  });
-
-  useFrame(() => {
-    const f = renderedIdxRef.current ?? 0;
-    const next = ((Math.round(f) + slot) % total + total) % total;
-    if (next !== itemIdx) setItemIdx(next);
-  });
-
-  // unused but kept so downstream may attach text labels per item later
-  void items;
-
-  return <Card idx={itemIdx} side={side} />;
 }
