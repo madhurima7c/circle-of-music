@@ -1,16 +1,18 @@
-export const COUNTRIES = [
-  'argentina', 'brazil', 'canada', 'denmark', 'egypt', 'france', 'germany', 'hungary',
-  'india', 'japan', 'kenya', 'lebanon', 'mexico', 'nigeria', 'oman', 'peru',
-  'qatar', 'romania', 'spain', 'turkey', 'united kingdom', 'vietnam', 'wales', 'xinjiang',
-  'yemen', 'zambia',
-] as const;
+import seeds from './seeds.json';
 
-export const GENRES = [
-  'ambient', 'blues', 'classical', 'disco', 'electronica', 'funk', 'grime', 'house',
-  'indie', 'jazz', 'klezmer', 'lo-fi', 'metal', 'new wave', 'opera', 'punk',
-  'qawwali', 'reggae', 'soul', 'techno', 'uk garage', 'vaporwave', 'world', 'xtatic',
-  'yacht rock', 'zydeco', 'jungle',
-] as const;
+/**
+ * Country + genre lists come from `seeds.json` — every pairing has at least
+ * one curated seed artist mapped to a Deezer search, so the playlist API
+ * actually returns music. The old alphabetical list lived here before; now
+ * the seed file is the source of truth.
+ *
+ * Cast to readonly tuples so wheel index math stays type-safe.
+ */
+export const COUNTRIES: readonly string[] = seeds.countries;
+export const GENRES:    readonly string[] = seeds.genres;
+
+/** Re-export the typed seed object so callers (store, deezer) can pass it through. */
+export const SEEDS = seeds;
 
 export const PALETTES = [
   ['#e7d8c1', '#cf6655', '#274c77', '#f3a712', '#0e1116'],
@@ -20,10 +22,17 @@ export const PALETTES = [
   ['#22223b', '#4a4e69', '#9a8c98', '#c9ada7', '#f2e9e4'],
 ];
 
+/**
+ * Normalized track type the rest of the app reads.
+ * Maps from Deezer's nested shape — see `deezer.ts` for the raw fields.
+ */
 export type Track = {
+  id: number;
   title: string;
   artist: string;
-  image: string;
-  preview: string | null;
-  uri: string | null;
+  artistId: number;
+  album: string;
+  releaseDate: string | null;
+  image: string;             // album cover (xl → big → small fallback)
+  preview: string | null;    // ~30s MP3
 };

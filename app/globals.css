@@ -114,3 +114,227 @@ html, body {
 
 /* Subtle image outline (light-mode rule from feel-better skill) */
 .img-outline { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10); }
+
+/* =====================================================================
+ *  Center pending pane — pairing-specific HSL gradient loading state
+ *  (ported from Maddy's center.js + style.css). The two custom props
+ *  --ill-country and --ill-genre are set inline on the container; the
+ *  three radial gradients soft-mix them over a dark base.
+ * ===================================================================== */
+.center-pending {
+  --pending-base: #262628;
+  position: relative;
+  padding: 22px 26px 30px;
+  border-radius: 16px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #fff;
+  font-family: var(--font-sans);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(
+      ellipse 108% 96% at 30% 42%,
+      color-mix(in srgb, var(--ill-country, #4d405f) 56%, transparent) 0%,
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 108% 96% at 70% 58%,
+      color-mix(in srgb, var(--ill-genre, #2a5248) 56%, transparent) 0%,
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 125% 118% at 50% 50%,
+      color-mix(in srgb, var(--ill-country, #4d405f) 26%, var(--pending-base)) 0%,
+      color-mix(in srgb, var(--ill-genre, #2a5248) 24%, var(--pending-base)) 48%,
+      var(--pending-base) 100%
+    );
+  box-shadow:
+    inset 0 0 140px rgba(0, 0, 0, 0.14),
+    0 24px 60px rgba(0, 0, 0, 0.18),
+    0 8px 18px rgba(0, 0, 0, 0.10);
+  animation: pending-pulse 3.6s ease-in-out infinite;
+}
+.center-pending[data-error="true"] {
+  animation: none;
+}
+.center-pending__rail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.center-pending__rail-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+.center-pending__rail-line {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.42);
+}
+.center-pending__msg {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+  width: min(20rem, 78%);
+  white-space: pre-line;
+  font-family: var(--font-sans);
+}
+@keyframes pending-pulse {
+  0%, 100% { filter: brightness(1.00); }
+  50%      { filter: brightness(1.06); }
+}
+
+/* =====================================================================
+ *  Playback card — cover, meta, controls, queue.
+ * ===================================================================== */
+.center-playback {
+  position: relative;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
+  background: #1c1c1d;
+  color: #f4f4f4;
+  font-family: var(--font-sans);
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 14px;
+  row-gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.22),
+    0 8px 18px rgba(0, 0, 0, 0.10);
+  animation: playback-in 360ms cubic-bezier(.2,.8,.2,1) backwards;
+}
+@keyframes playback-in {
+  from { opacity: 0; transform: translateY(6px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+}
+.center-playback__cover {
+  grid-row: 1 / span 2;
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #2a2a2c;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.center-playback__cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.center-playback__cover-fallback {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #3a3a3c 0%, #2a2a2c 100%);
+}
+.center-playback__play {
+  position: absolute;
+  right: 6px; bottom: 6px;
+  width: 26px; height: 26px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.95);
+  color: #111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.center-playback__play:hover { transform: scale(1.06); }
+.center-playback__play:active { transform: scale(0.96); }
+
+.center-playback__meta {
+  align-self: center;
+  min-width: 0;
+}
+.center-playback__title {
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-wrap: balance;
+}
+.center-playback__sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.center-playback__controls {
+  grid-column: 2;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.center-playback__controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: #f4f4f4;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.10);
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+.center-playback__controls button:hover {
+  background: rgba(255,255,255,0.14);
+}
+.center-playback__controls button:active {
+  transform: scale(0.96);
+}
+
+.center-playback__queue {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding: 6px 0 0;
+  list-style: none;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.center-playback__queue li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 2px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 120ms ease;
+}
+.center-playback__queue li:hover {
+  background: rgba(255,255,255,0.05);
+}
+.center-playback__queue-title {
+  color: rgba(255,255,255,0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.center-playback__queue-artist {
+  color: rgba(255,255,255,0.55);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}

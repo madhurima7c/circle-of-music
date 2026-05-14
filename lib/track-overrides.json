@@ -1,0 +1,22 @@
+{
+  "_doc": "Hand-curated Deezer track IDs for pairings where MusicBrainz + seeds.json + genre-filtering still produce poor results. Each entry is a specific track ID that has been manually verified to fit the country × genre. At runtime, these go to the front of the queue. Format: \"Country|Genre\": [{ \"id\": <deezer-track-id>, \"title\": \"...\", \"artist\": \"...\" }]. To find more IDs, hit https://api.deezer.com/search?q=Artist+Name and copy ids from the response.",
+  "India|Jazz": [
+    { "id": 81358570,   "title": "Song for My Lady",                        "artist": "Louiz Banks" },
+    { "id": 1439485,    "title": "Vaishnav Jan To",                         "artist": "Louiz Banks" },
+    { "id": 1439419,    "title": "Shadows",                                 "artist": "Louiz Banks" },
+    { "id": 2507032,    "title": "Maya",                                    "artist": "Trilok Gurtu" },
+    { "id": 2507034,    "title": "Have We Lost Our Dream?",                 "artist": "Trilok Gurtu" },
+    { "id": 1082303202, "title": "Diaspora (Duo Version)",                  "artist": "Trilok Gurtu" },
+    { "id": 1763189987, "title": "Rajasthan",                               "artist": "Trilok Gurtu" },
+    { "id": 110662356,  "title": "Chant d'oiseau / Vak",                    "artist": "Trilok Gurtu" },
+    { "id": 75075072,   "title": "Illusion",                                "artist": "L Subramaniam" },
+    { "id": 924935182,  "title": "Love It Less",                            "artist": "Sandunes" },
+    { "id": 1356153982, "title": "Ghosts",                                  "artist": "Sandunes" },
+    { "id": 1449983,    "title": "Bandeh",                                  "artist": "Indian Ocean" },
+    { "id": 1449986,    "title": "Badshah in Jail",                         "artist": "Indian Ocean" },
+    { "id": 1499092,    "title": "Kandisa",                                 "artist": "Indian Ocean" },
+    { "id": 2452306,    "title": "Mind Ecology (with John McLaughlin)",     "artist": "Shakti" },
+    { "id": 867128,     "title": "La Danse Du Bonheur (with John McLaughlin)", "artist": "Shakti" },
+    { "id": 2452313,    "title": "Peace Of Mind (with John McLaughlin)",    "artist": "Shakti" }
+  ]
+}

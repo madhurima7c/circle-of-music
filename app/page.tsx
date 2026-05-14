@@ -13,6 +13,7 @@ import {
   Hint,
   MenuMark,
   HandTracking,
+  GestureToast,
 } from '@/components/Overlay';
 import { COUNTRIES, GENRES } from '@/lib/data';
 
@@ -41,6 +42,7 @@ function Inner() {
 
       <Dock />
       <HandTracking />
+      <GestureToast />
       <Hint />
     </>
   );
