@@ -23,6 +23,11 @@ export type GestureToast =
   | { kind: 'pause' }
   | { kind: 'next' }
   | { kind: 'prev' }
+  | { kind: 'shuffle' }
+  | { kind: 'lock-left' }
+  | { kind: 'lock-right' }
+  | { kind: 'unlock-left' }
+  | { kind: 'unlock-right' }
   | { kind: 'select-left' }
   | { kind: 'select-right' };
 

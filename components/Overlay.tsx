@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
+import { detectShape } from '@/lib/gestures';
+import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 
 export function Title() {
   return (
@@ -413,6 +415,14 @@ const CFG = {
   pinchDwellMs:        350,
   selectCooldownMs:    500,
 
+  /* Discrete-command (canned-pose) dwell — transport console + wheel lock.
+   * A pose must be held stationary this long to fire, then a cooldown floor
+   * before the same hand can fire again. This is what makes each command
+   * intentional and keeps it from colliding with scroll (which needs motion). */
+  gestureDwellMs:    500,   // hold a recognized pose still this long to fire
+  gestureMinScore:   0.6,   // min canned-gesture confidence to consider a pose
+  gestureCooldownMs: 700,   // floor between discrete-command fires (per hand)
+
   /* Hand identity */
   handMatchMaxNormDistance: 0.25,  // wrist-to-wrist threshold for matching across frames
   handStaleMs:              250,   // tracked hand expires if not seen for this long
@@ -444,6 +454,12 @@ type TrackedHand = {
   /** True for one render after a successful select so a glow shows.  */
   selectFlashUntil:    number;
 
+  /** Canned-pose dwell — mirrors the pinch dwell, for transport/lock
+   * commands. `gestureDwellName` is the DiscreteCmd currently dwelling. */
+  gestureDwellName:     string | null;
+  gestureDwellStart:    number | null;
+  gestureCooldownUntil: number;
+
   /** Used by the matcher to expire stale tracks.                     */
   lastSeenAt: number;
 };
@@ -462,6 +478,9 @@ function newTrackedHand(): TrackedHand {
     pinchDwellStart: null,
     selectCooldownUntil: 0,
     selectFlashUntil: 0,
+    gestureDwellName: null,
+    gestureDwellStart: null,
+    gestureCooldownUntil: 0,
     lastSeenAt: 0,
   };
 }
@@ -470,6 +489,36 @@ function zoneFromWristX(mirroredX: number): Zone {
   if (mirroredX <= CFG.leftZoneMax)  return 'left';
   if (mirroredX >= CFG.rightZoneMin) return 'right';
   return 'center';
+}
+
+/* ----------------------------------------------------------------
+ *  Discrete (one-shot) commands fired by holding a canned pose.
+ *  The zone gates which poses are eligible, so the same pose can
+ *  mean different things on each side without ambiguity:
+ *    • Over a wheel: ✊ Closed_Fist → lock that wheel.
+ *    • In the center transport console (stationary only — a hand
+ *      transiting between wheels is moving, so nothing fires):
+ *        ✋ Open_Palm → play/pause   ✌️ Victory → shuffle
+ *        👍 thumb →   → next         👍 thumb ←  → prev
+ * ---------------------------------------------------------------- */
+type DiscreteCmd =
+  | 'lock-left' | 'lock-right'
+  | 'play' | 'shuffle' | 'next' | 'prev';
+
+function cmdForPose(
+  zone: Zone,
+  poseName: string,
+  thumbDir: 'left' | 'right' | null,
+): DiscreteCmd | null {
+  if (zone === 'left'  && poseName === 'Closed_Fist') return 'lock-left';
+  if (zone === 'right' && poseName === 'Closed_Fist') return 'lock-right';
+  if (zone === 'center') {
+    if (poseName === 'Open_Palm') return 'play';
+    if (poseName === 'Victory')   return 'shuffle';
+    if (thumbDir === 'right')     return 'next';
+    if (thumbDir === 'left')      return 'prev';
+  }
+  return null;
 }
 
 function distNorm(a: Landmark, b: Landmark): number {
@@ -487,13 +536,59 @@ export function HandTracking() {
     { left: 0, right: 0 },
   );
 
-  const { spinLeft, spinRight, commit, flashToast } = useStore();
+  const {
+    spinLeft, spinRight, commit, flashToast,
+    togglePlay, nextTrack, prevTrack, shuffleTracks,
+    toggleLockLeft, toggleLockRight,
+    isPlaying, lockedLeft, lockedRight,
+  } = useStore();
   // Mirror live store dispatchers into refs so the requestAnimationFrame
   // loop doesn't have to be torn down and rebuilt every time React renders.
   const spinLeftRef  = useRef(spinLeft);  spinLeftRef.current  = spinLeft;
   const spinRightRef = useRef(spinRight); spinRightRef.current = spinRight;
   const commitRef    = useRef(commit);    commitRef.current    = commit;
   const toastRef     = useRef(flashToast); toastRef.current    = flashToast;
+  const togglePlayRef = useRef(togglePlay);     togglePlayRef.current = togglePlay;
+  const nextRef       = useRef(nextTrack);      nextRef.current       = nextTrack;
+  const prevRef       = useRef(prevTrack);      prevRef.current       = prevTrack;
+  const shuffleRef    = useRef(shuffleTracks);  shuffleRef.current    = shuffleTracks;
+  const lockLeftRef   = useRef(toggleLockLeft); lockLeftRef.current   = toggleLockLeft;
+  const lockRightRef  = useRef(toggleLockRight);lockRightRef.current  = toggleLockRight;
+  // State mirrors so a toast can show the RESULTING state (▶/⏸, 🔒/🔓).
+  const isPlayingRef   = useRef(isPlaying);   isPlayingRef.current   = isPlaying;
+  const lockedLeftRef  = useRef(lockedLeft);  lockedLeftRef.current  = lockedLeft;
+  const lockedRightRef = useRef(lockedRight); lockedRightRef.current = lockedRight;
+
+  /* Dispatch a discrete command + confirmation toast. Reads the *current*
+   * state ref before the toggle so the toast shows what the action results in. */
+  const fireDiscrete = useRef((cmd: DiscreteCmd) => {
+    switch (cmd) {
+      case 'play':
+        togglePlayRef.current();
+        toastRef.current({ kind: isPlayingRef.current ? 'pause' : 'play' });
+        break;
+      case 'shuffle':
+        shuffleRef.current(true);
+        toastRef.current({ kind: 'shuffle' });
+        break;
+      case 'next':
+        nextRef.current();
+        toastRef.current({ kind: 'next' });
+        break;
+      case 'prev':
+        prevRef.current();
+        toastRef.current({ kind: 'prev' });
+        break;
+      case 'lock-left':
+        lockLeftRef.current();
+        toastRef.current({ kind: lockedLeftRef.current ? 'unlock-left' : 'lock-left' });
+        break;
+      case 'lock-right':
+        lockRightRef.current();
+        toastRef.current({ kind: lockedRightRef.current ? 'unlock-right' : 'lock-right' });
+        break;
+    }
+  });
 
   useEffect(() => {
     let raf = 0;
@@ -544,23 +639,26 @@ export function HandTracking() {
         return;
       }
 
-      let HandLandmarker, FilesetResolver;
+      let GestureRecognizer, FilesetResolver;
       try {
-        ({ HandLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision'));
+        ({ GestureRecognizer, FilesetResolver } = await import('@mediapipe/tasks-vision'));
       } catch {
         setCameraStatus('error');
         return;
       }
 
-      let landmarker;
+      // GestureRecognizer returns the SAME 21 landmarks HandLandmarker did,
+      // plus a canned-pose classification per hand — so all existing landmark
+      // logic below is unchanged and we get poses for the transport/lock gestures.
+      let recognizer;
       try {
         const vision = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm',
         );
-        landmarker = await HandLandmarker.createFromOptions(vision, {
+        recognizer = await GestureRecognizer.createFromOptions(vision, {
           baseOptions: {
             modelAssetPath:
-              'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+              'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
             delegate: 'GPU',
           },
           numHands:                CFG.numHands,
@@ -568,6 +666,7 @@ export function HandTracking() {
           minHandDetectionConfidence: CFG.minDetectionConfidence,
           minHandPresenceConfidence:  CFG.minDetectionConfidence,
           minTrackingConfidence:      CFG.minTrackingConfidence,
+          cannedGesturesClassifierOptions: { scoreThreshold: CFG.gestureMinScore },
         });
       } catch {
         setCameraStatus('error');
@@ -585,11 +684,14 @@ export function HandTracking() {
         if (stopped) return;
         if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
           lastVideoTime = video.currentTime;
-          const result = landmarker.detectForVideo(video, performance.now());
+          const result = recognizer.recognizeForVideo(video, performance.now());
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
           const now    = performance.now();
           const detected = result.landmarks ?? [];
+          // Parallel to `detected` by hand index. Inner array is EMPTY when the
+          // recognizer is uncertain — always guard `gestures[i]?.[0]`.
+          const gestures = result.gestures ?? [];
 
           /* --------------------------------------------------------
            *  1. Match each detected hand to a tracked slot (nearest
@@ -716,16 +818,58 @@ export function HandTracking() {
               ctx.fill();
             }
 
-            /* If this hand isn't in a wheel zone, skip dispatching anything. */
+            const moving       = palmSpeed > CFG.deadZoneVelocityPx;
+            const isInCooldown = now < th.selectCooldownUntil;
+
+            /* 2e. Discrete-command dwell — runs for EVERY zone. `cmdForPose`
+             * returns null when the held pose isn't eligible in this zone, so
+             * one block covers both fist-lock (side zones) and the center
+             * transport console. It requires the hand stationary (!moving), so
+             * it can never co-fire with scroll, and a hand transiting between
+             * wheels (always moving) triggers nothing. */
+            const poseTop  = gestures[detIdx]?.[0];
+            const poseName = (poseTop && poseTop.score >= CFG.gestureMinScore)
+              ? poseTop.categoryName : 'None';
+            // Thumb left/right (for center next/prev) is computed from landmarks
+            // only in the center zone — canned poses cover the rest.
+            const thumbDir = th.zone === 'center'
+              ? (() => {
+                  const s = detectShape(sm as unknown as NormalizedLandmark[]);
+                  return s.isThumbRight ? ('right' as const)
+                       : s.isThumbLeft  ? ('left'  as const)
+                       : null;
+                })()
+              : null;
+            const inGestureCooldown = now < th.gestureCooldownUntil;
+            const cmd = (!moving && !inGestureCooldown)
+              ? cmdForPose(th.zone, poseName, thumbDir)
+              : null;
+            if (cmd) {
+              // Start, or continue, the dwell. A pose change resets the timer
+              // so transitioning Open_Palm→Victory can't fire the wrong command.
+              if (th.gestureDwellName !== cmd) {
+                th.gestureDwellName  = cmd;
+                th.gestureDwellStart = now;
+              }
+              if (th.gestureDwellStart !== null &&
+                  now - th.gestureDwellStart >= CFG.gestureDwellMs) {
+                fireDiscrete.current(cmd);
+                th.gestureDwellName     = null;
+                th.gestureDwellStart    = null;
+                th.gestureCooldownUntil = now + CFG.gestureCooldownMs;
+              }
+            } else {
+              th.gestureDwellName  = null;
+              th.gestureDwellStart = null;
+            }
+
+            /* Center = transport console only: it ran the gesture block above
+             * but does NOT scroll a wheel or pinch-commit a pairing. */
             if (th.zone === 'center') {
-              // Still in dead zone — cancel any in-progress dwell so it can't
-              // resume mid-air.
               th.pinchDwellStart = null;
               continue;
             }
 
-            const moving      = palmSpeed > CFG.deadZoneVelocityPx;
-            const isInCooldown = now < th.selectCooldownUntil;
             const spinFn = th.zone === 'left' ? spinLeftRef.current : spinRightRef.current;
 
             /* 2e. Scrolling — distance-throttled with optional flick boost.
@@ -796,6 +940,8 @@ export function HandTracking() {
               th.zoneCandidate     = null;
               th.scrollAnchorY     = null;
               th.pinchDwellStart   = null;
+              th.gestureDwellName  = null;
+              th.gestureDwellStart = null;
             }
           }
 
@@ -998,6 +1144,11 @@ export function GestureToast() {
     toast.kind === 'pause'        ? '⏸ Pause' :
     toast.kind === 'next'         ? '⏭ Next'  :
     toast.kind === 'prev'         ? '⏮ Prev'  :
+    toast.kind === 'shuffle'      ? '🔀 Shuffle' :
+    toast.kind === 'lock-left'    ? '🔒 Country locked' :
+    toast.kind === 'unlock-left'  ? '🔓 Country unlocked' :
+    toast.kind === 'lock-right'   ? '🔒 Genre locked' :
+    toast.kind === 'unlock-right' ? '🔓 Genre unlocked' :
     toast.kind === 'select-left'  ? '✓ Country' :
     /* select-right */              '✓ Genre';
   return (
@@ -1055,7 +1206,7 @@ export function Hint() {
       className="absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
       style={{ left: 28, bottom: 12 }}
     >
-      ↕ scroll a wheel · ✋ left hand → left wheel, right hand → right wheel · ↕ move hand to scroll · 🤏 hold steady + pinch to select
+      ↕ move a hand over a wheel to scroll · 🤏 pinch + hold to select · ✊ hold a fist over a wheel to lock it · center console: ✋ play/pause · ✌️ shuffle · 👍 thumb ←/→ prev/next
     </div>
   );
 }
