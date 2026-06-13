@@ -406,8 +406,10 @@ const CFG = {
    * spins it one step (like grabbing and turning a physical wheel). */
   dragPxPerStep: 42,
 
-  /* Floor between two clicks from the SAME hand, so one pinch = one click. */
-  clickDebounceMs: 450,
+  /* A button fires only after the pinch is HELD on it this long — a
+   * deliberate "pinch and hold ~1s" so a stray quick pinch can't misfire.
+   * Drifting off the button, or releasing early, cancels it. */
+  clickDwellMs: 1000,
 
   /* Hand identity */
   handMatchMaxNormDistance: 0.25,  // wrist-to-wrist threshold for matching across frames
@@ -432,8 +434,10 @@ type TrackedHand = {
   dragSide:    'left' | 'right' | null;
   dragAnchorY: number;
 
-  /** Floor so one pinch fires at most one click.                     */
-  lastClickAt: number;
+  /** Pinch-and-hold on a button: the target, and when the hold began.
+   *  Fires the button once the hold reaches CFG.clickDwellMs.         */
+  dwellTarget: HTMLElement | null;
+  dwellStart:  number | null;
 
   /** Used by the matcher to expire stale tracks.                     */
   lastSeenAt: number;
@@ -446,7 +450,8 @@ function newTrackedHand(): TrackedHand {
     pinching: false,
     dragSide: null,
     dragAnchorY: 0,
-    lastClickAt: 0,
+    dwellTarget: null,
+    dwellStart: null,
     lastSeenAt: 0,
   };
 }
@@ -699,38 +704,60 @@ export function HandTracking() {
             // Highlight a hoverable button (but not while grabbing a wheel).
             if (btn && !th.dragSide) nextHovered.add(btn);
 
-            if (justPinched) {
-              if (btn && now - th.lastClickAt > CFG.clickDebounceMs) {
-                // Pinch on a control = click it. Reuses the button's own
-                // handler (play/pause, next, prev, shuffle, lock, ladder snap).
-                btn.click();
-                th.lastClickAt = now;
-                th.dragSide = null;
-              } else if (el && el.tagName === 'CANVAS' && el.id !== 'hand-canvas') {
-                // Pinch on the wheel canvas = grab it; side from cursor X.
-                th.dragSide    = cx < window.innerWidth / 2 ? 'left' : 'right';
-                th.dragAnchorY = cy;
-              } else {
-                th.dragSide = null;
-              }
-            } else if (nowPinching && th.dragSide) {
+            // Releasing the pinch cancels everything — nothing fires unless the
+            // pinch is actively held (and, for buttons, held long enough).
+            if (justReleased) {
+              th.dragSide    = null;
+              th.dwellTarget = null;
+              th.dwellStart  = null;
+            }
+
+            if (nowPinching && th.dragSide) {
               // Grabbing a wheel: vertical cursor travel turns it, like
-              // grabbing and spinning a physical wheel. Locked wheels ignore
-              // this via the store guard.
+              // grabbing and spinning a physical wheel. Continues only while
+              // pinched. Locked wheels ignore this via the store guard.
               const dy = cy - th.dragAnchorY;
               if (Math.abs(dy) >= CFG.dragPxPerStep) {
                 const dir = dy > 0 ? 1 : -1;
                 (th.dragSide === 'left' ? spinLeftRef : spinRightRef).current(dir);
                 th.dragAnchorY = cy;
               }
+            } else if (justPinched) {
+              // Decide what this pinch is, from what's under the cursor when it
+              // closes: a button → start a pinch-and-hold dwell; the wheel
+              // canvas → grab it for dragging; anything else → nothing.
+              if (btn) {
+                th.dwellTarget = btn;
+                th.dwellStart  = now;
+              } else if (el && el.tagName === 'CANVAS' && el.id !== 'hand-canvas') {
+                th.dragSide    = cx < window.innerWidth / 2 ? 'left' : 'right';
+                th.dragAnchorY = cy;
+              }
+            } else if (nowPinching && th.dwellTarget) {
+              // Pinch held on a button: it must stay on that same button for
+              // the full dwell, then fires once (its real .click() handler).
+              if (btn === th.dwellTarget) {
+                if (th.dwellStart !== null && now - th.dwellStart >= CFG.clickDwellMs) {
+                  th.dwellTarget.click();
+                  th.dwellTarget = null;
+                  th.dwellStart  = null;
+                }
+              } else {
+                // Drifted off the button — cancel the hold.
+                th.dwellTarget = null;
+                th.dwellStart  = null;
+              }
             }
-            if (justReleased) th.dragSide = null;
 
-            /* 2f. Move this hand's on-screen cursor. */
+            /* 2f. Move this hand's on-screen cursor + dwell-fill progress. */
+            const dwellProg = (th.dwellTarget && th.dwellStart !== null)
+              ? clamp01((now - th.dwellStart) / CFG.clickDwellMs)
+              : 0;
             const cursorEl = document.getElementById('gesture-cursor-' + trackIdx);
             if (cursorEl) {
               cursorEl.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
               cursorEl.style.opacity = '1';
+              cursorEl.style.setProperty('--dwell', String(dwellProg));
               cursorEl.dataset.pinch = nowPinching ? 'true' : 'false';
               cursorEl.dataset.grab  = th.dragSide ? 'true' : 'false';
             }
@@ -755,10 +782,12 @@ export function HandTracking() {
             const th = tracked[t];
             if (th.smoothed && (now - th.lastSeenAt) > CFG.handStaleMs) {
               // Stale — wipe state so this slot is reusable.
-              th.smoothed = null;
-              th.cursor   = null;
-              th.pinching = false;
-              th.dragSide = null;
+              th.smoothed    = null;
+              th.cursor      = null;
+              th.pinching    = false;
+              th.dragSide    = null;
+              th.dwellTarget = null;
+              th.dwellStart  = null;
             }
           }
 
@@ -960,7 +989,7 @@ export function Hint() {
       className="absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
       style={{ left: 28, bottom: 12 }}
     >
-      👆 move your hand to aim the cursor · 🤏 pinch to click a button (play, next, shuffle, lock) · pinch over a wheel and move up/down to spin it
+      👆 move your hand to aim the cursor · 🤏 pinch &amp; hold ~1s on a button to press it · pinch over a wheel and move up/down to spin it
     </div>
   );
 }
