@@ -92,11 +92,12 @@ export function loadCoverTextures(
         front.colorSpace = THREE.SRGBColorSpace;
         front.anisotropy = 4;
 
-        // The −z box face shows its map mirrored; flip U so the back
-        // reads the same as the front (front and back are the same art).
+        // Wheel cards tip over the X axis (xTilt), so a card's back is seen
+        // top-over-bottom — which reads the −z face rotated 180°. Rotate the
+        // back texture by π so backs appear upright from that viewpoint.
         const back = front.clone();
-        back.wrapS = THREE.RepeatWrapping;
-        back.repeat.x = -1;
+        back.center.set(0.5, 0.5);
+        back.rotation = Math.PI;
         back.needsUpdate = true;
 
         const spine = makeSpineGradient(front.image as CanvasImageSource);

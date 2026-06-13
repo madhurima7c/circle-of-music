@@ -2,19 +2,12 @@
   "countries": [
     "Argentina",
     "Brazil",
-    "Cuba",
-    "Egypt",
     "France",
     "Ghana",
     "India",
     "Iran",
-    "Jamaica",
     "Japan",
-    "Kenya",
-    "Lebanon",
-    "Mali",
     "Mexico",
-    "Morocco",
     "Nigeria",
     "Norway",
     "Pakistan",
@@ -26,8 +19,7 @@
     "Sweden",
     "Turkey",
     "United Kingdom",
-    "United States",
-    "Vietnam"
+    "United States"
   ],
   "genres": [
     "Afrobeats",
@@ -79,23 +71,6 @@
       "Reggae":     ["Natiruts", "Cidade Negra", "Tribo de Jah"],
       "World":      ["Caetano Veloso", "Gilberto Gil", "Milton Nascimento"]
     },
-    "Cuba": {
-      "Jazz":       ["Buena Vista Social Club", "Chucho Valdes", "Irakere", "Bebo Valdes", "Arturo Sandoval"],
-      "Folk":       ["Compay Segundo", "Omara Portuondo", "Eliades Ochoa", "Ibrahim Ferrer"],
-      "Pop":        ["Celia Cruz", "Silvio Rodriguez", "Pablo Milanes"],
-      "World":      ["Buena Vista Social Club", "Los Van Van", "Orquesta Aragon"],
-      "Hip Hop":    ["Orishas", "Telmary"],
-      "Funk":       ["Los Van Van", "Irakere"],
-      "Soul":       ["Ibrahim Ferrer", "Omara Portuondo"]
-    },
-    "Egypt": {
-      "World":      ["Umm Kulthum", "Mohamed Mounir", "Abdel Halim Hafez"],
-      "Folk":       ["Umm Kulthum", "Sayed Darwish", "Sheikh Imam"],
-      "Pop":        ["Amr Diab", "Sherine", "Tamer Hosny", "Mohamed Mounir"],
-      "Indie":      ["Cairokee", "Massar Egbari", "Wust El Balad"],
-      "Rock":       ["Cairokee", "Massar Egbari"],
-      "Hip Hop":    ["Wegz", "Marwan Pablo", "Abyusif"]
-    },
     "France": {
       "Jazz":       ["Stephane Grappelli", "Django Reinhardt", "Melody Gardot", "Madeleine Peyroux"],
       "Electronic": ["Air", "Daft Punk", "Justice", "Phoenix", "M83"],
@@ -143,13 +118,6 @@
       "Hip Hop":    ["Hichkas", "Yas", "Bahram"],
       "Electronic": ["9T Antiope", "Sote"]
     },
-    "Jamaica": {
-      "Reggae":     ["Bob Marley", "Toots and the Maytals", "Burning Spear", "Lee Scratch Perry", "Peter Tosh", "Jimmy Cliff"],
-      "Soul":       ["Toots and the Maytals", "Ken Boothe", "Alton Ellis"],
-      "Hip Hop":    ["Sean Paul", "Damian Marley", "Beenie Man"],
-      "Pop":        ["Sean Paul", "Shaggy", "Diana King"],
-      "World":      ["Bob Marley", "Jimmy Cliff"]
-    },
     "Japan": {
       "Jazz":       ["Hiromi Uehara", "Toshiko Akiyoshi", "Sadao Watanabe", "Casiopea"],
       "Ambient":    ["Hiroshi Yoshimura", "Susumu Yokota", "Ryuichi Sakamoto", "Midori Takada"],
@@ -166,25 +134,6 @@
       "Punk":       ["Shonen Knife", "The Blue Hearts", "Guitar Wolf"],
       "Classical":  ["Toru Takemitsu", "Joe Hisaishi"]
     },
-    "Kenya": {
-      "World":      ["Ayub Ogada", "Suzanna Owiyo", "Eric Wainaina"],
-      "Afrobeats":  ["Sauti Sol", "Bensoul", "Bien"],
-      "Hip Hop":    ["Khaligraph Jones", "Octopizzo", "Nyashinski"],
-      "Pop":        ["Sauti Sol", "Nadia Mukami", "Nyashinski"]
-    },
-    "Lebanon": {
-      "World":      ["Fairuz", "Marcel Khalife", "Wadih El Safi"],
-      "Pop":        ["Mashrou Leila", "Nancy Ajram", "Elissa"],
-      "Folk":       ["Fairuz", "Marcel Khalife"],
-      "Indie":      ["Mashrou Leila", "Yasmine Hamdan", "Soap Kills"],
-      "Rock":       ["Mashrou Leila", "The Wanton Bishops"],
-      "Electronic": ["Yasmine Hamdan", "Soap Kills"]
-    },
-    "Mali": {
-      "Folk":       ["Ali Farka Toure", "Tinariwen", "Toumani Diabate", "Boubacar Traore"],
-      "World":      ["Salif Keita", "Oumou Sangare", "Amadou and Mariam", "Rokia Traore"],
-      "Jazz":       ["Tinariwen", "Toumani Diabate", "Ballake Sissoko"]
-    },
     "Mexico": {
       "Cumbia":     ["Celso Pina", "Los Angeles Azules", "Sonora Santanera"],
       "Folk":       ["Lila Downs", "Natalia Lafourcade", "Chavela Vargas"],
@@ -195,12 +144,6 @@
       "Electronic": ["Nortec Collective", "Mexican Institute of Sound", "Murcof"],
       "Punk":       ["Molotov", "Botellita de Jerez", "Maldita Vecindad"],
       "World":      ["Lila Downs", "Chavela Vargas", "Natalia Lafourcade"]
-    },
-    "Morocco": {
-      "World":      ["Nass El Ghiwane", "Hindi Zahra", "Hoba Hoba Spirit"],
-      "Folk":       ["Nass El Ghiwane", "Jil Jilala"],
-      "Pop":        ["Saad Lamjarred", "Hatim Ammor"],
-      "Hip Hop":    ["ElGrandeToto", "7liwa", "Don Bigg"]
     },
     "Nigeria": {
       "Afrobeats":  ["Burna Boy", "Wizkid", "Davido", "Tems", "Rema", "Asake", "Ayra Starr"],
@@ -340,12 +283,6 @@
       "House":      ["Frankie Knuckles", "Larry Heard", "MK", "Honey Dijon"],
       "Reggae":     ["Slightly Stoopid", "Stick Figure"],
       "Classical":  ["Aaron Copland", "Philip Glass", "Steve Reich", "John Adams"]
-    },
-    "Vietnam": {
-      "Folk":       ["Khanh Ly", "Trinh Cong Son", "Le Cat Trong Ly"],
-      "Indie":      ["Ngot Band", "Vu", "Chillies"],
-      "Pop":        ["Son Tung MTP", "Bich Phuong", "My Tam"],
-      "Hip Hop":    ["Den Vau", "Wowy", "Suboi", "MCK"]
     }
   }
 }

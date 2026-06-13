@@ -54,8 +54,11 @@ export function PopulatingText() {
 
 /**
  * Connector lines from each wheel toward the center card in the selected
- * state. (The black country/genre tags that used to sit on these lines
- * were removed — they overlapped the cover art and duplicated the card's
+ * state. Drawn at z-index −1 inside the frame's stacking context so the
+ * wheel canvas and the center card paint over them — each line visually
+ * ends exactly at the edge of the cover art at any viewport size.
+ * (The black country/genre tags that used to sit on these lines were
+ * removed — they overlapped the cover art and duplicated the card's
  * own chips header.)
  */
 export function ConnectorTags() {
@@ -65,11 +68,11 @@ export function ConnectorTags() {
   return (
     <>
       <div
-        className="absolute top-1/2 z-[4] h-px bg-black transition-opacity duration-500"
+        className="absolute top-1/2 z-[-1] h-px bg-black transition-opacity duration-500"
         style={{ left: '24%', right: '50%', opacity: visible ? 1 : 0, transitionDelay: '300ms' }}
       />
       <div
-        className="absolute top-1/2 z-[4] h-px bg-black transition-opacity duration-500"
+        className="absolute top-1/2 z-[-1] h-px bg-black transition-opacity duration-500"
         style={{ left: '50%', right: '24%', opacity: visible ? 1 : 0, transitionDelay: '300ms' }}
       />
     </>
