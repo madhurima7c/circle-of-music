@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw cover exports (huge originals — normalized copies live in public/covers)
+/covers/

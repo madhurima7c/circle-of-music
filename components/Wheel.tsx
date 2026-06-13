@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useLoader, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeArt, paletteFor } from '@/lib/art';
+import { loadCoverTextures, type CoverTextures } from '@/lib/covers';
 
 export type WheelTuning = {
   /* layout */
@@ -49,26 +50,60 @@ const _axisZ   = new THREE.Vector3(0, 0, 1);
 function Card({
   idx,
   side,
+  name,
   cardSize,
   cardThickness,
 }: {
   idx: number;
   side: 'left' | 'right';
+  name: string;
   cardSize: number;
   cardThickness: number;
 }) {
+  // Procedural vinyl art — fallback for items without a cover file.
   const palette = paletteFor(idx + (side === 'right' ? 2 : 0));
   const dataUrl = useMemo(
     () => makeArt(idx * 31 + (side === 'right' ? 17 : 7), palette),
     [idx, side, palette],
   );
-  const texture = useLoader(THREE.TextureLoader, dataUrl);
+  const fallback = useLoader(THREE.TextureLoader, dataUrl);
 
   useEffect(() => {
-    if (!texture) return;
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 4;
-  }, [texture]);
+    if (!fallback) return;
+    fallback.colorSpace = THREE.SRGBColorSpace;
+    fallback.anisotropy = 4;
+  }, [fallback]);
+
+  // Real cover artwork: front + back are the cover, spine is a gradient
+  // of the cover's own colors. Null until loaded (or if the file is absent).
+  const [cover, setCover] = useState<CoverTextures | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const kind = side === 'left' ? 'countries' : 'genres';
+    loadCoverTextures(kind, name).then((tex) => {
+      if (cancelled) {
+        if (tex) { tex.front.dispose(); tex.back.dispose(); tex.spine.dispose(); }
+        return;
+      }
+      if (tex) setCover(tex);
+    });
+    return () => { cancelled = true; };
+  }, [side, name]);
+
+  if (cover) {
+    return (
+      // Box face order: +x, −x, +y, −y, +z (front), −z (back).
+      <mesh>
+        <boxGeometry args={[cardSize, cardSize, cardThickness]} />
+        <meshBasicMaterial attach="material-0" map={cover.spine} toneMapped={false} />
+        <meshBasicMaterial attach="material-1" map={cover.spine} toneMapped={false} />
+        <meshBasicMaterial attach="material-2" map={cover.spine} toneMapped={false} />
+        <meshBasicMaterial attach="material-3" map={cover.spine} toneMapped={false} />
+        <meshBasicMaterial attach="material-4" map={cover.front} toneMapped={false} />
+        <meshBasicMaterial attach="material-5" map={cover.back}  toneMapped={false} />
+      </mesh>
+    );
+  }
 
   return (
     <group>
@@ -80,7 +115,7 @@ function Card({
       {/* front face — vinyl cover, sits just in front of the box */}
       <mesh position={[0, 0, cardThickness / 2 + 0.001]}>
         <planeGeometry args={[cardSize, cardSize]} />
-        <meshBasicMaterial map={texture} toneMapped={false} />
+        <meshBasicMaterial map={fallback} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -321,7 +356,7 @@ function CircleRing({
 
   return (
     <>
-      {items.map((_, i) => (
+      {items.map((item, i) => (
         <group
           key={i}
           ref={(el) => { refs.current[i] = el; }}
@@ -330,6 +365,7 @@ function CircleRing({
           <Card
             idx={i}
             side={isLeft ? 'left' : 'right'}
+            name={item}
             cardSize={cardSize}
             cardThickness={cardThickness}
           />
