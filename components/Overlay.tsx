@@ -53,30 +53,17 @@ export function PopulatingText() {
 }
 
 /**
- * Tags + connector lines in the selected state.
- * Uses pixel-positioned absolutely-placed elements anchored to the center.
+ * Connector lines from each wheel toward the center card in the selected
+ * state. (The black country/genre tags that used to sit on these lines
+ * were removed — they overlapped the cover art and duplicated the card's
+ * own chips header.)
  */
 export function ConnectorTags() {
-  const { countryIdx, genreIdx, status } = useStore();
+  const { status } = useStore();
   const visible = status === 'ready';
-  const country = COUNTRIES[countryIdx];
-  const genre   = GENRES[genreIdx];
 
   return (
     <>
-      <div
-        className="absolute top-1/2 z-[8] tabular -translate-y-1/2 px-3.5 py-1.5 text-[12px] tracking-[0.16em] text-white transition-opacity duration-300"
-        style={{ left: '20%', background: '#111', opacity: visible ? 1 : 0 }}
-      >
-        {country.toUpperCase()}
-      </div>
-      <div
-        className="absolute top-1/2 z-[8] tabular -translate-y-1/2 px-3.5 py-1.5 text-[12px] tracking-[0.16em] text-white transition-opacity duration-300"
-        style={{ right: '20%', background: '#111', opacity: visible ? 1 : 0 }}
-      >
-        {genre.toUpperCase()}
-      </div>
-      {/* horizontal connectors from each side toward center */}
       <div
         className="absolute top-1/2 z-[4] h-px bg-black transition-opacity duration-500"
         style={{ left: '24%', right: '50%', opacity: visible ? 1 : 0, transitionDelay: '300ms' }}
