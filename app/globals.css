@@ -172,6 +172,38 @@ html, body {
 .letter-ladder__tick[data-active="true"] {
   opacity: 0;
 }
+/* Lock toggle above each ladder — same square language as the letter chip.
+   Sits ~30px above the 220px rail (20 rows × 11px), horizontally aligned. */
+.wheel-lock {
+  position: absolute;
+  top: calc(50% - 152px);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 31;
+  box-sizing: border-box;
+  border: 1px solid #111111;
+  border-radius: 0;
+  background: var(--bg-stage);
+  color: #111111;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+.wheel-lock--left  { left: 21px; }
+.wheel-lock--right { right: 21px; }
+.wheel-lock svg { width: 15px; height: 15px; display: block; }
+.wheel-lock:hover { box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.18); }
+.wheel-lock:active { transform: scale(0.94); }
+/* Locked = filled, so a held wheel is obvious at a glance. */
+.wheel-lock[data-locked="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 /* Letter square: IBM Plex Mono + double stroke; centered on active row */
 .letter-ladder__chip {
   position: absolute;

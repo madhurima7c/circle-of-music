@@ -313,6 +313,42 @@ export function Dial({ side }: { side: 'left' | 'right' }) {
   );
 }
 
+/**
+ * Lock toggle — a padlock above each letter ladder. A locked wheel ignores
+ * all spin input (drag, scroll, gestures, ladder clicks) via the guards in
+ * the store, so the user can hold one wheel still and spin only the other.
+ */
+export function WheelLock({ side }: { side: 'left' | 'right' }) {
+  const { lockedLeft, lockedRight, toggleLockLeft, toggleLockRight } = useStore();
+  const locked = side === 'left' ? lockedLeft : lockedRight;
+  const toggle = side === 'left' ? toggleLockLeft : toggleLockRight;
+  const label  = side === 'left' ? 'country wheel' : 'genre wheel';
+
+  return (
+    <button
+      type="button"
+      className={`wheel-lock wheel-lock--${side}`}
+      data-locked={locked ? 'true' : 'false'}
+      onClick={toggle}
+      title={`${locked ? 'Unlock' : 'Lock'} the ${label}`}
+      aria-label={`${locked ? 'Unlock' : 'Lock'} the ${label}`}
+      aria-pressed={locked}
+    >
+      {locked ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="5" y="11" width="14" height="10" rx="1.5" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="5" y="11" width="14" height="10" rx="1.5" />
+          <path d="M8 11V7a4 4 0 0 1 7.5-2" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 /* ============================================================
  *  HandTracking — gesture input layer over the existing wheels.
  *

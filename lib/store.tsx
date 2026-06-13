@@ -45,6 +45,9 @@ type StoreShape = {
   hoverLeft:  HoverTarget;
   hoverRight: HoverTarget;
   toast: GestureToast | null;
+  /** Locked wheels ignore all spin input (drag, scroll, gestures, ladder). */
+  lockedLeft:  boolean;
+  lockedRight: boolean;
 
   spinLeft:  (dir: number) => void;
   spinRight: (dir: number) => void;
@@ -61,6 +64,8 @@ type StoreShape = {
   setVolume:   (v: number) => void;
   setHover:    (left: HoverTarget, right: HoverTarget) => void;
   flashToast:  (t: GestureToast) => void;
+  toggleLockLeft:  () => void;
+  toggleLockRight: () => void;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -99,6 +104,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [hoverLeft,  setHoverLeftState]  = useState<HoverTarget>(null);
   const [hoverRight, setHoverRightState] = useState<HoverTarget>(null);
   const [toast,      setToast]      = useState<GestureToast | null>(null);
+  const [lockedLeft,  setLockedLeft]  = useState(false);
+  const [lockedRight, setLockedRight] = useState(false);
+
+  // Refs mirror the lock state so the spin guards always read the latest
+  // value without forcing every spin/set callback to be recreated on toggle.
+  const lockedLeftRef  = useRef(false);
+  const lockedRightRef = useRef(false);
 
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -137,28 +149,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [commit]);
 
   const spinLeft = useCallback((dir: number) => {
+    if (lockedLeftRef.current) return;       // locked country wheel ignores input
     setCountryIdx(i => (i + dir + COUNTRIES.length) % COUNTRIES.length);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
 
   const spinRight = useCallback((dir: number) => {
+    if (lockedRightRef.current) return;      // locked genre wheel ignores input
     setGenreIdx(i => (i + dir + GENRES.length) % GENRES.length);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
 
   const setCountry = useCallback((i: number) => {
+    if (lockedLeftRef.current) return;
     setCountryIdx(((i % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
 
   const setGenre = useCallback((i: number) => {
+    if (lockedRightRef.current) return;
     setGenreIdx(((i % GENRES.length) + GENRES.length) % GENRES.length);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
+
+  const toggleLockLeft = useCallback(() => {
+    const next = !lockedLeftRef.current;
+    lockedLeftRef.current = next;   // update synchronously so the guard sees it immediately
+    setLockedLeft(next);
+  }, []);
+
+  const toggleLockRight = useCallback(() => {
+    const next = !lockedRightRef.current;
+    lockedRightRef.current = next;
+    setLockedRight(next);
+  }, []);
 
   // first auto-commit after first paint so the ready state actually populates
   useEffect(() => {
@@ -217,15 +245,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<StoreShape>(() => ({
     countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
-    hoverLeft, hoverRight, toast,
+    hoverLeft, hoverRight, toast, lockedLeft, lockedRight,
     spinLeft, spinRight, setCountry, setGenre, commit, setTrackIdx,
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
+    toggleLockLeft, toggleLockRight,
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
-       hoverLeft, hoverRight, toast,
+       hoverLeft, hoverRight, toast, lockedLeft, lockedRight,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
-       setVolumeClamped, setHover, flashToast]);
+       setVolumeClamped, setHover, flashToast,
+       toggleLockLeft, toggleLockRight]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }

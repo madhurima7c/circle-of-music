@@ -9,6 +9,7 @@ import {
   ConnectorTags,
   CenterStack,
   Dial,
+  WheelLock,
   Dock,
   Hint,
   MenuMark,
@@ -34,6 +35,8 @@ function Inner() {
 
       <Dial side="left" />
       <Dial side="right" />
+      <WheelLock side="left" />
+      <WheelLock side="right" />
 
       <div className="glass top"    style={{ top: 0,    height: 130 }} />
       <div className="glass bottom" style={{ bottom: 0, height: 160 }} />
