@@ -340,7 +340,11 @@ function CircleRing({
       // X stays the same sign across wheels; Y and Z flip sign for mirror symmetry.
       const xAngle = xTiltRad      * (1 - flatness);
       const yAngle = spineAngleRad * (1 - flatness) * ySign;
-      const zAngle = (worldAngle - activeAngle) * tangentAmount
+      // Tangent term must use the WRAPPED distance (dist + push), not the raw
+      // (worldAngle - activeAngle): the raw difference grows by 2π per full
+      // revolution, and ×tangentAmount(0.5) that flipped every card 180°
+      // on alternate laps.
+      const zAngle = (dist + push) * tangentAmount
                      + extraZRad * (1 - flatness) * sideSign;
       _qX.setFromAxisAngle(_axisX, xAngle);
       _qY.setFromAxisAngle(_axisY, yAngle);
