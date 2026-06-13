@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
-import { detectShape } from '@/lib/gestures';
-import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 
 export function Title() {
   return (
@@ -386,139 +384,71 @@ type CameraStatus = 'connecting' | 'ok' | 'in-use' | 'denied' | 'no-device' | 'e
 const CFG = {
   /* MediaPipe model */
   numHands: 2,
-  modelComplexity: 1,
-  minDetectionConfidence: 0.7,
+  minDetectionConfidence: 0.6,
   minTrackingConfidence:  0.5,
 
   /* EMA on every landmark.  smoothed = α·current + (1−α)·previous  */
-  smoothAlpha: 0.35,
+  smoothAlpha: 0.4,
 
-  /* Palm-velocity dead zone (screen pixels per frame). Below this we
-   * treat the hand as stationary — no scroll, and pinch is allowed. */
-  deadZoneVelocityPx: 6,
+  /* Cursor mapping — a VR-style pointer driven by the index fingertip.
+   * Hand position in the camera frame maps to a screen cursor; gain
+   * amplifies movement around center so the screen edges are reachable
+   * without moving the hand to the edge of the camera's view. */
+  cursorGain:   1.7,   // movement amplification around frame center (0.5)
+  cursorSmooth: 0.45,  // extra EMA on the cursor pixel position (0..1, higher = snappier)
 
-  /* Zone boundaries as fractions of screen width (post X-mirror). */
-  leftZoneMax:  0.35,
-  rightZoneMin: 0.65,
-  /* Sticky zone — must observe the new zone for this long before
-   * the assignment switches, to defeat cross-talk on fast moves. */
-  zoneHysteresisMs: 300,
+  /* Pinch = click / grab. Hysteresis: engage below ON, release above OFF,
+   * so a held pinch doesn't flicker. Normalized thumb-tip↔index-tip dist. */
+  pinchOnNorm:  0.055,
+  pinchOffNorm: 0.085,
 
-  /* Scroll throttle */
-  scrollDistancePerStep: 50,   // px palm travel between scroll triggers
-  scrollCooldownMs:      60,   // floor between scroll triggers
-  flickVelocityPx:       35,   // peak palm-Y speed (px/frame) that counts as flick
-  flickMaxSteps:          3,   // a single flick can fire at most this many steps
+  /* Wheel drag — while pinched over a wheel, this much cursor-Y travel
+   * spins it one step (like grabbing and turning a physical wheel). */
+  dragPxPerStep: 42,
 
-  /* Pinch / select */
-  pinchDistanceNorm:   0.045,  // thumb-tip ↔ index-tip distance, normalized
-  pinchDwellMs:        350,
-  selectCooldownMs:    500,
-
-  /* Discrete-command (canned-pose) dwell — transport console + wheel lock.
-   * A pose must be held stationary this long to fire, then a cooldown floor
-   * before the same hand can fire again. This is what makes each command
-   * intentional and keeps it from colliding with scroll (which needs motion). */
-  gestureDwellMs:    500,   // hold a recognized pose still this long to fire
-  gestureMinScore:   0.6,   // min canned-gesture confidence to consider a pose
-  gestureCooldownMs: 700,   // floor between discrete-command fires (per hand)
+  /* Floor between two clicks from the SAME hand, so one pinch = one click. */
+  clickDebounceMs: 450,
 
   /* Hand identity */
   handMatchMaxNormDistance: 0.25,  // wrist-to-wrist threshold for matching across frames
   handStaleMs:              250,   // tracked hand expires if not seen for this long
 } as const;
 
-type Zone = 'left' | 'right' | 'center';
-
 type Landmark = { x: number; y: number; z: number };
 
 type TrackedHand = {
   /** EMA-smoothed landmarks (normalized coords from MediaPipe).      */
   smoothed: Landmark[] | null;
-  /** Last frame's palm-center position in screen px, for velocity.   */
-  prevPalmScreen: { x: number; y: number } | null;
 
-  /** Currently-assigned zone (with hysteresis applied).              */
-  zone: Zone;
-  /** Zone the hand is trying to move into, but not yet committed.    */
-  zoneCandidate: Zone | null;
-  zoneCandidateSince: number;
+  /** VR-style cursor position in viewport px (extra-smoothed). null
+   *  until the hand is first seen.                                   */
+  cursor: { x: number; y: number } | null;
 
-  /** Screen Y where the last scroll step fired (distance throttle).  */
-  scrollAnchorY: number | null;
-  lastScrollAt:  number;
+  /** Pinch state with hysteresis — true while thumb+index held shut. */
+  pinching: boolean;
 
-  /** Pinch dwell — null when not currently dwelling.                 */
-  pinchDwellStart:     number | null;
-  selectCooldownUntil: number;
-  /** True for one render after a successful select so a glow shows.  */
-  selectFlashUntil:    number;
+  /** When pinching over a wheel: which side, and the cursor-Y anchor
+   *  the next spin step is measured from. dragSide null = not grabbing.*/
+  dragSide:    'left' | 'right' | null;
+  dragAnchorY: number;
 
-  /** Canned-pose dwell — mirrors the pinch dwell, for transport/lock
-   * commands. `gestureDwellName` is the DiscreteCmd currently dwelling. */
-  gestureDwellName:     string | null;
-  gestureDwellStart:    number | null;
-  gestureCooldownUntil: number;
+  /** Floor so one pinch fires at most one click.                     */
+  lastClickAt: number;
 
   /** Used by the matcher to expire stale tracks.                     */
   lastSeenAt: number;
 };
 
-const PALM_LM = [0, 5, 9, 13, 17] as const;
-
 function newTrackedHand(): TrackedHand {
   return {
     smoothed: null,
-    prevPalmScreen: null,
-    zone: 'center',
-    zoneCandidate: null,
-    zoneCandidateSince: 0,
-    scrollAnchorY: null,
-    lastScrollAt: 0,
-    pinchDwellStart: null,
-    selectCooldownUntil: 0,
-    selectFlashUntil: 0,
-    gestureDwellName: null,
-    gestureDwellStart: null,
-    gestureCooldownUntil: 0,
+    cursor: null,
+    pinching: false,
+    dragSide: null,
+    dragAnchorY: 0,
+    lastClickAt: 0,
     lastSeenAt: 0,
   };
-}
-
-function zoneFromWristX(mirroredX: number): Zone {
-  if (mirroredX <= CFG.leftZoneMax)  return 'left';
-  if (mirroredX >= CFG.rightZoneMin) return 'right';
-  return 'center';
-}
-
-/* ----------------------------------------------------------------
- *  Discrete (one-shot) commands fired by holding a canned pose.
- *  The zone gates which poses are eligible, so the same pose can
- *  mean different things on each side without ambiguity:
- *    • Over a wheel: ✊ Closed_Fist → lock that wheel.
- *    • In the center transport console (stationary only — a hand
- *      transiting between wheels is moving, so nothing fires):
- *        ✋ Open_Palm → play/pause   ✌️ Victory → shuffle
- *        👍 thumb →   → next         👍 thumb ←  → prev
- * ---------------------------------------------------------------- */
-type DiscreteCmd =
-  | 'lock-left' | 'lock-right'
-  | 'play' | 'shuffle' | 'next' | 'prev';
-
-function cmdForPose(
-  zone: Zone,
-  poseName: string,
-  thumbDir: 'left' | 'right' | null,
-): DiscreteCmd | null {
-  if (zone === 'left'  && poseName === 'Closed_Fist') return 'lock-left';
-  if (zone === 'right' && poseName === 'Closed_Fist') return 'lock-right';
-  if (zone === 'center') {
-    if (poseName === 'Open_Palm') return 'play';
-    if (poseName === 'Victory')   return 'shuffle';
-    if (thumbDir === 'right')     return 'next';
-    if (thumbDir === 'left')      return 'prev';
-  }
-  return null;
 }
 
 function distNorm(a: Landmark, b: Landmark): number {
@@ -526,69 +456,20 @@ function distNorm(a: Landmark, b: Landmark): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
 export function HandTracking() {
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('connecting');
-  /* React state purely for UI: how many hands MediaPipe is currently seeing,
-   * and whether either side is mid-dwell (drives a glow on the preview).
-   * Gesture logic itself runs off refs, not React state, to avoid re-renders. */
-  const [handCount,    setHandCount]    = useState(0);
-  const [dwellState,   setDwellState]   = useState<{ left: number; right: number }>(
-    { left: 0, right: 0 },
-  );
+  /* React state purely for the preview's hand-count badge. All gesture logic
+   * runs off refs / direct DOM, never React state, to avoid per-frame renders. */
+  const [handCount, setHandCount] = useState(0);
 
-  const {
-    spinLeft, spinRight, commit, flashToast,
-    togglePlay, nextTrack, prevTrack, shuffleTracks,
-    toggleLockLeft, toggleLockRight,
-    isPlaying, lockedLeft, lockedRight,
-  } = useStore();
-  // Mirror live store dispatchers into refs so the requestAnimationFrame
-  // loop doesn't have to be torn down and rebuilt every time React renders.
+  // Spinning a wheel is the one action with no DOM button to click, so we keep
+  // these as refs for the rAF loop. Everything else (play/pause, next, prev,
+  // shuffle, lock, ladder snap) is a real <button> the cursor clicks directly.
+  const { spinLeft, spinRight } = useStore();
   const spinLeftRef  = useRef(spinLeft);  spinLeftRef.current  = spinLeft;
   const spinRightRef = useRef(spinRight); spinRightRef.current = spinRight;
-  const commitRef    = useRef(commit);    commitRef.current    = commit;
-  const toastRef     = useRef(flashToast); toastRef.current    = flashToast;
-  const togglePlayRef = useRef(togglePlay);     togglePlayRef.current = togglePlay;
-  const nextRef       = useRef(nextTrack);      nextRef.current       = nextTrack;
-  const prevRef       = useRef(prevTrack);      prevRef.current       = prevTrack;
-  const shuffleRef    = useRef(shuffleTracks);  shuffleRef.current    = shuffleTracks;
-  const lockLeftRef   = useRef(toggleLockLeft); lockLeftRef.current   = toggleLockLeft;
-  const lockRightRef  = useRef(toggleLockRight);lockRightRef.current  = toggleLockRight;
-  // State mirrors so a toast can show the RESULTING state (▶/⏸, 🔒/🔓).
-  const isPlayingRef   = useRef(isPlaying);   isPlayingRef.current   = isPlaying;
-  const lockedLeftRef  = useRef(lockedLeft);  lockedLeftRef.current  = lockedLeft;
-  const lockedRightRef = useRef(lockedRight); lockedRightRef.current = lockedRight;
-
-  /* Dispatch a discrete command + confirmation toast. Reads the *current*
-   * state ref before the toggle so the toast shows what the action results in. */
-  const fireDiscrete = useRef((cmd: DiscreteCmd) => {
-    switch (cmd) {
-      case 'play':
-        togglePlayRef.current();
-        toastRef.current({ kind: isPlayingRef.current ? 'pause' : 'play' });
-        break;
-      case 'shuffle':
-        shuffleRef.current(true);
-        toastRef.current({ kind: 'shuffle' });
-        break;
-      case 'next':
-        nextRef.current();
-        toastRef.current({ kind: 'next' });
-        break;
-      case 'prev':
-        prevRef.current();
-        toastRef.current({ kind: 'prev' });
-        break;
-      case 'lock-left':
-        lockLeftRef.current();
-        toastRef.current({ kind: lockedLeftRef.current ? 'unlock-left' : 'lock-left' });
-        break;
-      case 'lock-right':
-        lockRightRef.current();
-        toastRef.current({ kind: lockedRightRef.current ? 'unlock-right' : 'lock-right' });
-        break;
-    }
-  });
 
   useEffect(() => {
     let raf = 0;
@@ -639,26 +520,26 @@ export function HandTracking() {
         return;
       }
 
-      let GestureRecognizer, FilesetResolver;
+      let HandLandmarker, FilesetResolver;
       try {
-        ({ GestureRecognizer, FilesetResolver } = await import('@mediapipe/tasks-vision'));
+        ({ HandLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision'));
       } catch {
         setCameraStatus('error');
         return;
       }
 
-      // GestureRecognizer returns the SAME 21 landmarks HandLandmarker did,
-      // plus a canned-pose classification per hand — so all existing landmark
-      // logic below is unchanged and we get poses for the transport/lock gestures.
-      let recognizer;
+      // The VR-cursor model is purely landmark-driven (cursor from the index
+      // fingertip, pinch from thumb↔index distance) — no canned-pose
+      // classification — so the lighter HandLandmarker is all we need.
+      let landmarker;
       try {
         const vision = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm',
         );
-        recognizer = await GestureRecognizer.createFromOptions(vision, {
+        landmarker = await HandLandmarker.createFromOptions(vision, {
           baseOptions: {
             modelAssetPath:
-              'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
+              'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
             delegate: 'GPU',
           },
           numHands:                CFG.numHands,
@@ -666,7 +547,6 @@ export function HandTracking() {
           minHandDetectionConfidence: CFG.minDetectionConfidence,
           minHandPresenceConfidence:  CFG.minDetectionConfidence,
           minTrackingConfidence:      CFG.minTrackingConfidence,
-          cannedGesturesClassifierOptions: { scoreThreshold: CFG.gestureMinScore },
         });
       } catch {
         setCameraStatus('error');
@@ -677,21 +557,19 @@ export function HandTracking() {
 
       let lastVideoTime = -1;
       let lastHandCount  = -1;
-      let lastDwellLeft  = -1;
-      let lastDwellRight = -1;
+      // Elements the cursor is currently hovering, so we can clear the highlight
+      // when it moves off. Lives across frames.
+      let hoveredEls = new Set<Element>();
 
       const tick = () => {
         if (stopped) return;
         if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
           lastVideoTime = video.currentTime;
-          const result = recognizer.recognizeForVideo(video, performance.now());
+          const result = landmarker.detectForVideo(video, performance.now());
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
           const now    = performance.now();
           const detected = result.landmarks ?? [];
-          // Parallel to `detected` by hand index. Inner array is EMPTY when the
-          // recognizer is uncertain — always guard `gestures[i]?.[0]`.
-          const gestures = result.gestures ?? [];
 
           /* --------------------------------------------------------
            *  1. Match each detected hand to a tracked slot (nearest
@@ -738,10 +616,12 @@ export function HandTracking() {
           }
 
           /* --------------------------------------------------------
-           *  2. Process each assigned hand: smooth → zone → scroll
-           *     → pinch dwell. Wheels are spun via store actions —
-           *     the wheels themselves are not touched.
+           *  2. Process each assigned hand as a VR-style cursor:
+           *     smooth → cursor position → pinch (click / grab).
            * -------------------------------------------------------- */
+          const nextHovered = new Set<Element>();
+          const activeSlots = new Set<number>();
+
           for (const { detIdx, trackIdx } of assignments) {
             const lmRaw = detected[detIdx];
             const th    = tracked[trackIdx];
@@ -761,48 +641,12 @@ export function HandTracking() {
             }
             const sm = th.smoothed;
             th.lastSeenAt = now;
+            activeSlots.add(trackIdx);
 
-            /* 2b. Palm center (smoothed) in screen px. */
-            let px = 0, py = 0;
-            for (const k of PALM_LM) { px += sm[k].x; py += sm[k].y; }
-            px /= PALM_LM.length; py /= PALM_LM.length;
-            // Mirror X so the on-screen feel matches the mirrored video.
-            const palmScreen = {
-              x: (1 - px) * window.innerWidth,
-              y:      py  * window.innerHeight,
-            };
-            const palmVelocity = th.prevPalmScreen
-              ? {
-                  x: palmScreen.x - th.prevPalmScreen.x,
-                  y: palmScreen.y - th.prevPalmScreen.y,
-                }
-              : { x: 0, y: 0 };
-            const palmSpeed = Math.hypot(palmVelocity.x, palmVelocity.y);
-            th.prevPalmScreen = palmScreen;
-
-            /* 2c. Zone from mirrored wrist X, with hysteresis. */
-            const wristMirrorX = 1 - sm[0].x;
-            const observedZone = zoneFromWristX(wristMirrorX);
-            if (observedZone !== th.zone) {
-              if (th.zoneCandidate !== observedZone) {
-                th.zoneCandidate      = observedZone;
-                th.zoneCandidateSince = now;
-              } else if (now - th.zoneCandidateSince >= CFG.zoneHysteresisMs) {
-                th.zone          = observedZone;
-                th.zoneCandidate = null;
-                // Zone change resets the scroll anchor so the new wheel doesn't
-                // inherit the previous wheel's distance-throttle state.
-                th.scrollAnchorY = null;
-              }
-            } else {
-              th.zoneCandidate = null;
-            }
-
-            /* 2d. Draw skeleton on the preview canvas, colored by zone. */
-            const stroke =
-              th.zone === 'left'  ? 'rgba(60,220,130,0.95)' :
-              th.zone === 'right' ? 'rgba(255,100,200,0.95)' :
-                                    'rgba(180,180,180,0.55)';
+            /* 2b. Draw the 21-point skeleton on the preview, colored per hand. */
+            const stroke = trackIdx === 0
+              ? 'rgba(60,220,130,0.95)'   // hand 0 — green
+              : 'rgba(80,160,255,0.95)';  // hand 1 — blue
             ctx.lineWidth = 2.2;
             ctx.strokeStyle = stroke;
             for (const [a, b] of HAND_CONNECTIONS) {
@@ -818,164 +662,113 @@ export function HandTracking() {
               ctx.fill();
             }
 
-            const moving       = palmSpeed > CFG.deadZoneVelocityPx;
-            const isInCooldown = now < th.selectCooldownUntil;
+            /* 2c. Cursor position — index fingertip (landmark 8), mirrored,
+             * amplified around frame center so the screen edges are reachable,
+             * then extra-smoothed for a steady pointer. */
+            const tipX = 1 - sm[8].x;  // mirror X to match the mirrored video
+            const tipY = sm[8].y;
+            const gx = clamp01(0.5 + (tipX - 0.5) * CFG.cursorGain);
+            const gy = clamp01(0.5 + (tipY - 0.5) * CFG.cursorGain);
+            const targetX = gx * window.innerWidth;
+            const targetY = gy * window.innerHeight;
+            if (!th.cursor) {
+              th.cursor = { x: targetX, y: targetY };
+            } else {
+              th.cursor.x += (targetX - th.cursor.x) * CFG.cursorSmooth;
+              th.cursor.y += (targetY - th.cursor.y) * CFG.cursorSmooth;
+            }
+            const cx = th.cursor.x, cy = th.cursor.y;
 
-            /* 2e. Discrete-command dwell — runs for EVERY zone. `cmdForPose`
-             * returns null when the held pose isn't eligible in this zone, so
-             * one block covers both fist-lock (side zones) and the center
-             * transport console. It requires the hand stationary (!moving), so
-             * it can never co-fire with scroll, and a hand transiting between
-             * wheels (always moving) triggers nothing. */
-            const poseTop  = gestures[detIdx]?.[0];
-            const poseName = (poseTop && poseTop.score >= CFG.gestureMinScore)
-              ? poseTop.categoryName : 'None';
-            // Thumb left/right (for center next/prev) is computed from landmarks
-            // only in the center zone — canned poses cover the rest.
-            const thumbDir = th.zone === 'center'
-              ? (() => {
-                  const s = detectShape(sm as unknown as NormalizedLandmark[]);
-                  return s.isThumbRight ? ('right' as const)
-                       : s.isThumbLeft  ? ('left'  as const)
-                       : null;
-                })()
+            /* 2d. Pinch with hysteresis (engage below ON, release above OFF). */
+            const wasPinching = th.pinching;
+            const pinchDist   = distNorm(sm[4], sm[8]);
+            const nowPinching = wasPinching
+              ? pinchDist <= CFG.pinchOffNorm
+              : pinchDist <  CFG.pinchOnNorm;
+            th.pinching = nowPinching;
+            const justPinched  = nowPinching && !wasPinching;
+            const justReleased = !nowPinching && wasPinching;
+
+            /* 2e. What's under the cursor? `elementFromPoint` ignores our
+             * pointer-events:none cursor + glass overlays and returns the real
+             * button or the wheel <canvas> beneath. */
+            const el  = document.elementFromPoint(cx, cy);
+            const btn = el instanceof Element
+              ? (el.closest('button') as HTMLElement | null)
               : null;
-            const inGestureCooldown = now < th.gestureCooldownUntil;
-            const cmd = (!moving && !inGestureCooldown)
-              ? cmdForPose(th.zone, poseName, thumbDir)
-              : null;
-            if (cmd) {
-              // Start, or continue, the dwell. A pose change resets the timer
-              // so transitioning Open_Palm→Victory can't fire the wrong command.
-              if (th.gestureDwellName !== cmd) {
-                th.gestureDwellName  = cmd;
-                th.gestureDwellStart = now;
+            // Highlight a hoverable button (but not while grabbing a wheel).
+            if (btn && !th.dragSide) nextHovered.add(btn);
+
+            if (justPinched) {
+              if (btn && now - th.lastClickAt > CFG.clickDebounceMs) {
+                // Pinch on a control = click it. Reuses the button's own
+                // handler (play/pause, next, prev, shuffle, lock, ladder snap).
+                btn.click();
+                th.lastClickAt = now;
+                th.dragSide = null;
+              } else if (el && el.tagName === 'CANVAS' && el.id !== 'hand-canvas') {
+                // Pinch on the wheel canvas = grab it; side from cursor X.
+                th.dragSide    = cx < window.innerWidth / 2 ? 'left' : 'right';
+                th.dragAnchorY = cy;
+              } else {
+                th.dragSide = null;
               }
-              if (th.gestureDwellStart !== null &&
-                  now - th.gestureDwellStart >= CFG.gestureDwellMs) {
-                fireDiscrete.current(cmd);
-                th.gestureDwellName     = null;
-                th.gestureDwellStart    = null;
-                th.gestureCooldownUntil = now + CFG.gestureCooldownMs;
+            } else if (nowPinching && th.dragSide) {
+              // Grabbing a wheel: vertical cursor travel turns it, like
+              // grabbing and spinning a physical wheel. Locked wheels ignore
+              // this via the store guard.
+              const dy = cy - th.dragAnchorY;
+              if (Math.abs(dy) >= CFG.dragPxPerStep) {
+                const dir = dy > 0 ? 1 : -1;
+                (th.dragSide === 'left' ? spinLeftRef : spinRightRef).current(dir);
+                th.dragAnchorY = cy;
               }
-            } else {
-              th.gestureDwellName  = null;
-              th.gestureDwellStart = null;
             }
+            if (justReleased) th.dragSide = null;
 
-            /* Center = transport console only: it ran the gesture block above
-             * but does NOT scroll a wheel or pinch-commit a pairing. */
-            if (th.zone === 'center') {
-              th.pinchDwellStart = null;
-              continue;
-            }
-
-            const spinFn = th.zone === 'left' ? spinLeftRef.current : spinRightRef.current;
-
-            /* 2e. Scrolling — distance-throttled with optional flick boost.
-             * The anchor is the screen Y where we last fired a scroll step;
-             * we won't fire another until the palm has moved at least 50 px
-             * since then. Combined with the dead zone this means a single
-             * sweep can only fire as many steps as the sweep length / 50. */
-            if (moving) {
-              if (th.scrollAnchorY === null) th.scrollAnchorY = palmScreen.y;
-              const delta = palmScreen.y - th.scrollAnchorY;
-              const absDelta = Math.abs(delta);
-              if (absDelta >= CFG.scrollDistancePerStep &&
-                  now - th.lastScrollAt >= CFG.scrollCooldownMs) {
-                const dir = delta > 0 ? 1 : -1;
-                // Flick boost: high peak Y-speed → fire extra steps proportional
-                // to how fast the palm was moving, capped at flickMaxSteps.
-                let steps = 1;
-                if (Math.abs(palmVelocity.y) >= CFG.flickVelocityPx) {
-                  const ratio = Math.abs(palmVelocity.y) / CFG.flickVelocityPx;
-                  steps = Math.min(CFG.flickMaxSteps, Math.max(1, Math.round(ratio)));
-                }
-                for (let k = 0; k < steps; k++) spinFn(dir);
-                th.scrollAnchorY = palmScreen.y;
-                th.lastScrollAt  = now;
-              }
-            } else {
-              // Stationary — reset the anchor so the next motion starts fresh.
-              th.scrollAnchorY = null;
-            }
-
-            /* 2f. Pinch dwell — only when stationary, not scrolling, not in
-             * cooldown. Fingers naturally come together during a scroll sweep,
-             * so this stationary-only guard is what prevents constant false
-             * commits. */
-            const pinchDist = distNorm(sm[4], sm[8]);
-            const isPinching = pinchDist < CFG.pinchDistanceNorm;
-            const canStartDwell = !moving && !isInCooldown && isPinching;
-
-            if (canStartDwell) {
-              if (th.pinchDwellStart === null) th.pinchDwellStart = now;
-              const elapsed = now - th.pinchDwellStart;
-              if (elapsed >= CFG.pinchDwellMs) {
-                commitRef.current();
-                toastRef.current({
-                  kind: th.zone === 'left' ? 'select-left' : 'select-right',
-                });
-                th.pinchDwellStart     = null;
-                th.selectCooldownUntil = now + CFG.selectCooldownMs;
-                th.selectFlashUntil    = now + 400;
-              }
-            } else {
-              // Releasing or moving cancels the dwell.
-              th.pinchDwellStart = null;
+            /* 2f. Move this hand's on-screen cursor. */
+            const cursorEl = document.getElementById('gesture-cursor-' + trackIdx);
+            if (cursorEl) {
+              cursorEl.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
+              cursorEl.style.opacity = '1';
+              cursorEl.dataset.pinch = nowPinching ? 'true' : 'false';
+              cursorEl.dataset.grab  = th.dragSide ? 'true' : 'false';
             }
           }
 
           /* --------------------------------------------------------
-           *  3. Decay state for tracked slots that weren't matched.
+           *  3. Hover highlight reconcile + hide idle cursors + decay.
            * -------------------------------------------------------- */
+          for (const elPrev of hoveredEls) {
+            if (!nextHovered.has(elPrev)) elPrev.classList.remove('gesture-hover');
+          }
+          for (const elNew of nextHovered) {
+            if (!hoveredEls.has(elNew)) elNew.classList.add('gesture-hover');
+          }
+          hoveredEls = nextHovered;
+
           for (let t = 0; t < tracked.length; t++) {
+            if (activeSlots.has(t)) continue;
+            const cursorEl = document.getElementById('gesture-cursor-' + t);
+            if (cursorEl) cursorEl.style.opacity = '0';
             if (claimed[t]) continue;
             const th = tracked[t];
             if (th.smoothed && (now - th.lastSeenAt) > CFG.handStaleMs) {
               // Stale — wipe state so this slot is reusable.
-              th.smoothed          = null;
-              th.prevPalmScreen    = null;
-              th.zone              = 'center';
-              th.zoneCandidate     = null;
-              th.scrollAnchorY     = null;
-              th.pinchDwellStart   = null;
-              th.gestureDwellName  = null;
-              th.gestureDwellStart = null;
+              th.smoothed = null;
+              th.cursor   = null;
+              th.pinching = false;
+              th.dragSide = null;
             }
           }
 
           /* --------------------------------------------------------
-           *  4. Publish UI-visible state.
+           *  4. Publish UI-visible state (hand-count badge).
            * -------------------------------------------------------- */
           const visibleCount = detected.length;
           if (visibleCount !== lastHandCount) {
             lastHandCount = visibleCount;
             setHandCount(visibleCount);
-          }
-
-          // Highest dwell progress on each side, for the on-preview rings.
-          let dl = 0, dr = 0;
-          for (const th of tracked) {
-            if (!th.smoothed) continue;
-            if (th.selectFlashUntil > now) {
-              if (th.zone === 'left')  dl = Math.max(dl, 1);
-              if (th.zone === 'right') dr = Math.max(dr, 1);
-              continue;
-            }
-            if (th.pinchDwellStart !== null) {
-              const p = Math.min(1, (now - th.pinchDwellStart) / CFG.pinchDwellMs);
-              if (th.zone === 'left')  dl = Math.max(dl, p);
-              if (th.zone === 'right') dr = Math.max(dr, p);
-            }
-          }
-          // Throttle React updates to whenever the value visibly changes.
-          const dlQ = Math.round(dl * 12);
-          const drQ = Math.round(dr * 12);
-          if (dlQ !== lastDwellLeft || drQ !== lastDwellRight) {
-            lastDwellLeft  = dlQ;
-            lastDwellRight = drQ;
-            setDwellState({ left: dl, right: dr });
           }
         }
         raf = requestAnimationFrame(tick);
@@ -988,109 +781,70 @@ export function HandTracking() {
       stopped = true;
       cancelAnimationFrame(raf);
       stream?.getTracks().forEach(t => t.stop());
+      // Clear any lingering hover highlight on buttons outside this component.
+      document.querySelectorAll('.gesture-hover')
+        .forEach(el => el.classList.remove('gesture-hover'));
     };
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps  — store dispatch is read via refs
 
-  if (cameraStatus !== 'ok' && cameraStatus !== 'connecting') {
-    return <CameraUnavailable status={cameraStatus} />;
-  }
-
-  /* Webcam preview: 150 × 100, bottom-right, rounded. Hand-count badge in the
-   * top-left. Two small dwell rings (one per side) overlay the corners as
-   * users dwell-pinch. */
   return (
-    <div
-      className="absolute z-20 overflow-hidden rounded-xl bg-neutral-100"
-      style={{
-        right: 24,
-        bottom: 24,
-        width: 150,
-        height: 100,
-        boxShadow:
-          '0 1px 2px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.18)',
-      }}
-    >
-      <video
-        id="webcam"
-        autoPlay
-        playsInline
-        muted
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)', display: 'none' }}
-      />
-      <canvas
-        id="hand-canvas"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)' }}
-      />
+    <>
+      {/* Two VR-style cursors (one per hand), floating over the whole screen.
+       * pointer-events:none so they don't block elementFromPoint hit-testing. */}
+      <div id="gesture-cursor-0" className="gesture-cursor" data-hand="0" style={{ opacity: 0 }} />
+      <div id="gesture-cursor-1" className="gesture-cursor" data-hand="1" style={{ opacity: 0 }} />
 
-      {/* Hand-count indicator */}
-      <div
-        className="tabular absolute left-1.5 top-1.5 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-medium"
-        style={{
-          background:
-            handCount === 0 ? 'rgba(0,0,0,0.55)' :
-            handCount === 1 ? 'rgba(60,220,130,0.90)' :
-                              'rgba(60,160,255,0.90)',
-          color: 'white',
-        }}
-      >
-        <span
-          className="inline-block size-1.5 rounded-full"
+      {cameraStatus !== 'ok' && cameraStatus !== 'connecting' ? (
+        <CameraUnavailable status={cameraStatus} />
+      ) : (
+        /* Webcam preview: 150 × 100, bottom-right, rounded, with the 21-point
+         * hand skeleton drawn on it and a hand-count badge. */
+        <div
+          className="absolute z-20 overflow-hidden rounded-xl bg-neutral-100"
           style={{
-            background: 'white',
-            opacity: handCount > 0 ? 1 : 0.5,
+            right: 24,
+            bottom: 24,
+            width: 150,
+            height: 100,
+            boxShadow:
+              '0 1px 2px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.18)',
           }}
-        />
-        {handCount} hand{handCount === 1 ? '' : 's'}
-      </div>
+        >
+          <video
+            id="webcam"
+            autoPlay
+            playsInline
+            muted
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)', display: 'none' }}
+          />
+          <canvas
+            id="hand-canvas"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)' }}
+          />
 
-      {/* Per-side dwell rings */}
-      <DwellRing progress={dwellState.left}  position="bottomLeft"  color="rgba(60,220,130,0.95)" />
-      <DwellRing progress={dwellState.right} position="bottomRight" color="rgba(255,100,200,0.95)" />
-    </div>
-  );
-}
-
-/** Quarter-ring progress indicator pinned to a corner of the preview. */
-function DwellRing({
-  progress,
-  position,
-  color,
-}: {
-  progress: number;
-  position: 'bottomLeft' | 'bottomRight';
-  color: string;
-}) {
-  const isLeft = position === 'bottomLeft';
-  // 18px ring, animated by SVG dash. progress in [0..1].
-  const R = 8;
-  const C = 2 * Math.PI * R;
-  const dash = `${progress * C} ${C}`;
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="-10 -10 20 20"
-      style={{
-        position: 'absolute',
-        [isLeft ? 'left' : 'right']: 6,
-        bottom: 6,
-        opacity: progress > 0 ? 1 : 0.35,
-        transition: 'opacity 120ms ease-out',
-        pointerEvents: 'none',
-      }}
-    >
-      <circle r={R} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="2" />
-      <circle
-        r={R}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeDasharray={dash}
-        transform="rotate(-90)"
-        style={{ transition: 'stroke-dasharray 60ms linear' }}
-      />
-    </svg>
+          {/* Hand-count indicator */}
+          <div
+            className="tabular absolute left-1.5 top-1.5 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-medium"
+            style={{
+              background:
+                handCount === 0 ? 'rgba(0,0,0,0.55)' :
+                handCount === 1 ? 'rgba(60,220,130,0.90)' :
+                                  'rgba(60,160,255,0.90)',
+              color: 'white',
+            }}
+          >
+            <span
+              className="inline-block size-1.5 rounded-full"
+              style={{
+                background: 'white',
+                opacity: handCount > 0 ? 1 : 0.5,
+              }}
+            />
+            {handCount} hand{handCount === 1 ? '' : 's'}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1206,7 +960,7 @@ export function Hint() {
       className="absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
       style={{ left: 28, bottom: 12 }}
     >
-      ↕ move a hand over a wheel to scroll · 🤏 pinch + hold to select · ✊ hold a fist over a wheel to lock it · center console: ✋ play/pause · ✌️ shuffle · 👍 thumb ←/→ prev/next
+      👆 move your hand to aim the cursor · 🤏 pinch to click a button (play, next, shuffle, lock) · pinch over a wheel and move up/down to spin it
     </div>
   );
 }

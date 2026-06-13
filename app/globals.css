@@ -113,6 +113,49 @@ html, body {
 .tabular { font-variant-numeric: tabular-nums; }
 
 /* =====================================================================
+ *  VR-style hand cursors — one ring per tracked hand, positioned via
+ *  transform from the gesture loop. pointer-events:none so they never
+ *  block elementFromPoint hit-testing. Shrinks/fills on pinch.
+ * ===================================================================== */
+.gesture-cursor {
+  position: fixed;
+  left: 0; top: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(31, 43, 214, 0.9);   /* accent (hand 0) */
+  background: rgba(31, 43, 214, 0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 60;
+  will-change: transform, opacity;
+  transition: opacity 160ms ease, width 90ms ease, height 90ms ease,
+              background-color 90ms ease, border-color 90ms ease;
+}
+.gesture-cursor[data-hand="1"] {
+  border-color: rgba(80, 160, 255, 0.9);       /* hand 1 */
+  background: rgba(80, 160, 255, 0.12);
+}
+/* Pinched = clicking/grabbing: tighten + fill. */
+.gesture-cursor[data-pinch="true"] {
+  width: 16px; height: 16px;
+  background: rgba(31, 43, 214, 0.55);
+  border-color: rgba(31, 43, 214, 1);
+}
+.gesture-cursor[data-hand="1"][data-pinch="true"] {
+  background: rgba(80, 160, 255, 0.55);
+  border-color: rgba(80, 160, 255, 1);
+}
+/* Grabbing a wheel: dashed ring to read as "holding". */
+.gesture-cursor[data-grab="true"] { border-style: dashed; }
+
+/* Element under a cursor — the thing a pinch would click. */
+.gesture-hover {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* =====================================================================
  *  Letter ladder — ported verbatim from Maddy's style.css.
  *  Alphabet rail with a fixed row height so every horizontal rule is
  *  evenly spaced; one clickable tick per wheel item. The active row's
