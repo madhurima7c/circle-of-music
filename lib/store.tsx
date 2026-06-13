@@ -56,7 +56,8 @@ type StoreShape = {
   setIsPlaying:(p: boolean) => void;
   nextTrack:   () => void;
   prevTrack:   () => void;
-  shuffleTracks: () => void;
+  /** keepCurrent: re-order the queue but keep playing the same track (Maddy's shuffle button). */
+  shuffleTracks: (keepCurrent?: boolean) => void;
   setVolume:   (v: number) => void;
   setHover:    (left: HoverTarget, right: HoverTarget) => void;
   flashToast:  (t: GestureToast) => void;
@@ -185,18 +186,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, [tracks.length]);
 
-  const shuffleTracks = useCallback(() => {
-    setTracks(prev => {
-      if (prev.length < 2) return prev;
-      const shuffled = [...prev];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
-    });
-    setTrackIdx(0);
-  }, []);
+  const shuffleTracks = useCallback((keepCurrent = false) => {
+    if (tracks.length < 2) return;
+    const current = tracks[trackIdx];
+    const shuffled = [...tracks];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setTracks(shuffled);
+    setTrackIdx(keepCurrent ? Math.max(0, shuffled.indexOf(current)) : 0);
+  }, [tracks, trackIdx]);
 
   /* ---------- transient toast for gesture confirmation ---------- */
   const flashToast = useCallback((t: GestureToast) => {

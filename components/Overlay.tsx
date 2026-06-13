@@ -90,39 +90,44 @@ export function ConnectorTags() {
 }
 
 /* ================================================================
- *  CenterStack — Maddy's results panel, ported to React.
+ *  CenterStack — Maddy's center playlist card (src/center.js +
+ *  index.html on the Maddy branch), ported to React 1:1.
  *
- *  Three visual states, all keyed off `status` + `tracks.length`:
- *   1. populating → soft radial-gradient pending pane with
- *      pairing-specific hues (illustrationGradientPair) and
- *      "Populating music..." copy.
- *   2. ready      → playback card with cover, title, album, audio,
- *      transport controls, and an up-next queue.
- *   3. error      → same pending pane but with the failure copy
- *      ("Could not find music…").
+ *  One portrait card (300×400) that switches views via
+ *  data-center-view:
+ *   - pending  → populating/error: gradient pane with country—genre
+ *     rail and status copy.
+ *   - playback → chips header, transport controls, now-playing row
+ *     (70px cover + meta), and a scrollable full "Up next:" queue.
  *
- *  Audio is owned by a single <audio> element; React keeps store
- *  state (isPlaying, trackIdx) in sync with audio.play()/pause()/ended.
+ *  Behavior mirrors CenterPlayer: tracks autoplay when loaded (a
+ *  blocked autoplay pulses the play button), the shuffle button
+ *  re-orders the queue around the current track, and when the last
+ *  preview ends the pool reshuffles and replays from the top.
  * ================================================================ */
 export function CenterStack() {
   const {
     tracks, trackIdx, status, isPlaying, countryIdx, genreIdx,
-    togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks, setTrackIdx,
+    togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
   } = useStore();
   const country = COUNTRIES[countryIdx] ?? '';
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
-  // Stable HSL pair while loading — also blended into the playback card
-  // border so the look stays cohesive across states.
+  // Stable HSL pair consumed by the pending-view gradient.
   const gradient = illustrationGradientPair(country, genre);
+
+  const pending  = status === 'populating' || status === 'error';
+  const hasTrack = status === 'ready' && !!track;
 
   /* ---------- sync audio src + autoplay when track changes ---------- */
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    setAutoplayBlocked(false);
     if (!track?.preview) {
       audio.pause();
       audio.removeAttribute('src');
@@ -131,9 +136,9 @@ export function CenterStack() {
     }
     audio.src = track.preview;
     audio.load();
-    if (isPlaying) {
-      audio.play().catch(() => { /* autoplay blocked — user must click */ });
-    }
+    // Maddy's loadCurrent always autoplays; a rejected play() means the
+    // browser wants a user gesture first — surface it on the play button.
+    audio.play().catch(() => setAutoplayBlocked(true));
   }, [track?.id, track?.preview]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- sync isPlaying with the audio element ---------- */
@@ -144,157 +149,176 @@ export function CenterStack() {
     else           audio.pause();
   }, [isPlaying, setIsPlaying]);
 
-  /* ---------- audio events → store ---------- */
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const onPlay  = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    // Preview ends after ~30s — auto-advance to keep the playlist moving.
-    const onEnded = () => { nextTrack(); setIsPlaying(true); };
-    audio.addEventListener('play', onPlay);
-    audio.addEventListener('pause', onPause);
-    audio.addEventListener('ended', onEnded);
-    return () => {
-      audio.removeEventListener('play', onPlay);
-      audio.removeEventListener('pause', onPause);
-      audio.removeEventListener('ended', onEnded);
-    };
-  }, [setIsPlaying, nextTrack]);
-
-  // Render order: pending pane during populating/error, playback card when ready.
-  const showPending = status === 'populating' || status === 'error';
-  const showPlayback = status === 'ready' && !!track;
+  /* ---------- end of preview: advance, or reshuffle the pool ---------- */
+  const onEnded = () => {
+    if (tracks.length === 0) return;
+    if (tracks.length === 1) {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => setAutoplayBlocked(true));
+      }
+      return;
+    }
+    if (trackIdx >= tracks.length - 1) shuffleTracks();  // replay the same pool from the top
+    else nextTrack();
+    setIsPlaying(true);
+  };
 
   return (
-    <div
-      className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2"
-      style={{
-        width: 380,
-        // Custom props consumed by the gradient styles below.
-        ['--ill-country' as string]: gradient.country,
-        ['--ill-genre'   as string]: gradient.genre,
-      } as React.CSSProperties}
-    >
-      {/* ---------- Pending pane (loading or error) ---------- */}
-      {showPending && (
-        <div
-          className="center-pending"
-          data-error={status === 'error' ? 'true' : 'false'}
-        >
-          <div className="center-pending__rail">
-            <span className="center-pending__rail-label">
-              {country.toUpperCase()}
-            </span>
-            <span className="center-pending__rail-line" />
-            <span className="center-pending__rail-label">
-              {genre.toUpperCase()}
-            </span>
-          </div>
-          <p className="center-pending__msg">
-            {status === 'error'
-              ? 'Could not find music\nfrom this pairing,\ntry something different.'
-              : 'Populating music...'}
-          </p>
-        </div>
-      )}
+    <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
+      {status !== 'empty' && (
+        <div className="center__stack">
+          <div
+            className="center__card center__card--main"
+            data-main-card=""
+            data-center-view={pending ? 'pending' : 'playback'}
+            data-playing={isPlaying ? 'true' : 'false'}
+            data-autoplay-blocked={autoplayBlocked ? 'true' : 'false'}
+            style={{
+              ['--ill-country' as string]: gradient.country,
+              ['--ill-genre'   as string]: gradient.genre,
+            } as React.CSSProperties}
+          >
+            <header className="center__chips" hidden={pending}>
+              <span className="chip--country-mini">{country.toUpperCase()}</span>
+              <span className="chip--genre-mini">{genre.toUpperCase()}</span>
+            </header>
 
-      {/* ---------- Playback card ---------- */}
-      {showPlayback && (
-        <div className="center-playback img-outline">
-          <div className="center-playback__cover">
-            {track.image
-              ? <img src={track.image} alt="" />
-              : <div className="center-playback__cover-fallback" />}
-            <button
-              className="center-playback__play"
-              onClick={togglePlay}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
+            {/* Populating / no-results: only this block */}
+            <div
+              className="center__card-pane"
+              hidden={!pending}
+              data-error={status === 'error' ? 'true' : 'false'}
             >
-              {isPlaying
-                ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="0.5" /><rect x="14" y="4" width="4" height="16" rx="0.5" /></svg>
-                : <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z" /></svg>}
-            </button>
-          </div>
+              <div className="center__card-rail">
+                <span className="center__card-rail__label">{country.toUpperCase()}</span>
+                <span className="center__card-rail__line" />
+                <span className="center__card-rail__label">{genre.toUpperCase()}</span>
+              </div>
+              <p className="center__card-pane__msg">
+                {status === 'error'
+                  ? 'Could not find music\nfrom these pairing,\ntry something different.'
+                  : 'Populating music...'}
+              </p>
+            </div>
 
-          <div className="center-playback__meta">
-            <div className="center-playback__title">{track.title}</div>
-            <div className="center-playback__sub">
-              {track.album ? `${track.album} — ` : ''}{track.artist}
-              {track.releaseDate ? ` · ${track.releaseDate.slice(0, 4)}` : ''}
+            <div className="center__track" hidden={!hasTrack}>
+              <div className="center__controls">
+                <button className="ctrl" onClick={prevTrack} title="Previous" aria-label="Previous">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 6v12" />
+                    <path d="M19 6L9 12l10 6V6z" />
+                  </svg>
+                </button>
+                <button className="ctrl ctrl--lg" onClick={togglePlay} title="Play / pause" aria-label="Play / pause">
+                  <svg className="ctrl__play" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>
+                  <svg className="ctrl__pause" viewBox="0 0 24 24" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
+                </button>
+                <button className="ctrl" onClick={nextTrack} title="Next" aria-label="Next">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 6l10 6-10 6V6z" />
+                    <path d="M19 6v12" />
+                  </svg>
+                </button>
+                <button className="ctrl" onClick={() => shuffleTracks(true)} title="Shuffle" aria-label="Shuffle">
+                  {/* Lucide "shuffle" (MIT), optimized for 16×16 glyph in 32px button */}
+                  <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <polyline points="16 3 21 3 21 8" />
+                    <line x1="4" y1="20" x2="21" y2="3" />
+                    <polyline points="21 16 21 21 16 21" />
+                    <line x1="15" y1="15" x2="21" y2="21" />
+                    <line x1="4" y1="4" x2="9" y2="9" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="center__now">
+                <div className="center__cover-wrap">
+                  {track?.image
+                    ? <img className="center__cover" src={track.image} alt="" />
+                    : <div className="center__cover" />}
+                </div>
+                <div className="center__meta">
+                  <h2 className="center__title">{track?.title}</h2>
+                  <p className="center__album">
+                    {track ? `${track.album} — ${track.artist}${track.releaseDate ? ` · ${track.releaseDate}` : ''}` : ''}
+                  </p>
+                </div>
+              </div>
+
+              <div className="center__up-next">
+                <h3 className="center__up-next-title">Up next:</h3>
+                <ul className="center__queue" aria-label="Queued tracks">
+                  {tracks.length <= 1 ? (
+                    <li className="center__queue-empty">
+                      {tracks.length === 0 ? 'No tracks.' : 'No other tracks in this queue.'}
+                    </li>
+                  ) : (
+                    Array.from({ length: tracks.length - 1 }, (_, step) => {
+                      const j = (trackIdx + 1 + step) % tracks.length;
+                      const t = tracks[j];
+                      return (
+                        <li key={t.id} className="center__queue-item">
+                          {t.artist ? `${t.title} — ${t.artist}` : t.title}
+                        </li>
+                      );
+                    })
+                  )}
+                </ul>
+              </div>
+
+              <audio
+                ref={audioRef}
+                preload="auto"
+                playsInline
+                onPlay={() => { setIsPlaying(true); setAutoplayBlocked(false); }}
+                onPause={() => setIsPlaying(false)}
+                onEnded={onEnded}
+              />
             </div>
           </div>
-
-          <div className="center-playback__controls">
-            <button onClick={prevTrack}    aria-label="Previous">⏮</button>
-            <button onClick={togglePlay}   aria-label="Play/Pause">{isPlaying ? '⏸' : '▶'}</button>
-            <button onClick={nextTrack}    aria-label="Next">⏭</button>
-            <button onClick={shuffleTracks} aria-label="Shuffle">⇄</button>
-          </div>
-
-          {/* Up-next queue (first 4 entries after current) */}
-          {tracks.length > 1 && (
-            <ul className="center-playback__queue">
-              {Array.from({ length: Math.min(4, tracks.length - 1) }, (_, k) => {
-                const j = (trackIdx + 1 + k) % tracks.length;
-                const t = tracks[j];
-                return (
-                  <li key={t.id} onClick={() => setTrackIdx(j)}>
-                    <span className="center-playback__queue-title">{t.title}</span>
-                    <span className="center-playback__queue-artist">{t.artist}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-
-          <audio ref={audioRef} preload="auto" />
         </div>
       )}
     </div>
   );
 }
 
-/**
- * Alphabetical dial — vertical tick column with a moving readout box.
- */
-export function Dial({ side, item }: { side: 'left' | 'right'; item: string }) {
-  const ch = (item ?? '')[0]?.toUpperCase() ?? 'A';
-  const code = ch.charCodeAt(0) - 65;
-  const ratio = Math.max(0, Math.min(1, code / 25));
+/** Must match `.letter-ladder { --ladder-row }` in globals.css */
+const LADDER_ROW = 11;
 
-  const ticks = Array.from({ length: 26 });
+/**
+ * Letter ladder — Maddy's alphabet rail (src/wheel.js buildLadder/updateLadder),
+ * ported to React. One 11px row per wheel item: each row holds a clickable
+ * 1px tick that snaps the wheel to that item. The active row's tick hides and
+ * a square letter chip (first letter of the selection) sits centered on it.
+ */
+export function Dial({ side }: { side: 'left' | 'right' }) {
+  const { countryIdx, genreIdx, setCountry, setGenre } = useStore();
+  const items  = side === 'left' ? COUNTRIES : GENRES;
+  const idx    = side === 'left' ? countryIdx : genreIdx;
+  const snapTo = side === 'left' ? setCountry : setGenre;
+  const letter = (items[idx] || '?')[0]?.toUpperCase() || '?';
 
   return (
-    <div
-      className="pointer-events-none absolute top-1/2 z-[12] w-[18px] -translate-y-1/2 select-none"
-      style={{ [side]: 18 } as React.CSSProperties}
-    >
-      <div className="relative h-[360px] w-full">
-        {ticks.map((_, i) => (
-          <div
-            key={i}
-            className="absolute left-0 h-px bg-neutral-600"
-            style={{
-              top: `${(i / 25) * 100}%`,
-              width: i % 2 === 0 ? '100%' : '50%',
-              opacity: 0.45,
-            }}
+    <div className={`letter-ladder letter-ladder--${side}`}>
+      {items.map((label, i) => (
+        <div key={label} className="letter-ladder__row">
+          <button
+            type="button"
+            className="letter-ladder__tick"
+            title={label}
+            data-active={i === idx ? 'true' : 'false'}
+            onClick={() => snapTo(i)}
           />
-        ))}
-      </div>
-      <div
-        className="tabular absolute flex size-[26px] -translate-y-1/2 items-center justify-center bg-[var(--bg-stage)] text-[12px] text-black ease-[cubic-bezier(0.2,0,0,1)]"
-        style={{
-          [side === 'left' ? 'left' : 'right']: -26,
-          top: `${ratio * 100}%`,
-          border: '1px solid #2a2a2a',
-          transitionProperty: 'top',
-          transitionDuration: '220ms',
-        }}
+        </div>
+      ))}
+      <span
+        className="letter-ladder__chip"
+        style={{ top: idx * LADDER_ROW + LADDER_ROW / 2 }}
       >
-        {ch}
-      </div>
+        {letter}
+      </span>
     </div>
   );
 }
