@@ -995,12 +995,12 @@ export function Dock() {
       >
         <button
           onClick={() => setInfoOpen(true)}
-          className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
+          className="flex size-11 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
           aria-label="info"
           aria-haspopup="dialog"
           aria-expanded={infoOpen}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 8h.01" />
             <path d="M11 12h1v5h1" />
@@ -1008,12 +1008,12 @@ export function Dock() {
         </button>
         <button
           onClick={() => setRequestOpen(true)}
-          className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
+          className="flex size-11 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
           aria-label="recommend"
           aria-haspopup="dialog"
           aria-expanded={requestOpen}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 5h18v12H7l-4 4z" />
           </svg>
         </button>
