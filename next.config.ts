@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   // Lock Turbopack's workspace root to this project. Without this, Turbopack
   // walks up looking for a lockfile, finds a stray `package-lock.json` in
   // the parent `Documents/ClaudeCode/` directory (an accidental `npm install`

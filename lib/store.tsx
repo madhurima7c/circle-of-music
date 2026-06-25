@@ -95,10 +95,9 @@ function toTrack(d: DeezerTrack): Track {
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  // Default seeds: pick something with rich curated artists so the first
-  // playlist call returns real music.
-  const defaultCountry = Math.max(0, COUNTRIES.indexOf('India'));
-  const defaultGenre   = Math.max(0, GENRES.indexOf('Jazz'));
+  // Start at the top of each wheel instead of jumping into a preset pairing.
+  const defaultCountry = 0;
+  const defaultGenre   = 0;
   const [countryIdx, setCountryIdx] = useState(defaultCountry);
   const [genreIdx,   setGenreIdx]   = useState(defaultGenre);
   const [status,     setStatus]     = useState<Status>('empty');

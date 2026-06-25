@@ -974,6 +974,12 @@ export function GestureToast() {
 /** Bottom-center icon dock — info + recommend (no more Spotify popover). */
 export function Dock() {
   const [infoOpen, setInfoOpen] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
+  const openRequestEmail = () => {
+    const subject = encodeURIComponent('Circle of Music request');
+    const body = encodeURIComponent('Hi Chan and Maddy,\n\nI have a request for Circle of Music:\n\n');
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
 
   return (
     <>
@@ -1001,12 +1007,11 @@ export function Dock() {
           </svg>
         </button>
         <button
-          onClick={() => {
-            const subject = encodeURIComponent('Circle of Music recommendation');
-            window.location.href = `mailto:?subject=${subject}&body=Add an artist or album you'd recommend: `;
-          }}
+          onClick={() => setRequestOpen(true)}
           className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
           aria-label="recommend"
+          aria-haspopup="dialog"
+          aria-expanded={requestOpen}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 5h18v12H7l-4 4z" />
@@ -1071,6 +1076,50 @@ export function Dock() {
                 Pinch over a wheel and move up or down to spin it.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {requestOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="circle-request-title"
+          className="absolute inset-0 z-50 grid place-items-center bg-black/20 px-5"
+          onClick={() => setRequestOpen(false)}
+        >
+          <div
+            className="max-w-[360px] rounded-2xl bg-white p-6 text-neutral-900"
+            style={{
+              fontFamily: 'var(--font-sans)',
+              boxShadow:
+                '0 1px 2px rgba(0,0,0,0.08), 0 18px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.08)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-5">
+              <h2 id="circle-request-title" className="m-0 text-[18px] font-semibold">
+                Have a request?
+              </h2>
+              <button
+                onClick={() => setRequestOpen(false)}
+                className="-mr-2 -mt-2 grid size-9 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                aria-label="Close request"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="mt-4 text-[13px] leading-[1.6] text-neutral-700">
+              Email Chan and Maddy with artists, genres, regions, or interaction ideas you want to see in Circle of Music.
+            </p>
+
+            <button
+              onClick={openRequestEmail}
+              className="mt-5 w-full rounded-full bg-neutral-900 px-5 py-3 text-[13px] font-medium text-white transition-transform active:scale-[0.98]"
+            >
+              Email Chan and Maddy
+            </button>
           </div>
         </div>
       )}
