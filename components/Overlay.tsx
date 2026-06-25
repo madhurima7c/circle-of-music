@@ -1037,7 +1037,7 @@ export function Dock() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-5">
-              <h2 id="circle-info-title" className="m-0 text-[18px] font-medium uppercase tracking-[0.08em]" style={{ fontFamily: 'var(--font-mono)' }}>
+              <h2 id="circle-info-title" className="m-0 text-[15px] font-medium uppercase tracking-[0.04em]" style={{ fontFamily: 'var(--font-mono)' }}>
                 About the project
               </h2>
               <button
@@ -1098,7 +1098,7 @@ export function Dock() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-5">
-              <h2 id="circle-request-title" className="m-0 text-[18px] font-medium uppercase tracking-[0.08em]" style={{ fontFamily: 'var(--font-mono)' }}>
+              <h2 id="circle-request-title" className="m-0 text-[15px] font-medium uppercase tracking-[0.04em]" style={{ fontFamily: 'var(--font-mono)' }}>
                 Have a request?
               </h2>
               <button
