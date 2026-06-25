@@ -1116,7 +1116,7 @@ export function Dock() {
 
             <button
               onClick={openRequestEmail}
-              className="mt-5 w-full rounded-full bg-neutral-900 px-5 py-3 text-[13px] font-medium text-white transition-transform active:scale-[0.98]"
+              className="mt-5 w-full rounded-full bg-[var(--accent)] px-5 py-3 text-[13px] font-medium text-white transition-transform hover:brightness-95 active:scale-[0.98]"
             >
               Email Chan and Maddy
             </button>
