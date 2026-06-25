@@ -1038,7 +1038,7 @@ export function Dock() {
           >
             <div className="flex items-start justify-between gap-5">
               <h2 id="circle-info-title" className="m-0 text-[18px] font-semibold">
-                Circle of Music
+                About the project
               </h2>
               <button
                 onClick={() => setInfoOpen(false)}
