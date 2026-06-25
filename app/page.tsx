@@ -8,6 +8,8 @@ import {
   PopulatingText,
   ConnectorTags,
   CenterStack,
+  Dial,
+  WheelLock,
   Dock,
   HandTracking,
   GestureToast,
@@ -27,6 +29,11 @@ function Inner() {
       <PopulatingText />
       <ConnectorTags />
       <CenterStack />
+
+      <Dial side="left" />
+      <Dial side="right" />
+      <WheelLock side="left" />
+      <WheelLock side="right" />
 
       <div className="glass top"    style={{ top: 0,    height: 130 }} />
       <div className="glass bottom" style={{ bottom: 0, height: 160 }} />
