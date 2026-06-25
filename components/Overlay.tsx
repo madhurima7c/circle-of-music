@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
-import { illustrationGradientPair } from '@/lib/illustration';
+import {
+  illustrationGradientPair,
+  resolveIllustrationGradientPair,
+} from '@/lib/illustration';
 
 export function Title() {
   return (
@@ -107,8 +110,17 @@ export function CenterStack() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
-  // Stable HSL pair consumed by the pending-view gradient.
-  const gradient = illustrationGradientPair(country, genre);
+  // Cover-sampled pair consumed by the pending-view gradient.
+  const [gradient, setGradient] = useState(() => illustrationGradientPair(country, genre));
+  useEffect(() => {
+    let cancelled = false;
+    const fallback = illustrationGradientPair(country, genre);
+    setGradient(fallback);
+    resolveIllustrationGradientPair(country, genre).then((next) => {
+      if (!cancelled) setGradient(next);
+    });
+    return () => { cancelled = true; };
+  }, [country, genre]);
 
   const pending  = status === 'populating' || status === 'error';
   const hasTrack = status === 'ready' && !!track;
@@ -829,7 +841,7 @@ export function HandTracking() {
         /* Webcam preview: 150 × 100, bottom-right, rounded, with the 21-point
          * hand skeleton drawn on it and a hand-count badge. */
         <div
-          className="absolute z-20 overflow-hidden rounded-xl bg-neutral-100"
+          className="absolute z-20 overflow-hidden rounded-xl bg-black"
           style={{
             right: 24,
             bottom: 24,
@@ -844,11 +856,26 @@ export function HandTracking() {
             autoPlay
             playsInline
             muted
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)', display: 'none' }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: 'scaleX(-1)',
+              display: 'none',
+            }}
           />
           <canvas
             id="hand-canvas"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)' }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: 'scaleX(-1)',
+            }}
           />
 
           {/* Hand-count indicator */}
@@ -946,61 +973,108 @@ export function GestureToast() {
 
 /** Bottom-center icon dock — info + recommend (no more Spotify popover). */
 export function Dock() {
+  const [infoOpen, setInfoOpen] = useState(false);
+
   return (
-    <div
-      className="absolute z-20 flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5"
-      style={{
-        left: '50%',
-        bottom: 36,
-        transform: 'translateX(-50%)',
-        boxShadow:
-          '0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)',
-      }}
-    >
-      <button
-        className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
-        aria-label="info"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 8h.01" />
-          <path d="M11 12h1v5h1" />
-        </svg>
-      </button>
-      <button
-        onClick={() => {
-          const subject = encodeURIComponent('Circle of Music recommendation');
-          window.location.href = `mailto:?subject=${subject}&body=Add an artist or album you'd recommend: `;
+    <>
+      <div
+        className="absolute z-20 flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5"
+        style={{
+          left: '50%',
+          bottom: 36,
+          transform: 'translateX(-50%)',
+          boxShadow:
+            '0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)',
         }}
-        className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
-        aria-label="recommend"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 5h18v12H7l-4 4z" />
-        </svg>
-      </button>
-    </div>
-  );
-}
+        <button
+          onClick={() => setInfoOpen(true)}
+          className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
+          aria-label="info"
+          aria-haspopup="dialog"
+          aria-expanded={infoOpen}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8h.01" />
+            <path d="M11 12h1v5h1" />
+          </svg>
+        </button>
+        <button
+          onClick={() => {
+            const subject = encodeURIComponent('Circle of Music recommendation');
+            window.location.href = `mailto:?subject=${subject}&body=Add an artist or album you'd recommend: `;
+          }}
+          className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
+          aria-label="recommend"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 5h18v12H7l-4 4z" />
+          </svg>
+        </button>
+      </div>
 
-export function Hint() {
-  return (
-    <div
-      className="absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
-      style={{ left: 28, bottom: 12 }}
-    >
-      👆 move your hand to aim the cursor · 🤏 pinch &amp; hold ~1s on a button to press it · pinch over a wheel and move up/down to spin it
-    </div>
-  );
-}
+      {infoOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="circle-info-title"
+          className="absolute inset-0 z-50 grid place-items-center bg-black/20 px-5"
+          onClick={() => setInfoOpen(false)}
+        >
+          <div
+            className="max-w-[460px] rounded-2xl bg-white p-6 text-neutral-900"
+            style={{
+              fontFamily: 'var(--font-sans)',
+              boxShadow:
+                '0 1px 2px rgba(0,0,0,0.08), 0 18px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.08)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-5">
+              <h2 id="circle-info-title" className="m-0 text-[18px] font-semibold">
+                Circle of Music
+              </h2>
+              <button
+                onClick={() => setInfoOpen(false)}
+                className="-mr-2 -mt-2 grid size-9 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                aria-label="Close info"
+              >
+                ×
+              </button>
+            </div>
 
-export function MenuMark() {
-  return (
-    <div className="absolute right-7 top-7 z-30 flex w-[22px] cursor-pointer flex-col gap-1">
-      <span className="block h-0.5 self-end bg-neutral-800" style={{ width: '60%' }} />
-      <span className="block h-0.5 bg-neutral-800" />
-      <span className="block h-0.5 self-end bg-neutral-800" style={{ width: '80%' }} />
-    </div>
+            <p className="mt-4 text-[13px] leading-[1.6] text-neutral-700">
+              This project was born from Chan&apos;s vision and grew into a collaboration when Maddy joined.
+              Two people united by a shared love of music, from live concerts to genre-hopping across cultures.
+              At its heart, it&apos;s a labor of love: an ode to music that make them feel something and keep
+              them moving forward.
+            </p>
+            <p className="mt-3 text-[13px] leading-[1.6] text-neutral-700">
+              Both are currently Master&apos;s students in the MHCI+D program at the University of Washington.
+            </p>
+            <p className="mt-4 text-[13px] leading-[1.6] text-neutral-800">
+              Say hello →{' '}
+              <a className="underline decoration-neutral-400 underline-offset-4 hover:text-black" href="https://www.linkedin.com/in/chandanalovesdesign/" target="_blank" rel="noreferrer">
+                Chan
+              </a>
+              {' · '}
+              <a className="underline decoration-neutral-400 underline-offset-4 hover:text-black" href="https://www.linkedin.com/in/madhurima-c" target="_blank" rel="noreferrer">
+                Maddy
+              </a>
+            </p>
+
+            <div className="mt-5 rounded-xl bg-neutral-100 p-4 text-[12px] leading-[1.55] text-neutral-700">
+              <div className="font-medium text-neutral-900">How to use it</div>
+              <p className="mt-2">
+                Move your hand to aim the cursor. Pinch and hold for about one second on a button to press it.
+                Pinch over a wheel and move up or down to spin it.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
