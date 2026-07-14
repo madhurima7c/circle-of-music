@@ -94,6 +94,10 @@ export const STR = {
   },
 
   dock: {
+    surprise: 'Surprise me — a random country & genre',
+    surpriseCountryOnly: 'Surprise me — random country (genre locked)',
+    surpriseGenreOnly: 'Surprise me — random genre (country locked)',
+    surpriseBothLocked: 'Both wheels locked — reshuffle this playlist',
     handOn:  'Turn on hand control',
     handOff: 'Turn off hand control',
     handTitleOn:  'Control with your hands (webcam)',

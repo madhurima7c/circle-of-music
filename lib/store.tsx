@@ -79,6 +79,9 @@ type StoreShape = {
   toggleLockRight: () => void;
   toggleHandMode:  () => void;
   setAutoplayBlocked: (b: boolean) => void;
+  /** "Surprise me": random new pairing, respecting locked wheels. If both
+   *  wheels are locked, reshuffles the current playlist instead. */
+  surprise: () => void;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -267,6 +270,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTrackIdx(keepCurrent ? Math.max(0, shuffled.indexOf(current)) : 0);
   }, [tracks, trackIdx]);
 
+  const surprise = useCallback(() => {
+    // Pick a fresh index different from the current one so it always moves.
+    const pickDifferent = (len: number, cur: number) => {
+      if (len <= 1) return cur;
+      let n = cur;
+      while (n === cur) n = Math.floor(Math.random() * len);
+      return n;
+    };
+    const left  = lockedLeftRef.current;
+    const right = lockedRightRef.current;
+    // Guided: both wheels held → reshuffle the current pool for new music.
+    if (left && right) { shuffleTracks(); return; }
+    if (!left) {
+      const c = pickDifferent(COUNTRIES.length, countryIdxRef.current);
+      countryIdxRef.current = c;
+      setCountryIdx(c);
+    }
+    if (!right) {
+      const g = pickDifferent(GENRES.length, genreIdxRef.current);
+      genreIdxRef.current = g;
+      setGenreIdx(g);
+    }
+    setStatus('empty');
+    scheduleAutoCommit();
+  }, [scheduleAutoCommit, shuffleTracks]);
+
   /* ---------- transient toast for gesture confirmation ---------- */
   const flashToast = useCallback((t: GestureToast) => {
     setToast(t);
@@ -292,13 +321,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
+    surprise,
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
        autoplayBlocked,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
-       toggleLockLeft, toggleLockRight, toggleHandMode]);
+       toggleLockLeft, toggleLockRight, toggleHandMode, surprise]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }

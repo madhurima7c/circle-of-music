@@ -948,9 +948,9 @@ export function GestureToast() {
   );
 }
 
-/** Bottom-center icon dock — hand-mode toggle + info + recommend. */
+/** Bottom-center icon dock — surprise + hand-mode toggle + info + recommend. */
 export function Dock() {
-  const { handMode, toggleHandMode } = useStore();
+  const { handMode, toggleHandMode, surprise, lockedLeft, lockedRight } = useStore();
   // Hand tracking makes no sense on touch-primary devices — hide the toggle.
   const [coarse, setCoarse] = useState(false);
   useEffect(() => {
@@ -967,6 +967,28 @@ export function Dock() {
           '0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)',
       }}
     >
+      {/* Surprise me — random new pairing (guided by locks). The primary
+          discovery verb, so it's first and accent-styled. */}
+      <button
+        onClick={surprise}
+        className="flex size-10 items-center justify-center rounded-full bg-[var(--accent)] text-white transition-transform duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:brightness-110 active:scale-[0.94]"
+        title={
+          lockedLeft && lockedRight ? STR.dock.surpriseBothLocked
+          : lockedLeft  ? STR.dock.surpriseGenreOnly
+          : lockedRight ? STR.dock.surpriseCountryOnly
+          : STR.dock.surprise
+        }
+        aria-label={STR.dock.surprise}
+      >
+        {/* shuffle / dice */}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 3h5v5" />
+          <path d="M4 20 21 3" />
+          <path d="M21 16v5h-5" />
+          <path d="m15 15 6 6" />
+          <path d="M4 4l5 5" />
+        </svg>
+      </button>
       {!coarse && (
         <button
           onClick={toggleHandMode}
