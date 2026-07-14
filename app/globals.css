@@ -739,3 +739,44 @@ html, body {
   0%, 100% { box-shadow: 0 0 0 2px var(--accent); }
   50% { box-shadow: 0 0 0 4px rgba(18, 50, 255, 0.35); }
 }
+
+/* =====================================================================
+ *  Mobile (portrait phones) — same composition, everything tightened.
+ *  The 3D side is handled in Stage.tsx (MOBILE_CAMERA / MOBILE_TUNING);
+ *  the row height of the ladder stays 11px because LADDER_ROW in
+ *  Overlay.tsx mirrors it.
+ * ===================================================================== */
+@media (max-width: 640px) {
+  .frame { inset: 10px; }
+
+  .title { font-size: 24px !important; top: 20px !important; }
+
+  /* Center card: narrower, tighter type, shorter queue. */
+  .center__stack { width: 216px; min-height: 320px; }
+  .center__card--main { padding: 11px 11px 10px; gap: 8px; }
+  .center__title  { font-size: 13.5px; }
+  .center__album  { font-size: 10.5px; }
+  .center__cover  { width: 52px; height: 52px; }
+  .center__queue  { max-height: 88px; font-size: 11px; }
+  .center__up-next { padding-top: 10px; }
+  .center__now { margin-top: 8px; }
+  .ctrl { width: 26px; height: 26px; }
+  .ctrl svg { width: 13px; height: 13px; }
+  .ctrl--lg { width: 32px; height: 32px; }
+  .ctrl--lg svg { width: 17px; height: 17px; }
+  .center__links { gap: 7px; font-size: 9.5px; flex-wrap: wrap; }
+
+  /* Rails hug the edges. */
+  .letter-ladder { --ladder-w: 24px; }
+  .letter-ladder--left  { left: 8px; }
+  .letter-ladder--right { right: 8px; }
+  .letter-ladder__chip { font-size: 11px; }
+  .wheel-lock { width: 24px; height: 24px; top: calc(50% - 146px); }
+  .wheel-lock--left  { left: 8px; }
+  .wheel-lock--right { right: 8px; }
+  .wheel-lock svg { width: 13px; height: 13px; }
+
+  .mini-player { bottom: 20px; }
+  .hub { gap: 30px; }
+  .hint { display: none; } /* too long for a phone; interactions are direct */
+}

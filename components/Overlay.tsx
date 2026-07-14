@@ -983,7 +983,7 @@ export function Hint() {
   const { handMode } = useStore();
   return (
     <div
-      className="absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
+      className="hint absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
       style={{ left: 28, bottom: 12 }}
     >
       {handMode
