@@ -64,6 +64,17 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 
 ---
 
+## ✅ Also done (World v3 + Spotify, 2026-07-13, pushed)
+- Flat 2D markers replace 3D dots: album-art **avatars** in artist mode, outline **dots** in song mode; playing marker filled + sonar ring; pure-CSS hover popups (artist: origin/songs/story · song: year/album/place/fact).
+- Markers appear on country **selection**; click zooms to altitude 0.7 (globe may overflow frame). Hover extrusion halved + grey tint.
+- **Filter fab** (person/note icon, above shuffle) toggles artists ⇄ songs, persisted (`localStorage.worldDots`).
+- Genre rail → separated **list** with blue-gradient active row (not pills).
+- **Playlist panel** = Circle's CenterStack docked right on /world (`dock="right"` prop); mini-player hidden on /world.
+- **Hand-tracking fab** on World (same opt-in system; pinch-drag rotates globe).
+- Instrument toggle links: World→Circle (right edge, underlined) and Circle→World (under library button).
+- **Spotify full songs**: lib/spotify.ts (PKCE + Web Playback SDK), Connect button in card links row, per-track fallback to previews. Needs `NEXT_PUBLIC_SPOTIFY_CLIENT_ID` (see CLAUDE.md) — **user must create the free Spotify app**; untested live until then.
+- **Live origins** (lib/origins-live.ts): unknown queue artists resolve via Wikidata at runtime, cached in localStorage — Spain × Jazz shows 13/13 artist dots.
+
 ## 🔎 Needs real-device testing (can't verify in the hidden preview tab)
 - [ ] Hand mode: toggle on with a real webcam — cursor tracking, pinch-hold click, pinch-drag spin.
 - [ ] GSAP card animations actually play (preview tab is hidden → rAF paused).
