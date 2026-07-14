@@ -88,6 +88,12 @@ type StoreShape = {
    *  globe wants instant audio on a country tap. genreIdx optional (keeps
    *  the current genre when omitted). */
   playPlace: (countryIdx: number, genreIdx?: number) => void;
+  /** Like playPlace but for a country OUTSIDE the seed wheel (any globe
+   *  nation). Playlist comes from the MusicBrainz/LLM tiers only. */
+  playPlaceNamed: (countryName: string, genreIdx?: number) => void;
+  /** Display name of the active country — a custom globe country when one
+   *  is playing, else COUNTRIES[countryIdx]. */
+  countryName: string;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -156,6 +162,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const countryIdxRef = useRef(countryIdx);
   const genreIdxRef   = useRef(genreIdx);
 
+  // A globe country outside the seed wheel ("custom place"). Cleared by any
+  // wheel interaction — the wheels always mean COUNTRIES[countryIdx].
+  const [customCountry, setCustomCountry] = useState<string | null>(null);
+  const customCountryRef = useRef<string | null>(null);
+
   const commit = useCallback(async () => {
     const gen = ++populateGen.current;
     setStatus('populating');
@@ -163,7 +174,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTrackIdx(0);
     setIsPlaying(false);
 
-    const country = COUNTRIES[countryIdxRef.current];
+    const country = customCountryRef.current ?? COUNTRIES[countryIdxRef.current];
     const genre   = GENRES[genreIdxRef.current];
 
     try {
@@ -185,14 +196,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     settleTimer.current = setTimeout(() => { commit(); }, 1200);
   }, [commit]);
 
+  const clearCustomCountry = useCallback(() => {
+    customCountryRef.current = null;
+    setCustomCountry(null);
+  }, []);
+
   const spinLeft = useCallback((dir: number) => {
     if (lockedLeftRef.current) return;       // locked country wheel ignores input
     const next = (countryIdxRef.current + dir + COUNTRIES.length) % COUNTRIES.length;
     countryIdxRef.current = next;
     setCountryIdx(next);
+    clearCustomCountry();
     setStatus('empty');
     scheduleAutoCommit();
-  }, [scheduleAutoCommit]);
+  }, [scheduleAutoCommit, clearCustomCountry]);
 
   const spinRight = useCallback((dir: number) => {
     if (lockedRightRef.current) return;      // locked genre wheel ignores input
@@ -208,9 +225,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const next = ((i % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length;
     countryIdxRef.current = next;
     setCountryIdx(next);
+    clearCustomCountry();
     setStatus('empty');
     scheduleAutoCommit();
-  }, [scheduleAutoCommit]);
+  }, [scheduleAutoCommit, clearCustomCountry]);
 
   const setGenre = useCallback((i: number) => {
     if (lockedRightRef.current) return;
@@ -292,6 +310,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const c = pickDifferent(COUNTRIES.length, countryIdxRef.current);
       countryIdxRef.current = c;
       setCountryIdx(c);
+      clearCustomCountry();
     }
     if (!right) {
       const g = pickDifferent(GENRES.length, genreIdxRef.current);
@@ -300,7 +319,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     setStatus('empty');
     scheduleAutoCommit();
-  }, [scheduleAutoCommit, shuffleTracks]);
+  }, [scheduleAutoCommit, shuffleTracks, clearCustomCountry]);
 
   const loadQueue = useCallback((queue: Track[], startIdx: number) => {
     if (!queue.length) return;
@@ -317,6 +336,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const c = ((ci % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length;
     countryIdxRef.current = c;
     setCountryIdx(c);
+    clearCustomCountry();
     if (gi != null) {
       const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
       genreIdxRef.current = g;
@@ -324,6 +344,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     if (settleTimer.current) clearTimeout(settleTimer.current);  // skip the debounce
     commit();  // reads the refs just set — fetches this pairing right away
+  }, [commit, clearCustomCountry]);
+
+  const playPlaceNamed = useCallback((countryName: string, gi?: number) => {
+    customCountryRef.current = countryName;
+    setCustomCountry(countryName);
+    if (gi != null) {
+      const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
+      genreIdxRef.current = g;
+      setGenreIdx(g);
+    }
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    commit();
   }, [commit]);
 
   /* ---------- transient toast for gesture confirmation ---------- */
@@ -351,14 +383,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
-    surprise, loadQueue, playPlace,
+    surprise, loadQueue, playPlace, playPlaceNamed,
+    countryName: customCountry ?? COUNTRIES[countryIdx],
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
-       autoplayBlocked,
+       autoplayBlocked, customCountry,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
-       toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue, playPlace]);
+       toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
+       playPlace, playPlaceNamed]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }

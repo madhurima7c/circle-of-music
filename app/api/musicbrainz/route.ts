@@ -18,6 +18,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import seeds from '@/lib/seeds.json';
+import geoIso from '@/lib/geo-iso.json';
 import { COUNTRY_TO_ISO, GENRE_TO_MB_TAGS } from '@/lib/musicbrainz-tags';
 
 /* ------------------------------------------------------------------
@@ -62,8 +63,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'country + genre required' }, { status: 400 });
   }
 
-  // Whitelist: only allow values the wheel can actually produce.
-  if (!seeds.countries.includes(country) || !seeds.genres.includes(genre)) {
+  // Whitelist: genres from the wheel; countries from the wheel OR any real
+  // globe nation (geo-iso.json is generated from the Natural Earth data the
+  // World globe renders) — still can't be coerced into arbitrary queries.
+  const knownCountry =
+    seeds.countries.includes(country) ||
+    country in (geoIso as Record<string, string>);
+  if (!knownCountry || !seeds.genres.includes(genre)) {
     return NextResponse.json({ error: 'unknown pairing' }, { status: 400 });
   }
 
@@ -72,7 +78,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ artists: cache.get(key), source: 'cache' });
   }
 
-  const iso = COUNTRY_TO_ISO[country];
+  const iso = COUNTRY_TO_ISO[country] ?? (geoIso as Record<string, string>)[country];
   if (!iso) {
     cache.set(key, []);
     return NextResponse.json({ artists: [], source: 'no-iso' });

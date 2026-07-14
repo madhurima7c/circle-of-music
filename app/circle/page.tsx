@@ -26,7 +26,7 @@ const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
 export default function CirclePage() {
   const {
     commit, tracks, handMode, status,
-    countryIdx, genreIdx, setCountry, setGenre,
+    countryIdx, genreIdx, setCountry, setGenre, countryName,
   } = useStore();
 
   // On first load: restore a shared pairing from the URL
@@ -54,9 +54,12 @@ export default function CirclePage() {
   // shareable — replaceState avoids polluting history while spinning.
   useEffect(() => {
     if (status !== 'populating' && status !== 'ready') return;
+    // A custom globe country (outside the wheel) has no shareable slug —
+    // don't rewrite the URL to the stale wheel country underneath it.
+    if (countryName !== COUNTRIES[countryIdx]) return;
     const url = `/circle?country=${coverSlug(COUNTRIES[countryIdx])}&genre=${coverSlug(GENRES[genreIdx])}`;
     window.history.replaceState(null, '', url);
-  }, [status, countryIdx, genreIdx]);
+  }, [status, countryIdx, genreIdx, countryName]);
 
   return (
     <main className="frame">

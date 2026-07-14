@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import { useStore } from '@/lib/store';
 import { GENRES } from '@/lib/data';
 import { GEO_URL, PLAYABLE_GEO_NAMES, seedCountryIdx } from '@/lib/geo';
+import { originFor } from '@/lib/origins';
+import { storyFor } from '@/lib/stories';
 import { STR } from '@/lib/strings';
 
 type Feature = {
@@ -13,21 +15,41 @@ type Feature = {
   [k: string]: unknown;
 };
 
-// Stylized, non-satellite palette (matches the app's ink/accent).
-const COL = {
-  playable:      'rgba(31, 43, 214, 0.55)',   // accent — has music
-  playableHover: 'rgba(31, 43, 214, 0.9)',
-  playableSel:   'rgba(120, 130, 255, 0.95)',
-  dim:           'rgba(120, 120, 130, 0.10)',  // unseeded countries
-  dimHover:      'rgba(120, 120, 130, 0.22)',
-  side:          'rgba(20, 20, 30, 0.45)',
-  stroke:        'rgba(255, 255, 255, 0.18)',
+/** One artist-origin dot on the globe, tied to a track in the queue. */
+type OriginPt = {
+  lat: number;
+  lng: number;
+  artist: string;
+  place: string;
+  country: string;
+  precision: 'city' | 'country';
+  firstIdx: number;   // first queue index by this artist — dot click jumps here
 };
 
+// Stylized, non-satellite palette (matches the app's ink/accent).
+const COL = {
+  playable:      'rgba(31, 43, 214, 0.55)',   // accent — has curated music
+  playableHover: 'rgba(31, 43, 214, 0.9)',
+  playableSel:   'rgba(120, 130, 255, 0.95)',
+  dim:           'rgba(120, 120, 130, 0.10)',  // unseeded — still tappable (MusicBrainz tier)
+  dimHover:      'rgba(120, 120, 130, 0.28)',
+  side:          'rgba(20, 20, 30, 0.45)',
+  stroke:        'rgba(255, 255, 255, 0.18)',
+  dot:           'rgba(140, 150, 255, 0.75)',
+  dotPlaying:    '#c3cbff',
+};
+
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 export default function WorldGlobe() {
-  const { countryIdx, genreIdx, status, playPlace, setGenre } = useStore();
+  const {
+    genreIdx, status, tracks, trackIdx, countryName,
+    playPlace, playPlaceNamed, setGenre, setTrackIdx, setIsPlaying,
+  } = useStore();
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const genresRef = useRef<HTMLDivElement | null>(null);
 
   const [features, setFeatures] = useState<Feature[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -78,6 +100,13 @@ export default function WorldGlobe() {
     g.pointOfView({ altitude: 2.4 }, 0);
   }, [size.w, status]);
 
+  /* ---------- keep the active genre visible in the rail ---------- */
+  useEffect(() => {
+    genresRef.current
+      ?.querySelector('[data-active="true"]')
+      ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [genreIdx]);
+
   const flyTo = (f: Feature) => {
     globeRef.current?.pointOfView(
       { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X, altitude: 1.6 },
@@ -85,16 +114,19 @@ export default function WorldGlobe() {
     );
   };
 
+  // Any nation plays: seeded countries use the curated pipeline, the rest
+  // go through the MusicBrainz tier (thin but real).
   const onClick = (feat: object) => {
     const f = feat as Feature;
-    const idx = seedCountryIdx(f.properties.NAME);
-    if (idx < 0) return;  // no music for this country yet
-    setSelectedGeo(f.properties.NAME);
+    const name = f.properties.NAME;
+    setSelectedGeo(name);
     flyTo(f);
-    playPlace(idx, genreIdx);  // instant audio, current genre
+    const idx = seedCountryIdx(name);
+    if (idx >= 0) playPlace(idx, genreIdx);
+    else playPlaceNamed(name, genreIdx);
   };
 
-  // Spin to a random playable country and play it (the radio.garden moment).
+  // Spin to a random curated country and play it (the radio.garden moment).
   const shuffle = () => {
     const playable = features.filter(f => PLAYABLE_GEO_NAMES.has(f.properties.NAME));
     if (!playable.length) return;
@@ -112,7 +144,51 @@ export default function WorldGlobe() {
   const label = (feat: object) => {
     const name = (feat as Feature).properties.NAME;
     const playable = PLAYABLE_GEO_NAMES.has(name);
-    return `<div class="globe-tip" data-playable="${playable}">${name}${playable ? '' : ' · no music yet'}</div>`;
+    return `<div class="globe-tip" data-playable="${playable}">${esc(name)}${playable ? '' : STR.world.exploreSuffix}</div>`;
+  };
+
+  /* ---------- artist-origin dots for the current queue ---------- */
+  const points = useMemo<OriginPt[]>(() => {
+    const byArtist = new Map<string, OriginPt>();
+    tracks.forEach((t, i) => {
+      if (!t.artist || byArtist.has(t.artist)) return;
+      const o = originFor(t.artist);
+      if (!o) return;
+      byArtist.set(t.artist, {
+        lat: o.lat, lng: o.lng,
+        artist: t.artist, place: o.place, country: o.country,
+        precision: o.precision, firstIdx: i,
+      });
+    });
+    return [...byArtist.values()];
+  }, [tracks]);
+
+  const playingArtist = tracks[trackIdx]?.artist ?? null;
+  const playingPt = useMemo(
+    () => points.find(p => p.artist === playingArtist) ?? null,
+    [points, playingArtist],
+  );
+  const rings = useMemo(() => (playingPt ? [playingPt] : []), [playingPt]);
+
+  const originLabel = (d: object) => {
+    const p = d as OriginPt;
+    // Some Wikidata entries resolve place and country to the same label —
+    // "Kumasi, Kumasi" reads broken, so collapse those.
+    const where =
+      p.place && p.place !== p.country ? `${p.place}, ${p.country}` : p.place || p.country;
+    const story = storyFor(p.artist, countryName, GENRES[genreIdx]);
+    return `<div class="globe-tip globe-tip--origin">
+      <strong>${esc(p.artist)}</strong>
+      <span class="globe-tip__where">${esc(where)}</span>
+      ${story ? `<span class="globe-tip__story">${esc(story)}</span>` : ''}
+      <span class="globe-tip__cta">${STR.world.dotCta}</span>
+    </div>`;
+  };
+
+  const onPointClick = (d: object) => {
+    const p = d as OriginPt;
+    setTrackIdx(p.firstIdx);
+    setIsPlaying(true);
   };
 
   return (
@@ -138,11 +214,30 @@ export default function WorldGlobe() {
             setHovered(f ? (f as Feature).properties.NAME : null)}
           onPolygonClick={onClick}
           polygonsTransitionDuration={220}
+          pointsData={points}
+          pointLat={(d: object) => (d as OriginPt).lat}
+          pointLng={(d: object) => (d as OriginPt).lng}
+          pointColor={(d: object) =>
+            (d as OriginPt).artist === playingArtist ? COL.dotPlaying : COL.dot}
+          pointAltitude={(d: object) =>
+            (d as OriginPt).artist === playingArtist ? 0.09 : 0.035}
+          pointRadius={(d: object) =>
+            (d as OriginPt).precision === 'city' ? 0.32 : 0.55}
+          pointLabel={originLabel}
+          onPointClick={onPointClick}
+          pointsTransitionDuration={400}
+          ringsData={rings}
+          ringLat={(d: object) => (d as OriginPt).lat}
+          ringLng={(d: object) => (d as OriginPt).lng}
+          ringColor={() => (t: number) => `rgba(150, 160, 255, ${Math.max(0, 0.8 * (1 - t))})`}
+          ringMaxRadius={2.4}
+          ringPropagationSpeed={1.4}
+          ringRepeatPeriod={1300}
         />
       )}
 
-      {/* Genre chips — the genre used when you tap a country. */}
-      <div className="world-genres" role="listbox" aria-label="Genre">
+      {/* Genre rail — vertical, left-docked; the genre used on a country tap. */}
+      <div className="world-genres" role="listbox" aria-label="Genre" ref={genresRef}>
         {GENRES.map((g, i) => (
           <button
             key={g}
@@ -153,7 +248,10 @@ export default function WorldGlobe() {
             onClick={() => {
               setGenre(i);
               // if a country is already chosen, re-play it in the new genre
-              if (countryIdx >= 0 && selectedGeo) playPlace(countryIdx, i);
+              if (!selectedGeo) return;
+              const idx = seedCountryIdx(selectedGeo);
+              if (idx >= 0) playPlace(idx, i);
+              else playPlaceNamed(selectedGeo, i);
             }}
           >
             {g}

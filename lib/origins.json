@@ -1,0 +1,5048 @@
+{
+ "mercedes sosa": {
+  "name": "Mercedes Sosa",
+  "lat": -26.817,
+  "lng": -65.217,
+  "place": "San Miguel de Tucumán",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "atahualpa yupanqui": {
+  "name": "Atahualpa Yupanqui",
+  "lat": -33.883,
+  "lng": -60.583,
+  "place": "Pergamino Partido",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "jorge cafrune": {
+  "name": "Jorge Cafrune",
+  "lat": -24.382,
+  "lng": -65.115,
+  "place": "Perico",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "astor piazzolla": {
+  "name": "Astor Piazzolla",
+  "lat": -38,
+  "lng": -57.55,
+  "place": "Mar del Plata",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "gato barbieri": {
+  "name": "Gato Barbieri",
+  "lat": -32.957,
+  "lng": -60.639,
+  "place": "Rosario",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "pedro aznar": {
+  "name": "Pedro Aznar",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "soda stereo": {
+  "name": "Soda Stereo",
+  "lat": -34,
+  "lng": -64,
+  "place": "",
+  "country": "Argentina",
+  "precision": "country"
+ },
+ "charly garcia": {
+  "name": "Charly Garcia",
+  "lat": -34.617,
+  "lng": -58.45,
+  "place": "Caballito",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "babasonicos": {
+  "name": "Babasonicos",
+  "lat": -34,
+  "lng": -64,
+  "place": "",
+  "country": "Argentina",
+  "precision": "country"
+ },
+ "spinetta": {
+  "name": "Spinetta",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "patricio rey y sus redonditos de ricota": {
+  "name": "Patricio Rey y sus Redonditos de Ricota",
+  "lat": -34.933,
+  "lng": -57.95,
+  "place": "La Plata",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "fito paez": {
+  "name": "Fito Paez",
+  "lat": -32.957,
+  "lng": -60.639,
+  "place": "Rosario",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "andres calamaro": {
+  "name": "Andres Calamaro",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "lali": {
+  "name": "Lali",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "tini stoessel": {
+  "name": "Tini Stoessel",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "bandalos chinos": {
+  "name": "Bandalos Chinos",
+  "lat": -34.466,
+  "lng": -58.542,
+  "place": "Beccar",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "el mato a un policia motorizado": {
+  "name": "El Mato a un Policia Motorizado",
+  "lat": -34.933,
+  "lng": -57.95,
+  "place": "La Plata",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "marilina bertoldi": {
+  "name": "Marilina Bertoldi",
+  "lat": -30.944,
+  "lng": -61.561,
+  "place": "Sunchales",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "conociendo rusia": {
+  "name": "Conociendo Rusia",
+  "lat": -34,
+  "lng": -64,
+  "place": "",
+  "country": "Argentina",
+  "precision": "country"
+ },
+ "damas gratis": {
+  "name": "Damas Gratis",
+  "lat": -34,
+  "lng": -64,
+  "place": "Argentina",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "antonio rios": null,
+ "pibes chorros": {
+  "name": "Pibes Chorros",
+  "lat": -34.768,
+  "lng": -58.213,
+  "place": "Berazategui",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "gilda": {
+  "name": "Gilda",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "wos": {
+  "name": "Wos",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "trueno": {
+  "name": "Trueno",
+  "lat": -34.636,
+  "lng": -58.365,
+  "place": "La Boca",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "bizarrap": {
+  "name": "Bizarrap",
+  "lat": -34.65,
+  "lng": -58.567,
+  "place": "Ramos Mejía",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "duki": {
+  "name": "Duki",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "ca7riel": {
+  "name": "Ca7riel",
+  "lat": -37.985,
+  "lng": -61.35,
+  "place": "Coronel Pringles",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "nathy peluso": {
+  "name": "Nathy Peluso",
+  "lat": -34.57,
+  "lng": -59.105,
+  "place": "Luján",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "bajofondo": {
+  "name": "Bajofondo",
+  "lat": -34,
+  "lng": -64,
+  "place": "Argentina",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "gotan project": {
+  "name": "Gotan Project",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "bersuit vergarabat": {
+  "name": "Bersuit Vergarabat",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "los pericos": {
+  "name": "Los Pericos",
+  "lat": -34,
+  "lng": -64,
+  "place": "",
+  "country": "Argentina",
+  "precision": "country"
+ },
+ "los cafres": {
+  "name": "Los Cafres",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "attaque 77": {
+  "name": "Attaque 77",
+  "lat": -34.633,
+  "lng": -58.467,
+  "place": "Flores",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "los violadores": {
+  "name": "Los Violadores",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "2 minutos": {
+  "name": "2 Minutos",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "carlos gardel": {
+  "name": "Carlos Gardel",
+  "lat": -32.115,
+  "lng": -55.756,
+  "place": "Tacuarembó Department",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "martha argerich": {
+  "name": "Martha Argerich",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "alberto ginastera": {
+  "name": "Alberto Ginastera",
+  "lat": -34.6,
+  "lng": -58.382,
+  "place": "Buenos Aires",
+  "country": "Argentina",
+  "precision": "city"
+ },
+ "joao gilberto": {
+  "name": "Joao Gilberto",
+  "lat": -9.414,
+  "lng": -40.503,
+  "place": "Juazeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "antonio carlos jobim": {
+  "name": "Antonio Carlos Jobim",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "stan getz": {
+  "name": "Stan Getz",
+  "lat": 39.953,
+  "lng": -75.164,
+  "place": "Philadelphia",
+  "country": "United States",
+  "precision": "city"
+ },
+ "astrud gilberto": {
+  "name": "Astrud Gilberto",
+  "lat": -12.983,
+  "lng": -38.493,
+  "place": "Salvador",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "vinicius de moraes": {
+  "name": "Vinicius de Moraes",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "hermeto pascoal": {
+  "name": "Hermeto Pascoal",
+  "lat": -9.75,
+  "lng": -36.65,
+  "place": "Arapiraca",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "egberto gismonti": {
+  "name": "Egberto Gismonti",
+  "lat": -21.934,
+  "lng": -42.609,
+  "place": "Carmo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "eumir deodato": {
+  "name": "Eumir Deodato",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "nana vasconcelos": {
+  "name": "Naná Vasconcelos",
+  "lat": -8.054,
+  "lng": -34.881,
+  "place": "Recife",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "tim maia": {
+  "name": "Tim Maia",
+  "lat": -22.925,
+  "lng": -43.252,
+  "place": "Tijuca",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "jorge ben jor": {
+  "name": "Jorge Ben Jor",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "banda black rio": {
+  "name": "Banda Black Rio",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "ed motta": {
+  "name": "Ed Motta",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "caetano veloso": {
+  "name": "Caetano Veloso",
+  "lat": -12.547,
+  "lng": -38.712,
+  "place": "Santo Amaro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "gal costa": {
+  "name": "Gal Costa",
+  "lat": -12.983,
+  "lng": -38.493,
+  "place": "Salvador",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "maria bethania": {
+  "name": "Maria Bethania",
+  "lat": -12.547,
+  "lng": -38.712,
+  "place": "Santo Amaro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "anitta": {
+  "name": "Anitta",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "marisa monte": {
+  "name": "Marisa Monte",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "tulipa ruiz": {
+  "name": "Tulipa Ruiz",
+  "lat": -23.934,
+  "lng": -46.329,
+  "place": "Santos",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "marcelo camelo": {
+  "name": "Marcelo Camelo",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "silva": null,
+ "tim bernardes": {
+  "name": "Tim Bernardes",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "amon tobin": {
+  "name": "Amon Tobin",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "gui boratto": {
+  "name": "Gui Boratto",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "dj marky": {
+  "name": "DJ Marky",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "racionais mcs": {
+  "name": "Racionais MCs",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "emicida": {
+  "name": "Emicida",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "criolo": {
+  "name": "Criolo",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "karol conka": {
+  "name": "Karol Conka",
+  "lat": -25.43,
+  "lng": -49.272,
+  "place": "Curitiba",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "bk": null,
+ "os mutantes": {
+  "name": "Os Mutantes",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "legiao urbana": {
+  "name": "Legiao Urbana",
+  "lat": -15.794,
+  "lng": -47.883,
+  "place": "Brasília",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "engenheiros do hawaii": {
+  "name": "Engenheiros do Hawaii",
+  "lat": -14,
+  "lng": -53,
+  "place": "",
+  "country": "Brazil",
+  "precision": "country"
+ },
+ "capital inicial": {
+  "name": "Capital Inicial",
+  "lat": -14,
+  "lng": -53,
+  "place": "",
+  "country": "Brazil",
+  "precision": "country"
+ },
+ "skank": {
+  "name": "Skank",
+  "lat": -19.928,
+  "lng": -43.942,
+  "place": "Belo Horizonte",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "milton nascimento": {
+  "name": "Milton Nascimento",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "chico buarque": {
+  "name": "Chico Buarque",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "geraldo vandre": {
+  "name": "Geraldo Vandre",
+  "lat": -7.12,
+  "lng": -34.88,
+  "place": "João Pessoa",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "natiruts": {
+  "name": "Natiruts",
+  "lat": -14,
+  "lng": -53,
+  "place": "",
+  "country": "Brazil",
+  "precision": "country"
+ },
+ "cidade negra": {
+  "name": "Cidade Negra",
+  "lat": -22.764,
+  "lng": -43.399,
+  "place": "Belford Roxo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "tribo de jah": {
+  "name": "Tribo de Jah",
+  "lat": -14,
+  "lng": -53,
+  "place": "",
+  "country": "Brazil",
+  "precision": "country"
+ },
+ "gilberto gil": {
+  "name": "Gilberto Gil",
+  "lat": -12.983,
+  "lng": -38.493,
+  "place": "Salvador",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "heitor villa lobos": {
+  "name": "Heitor Villa-Lobos",
+  "lat": -22.911,
+  "lng": -43.206,
+  "place": "Rio de Janeiro",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "ratos de porao": {
+  "name": "Ratos de Porao",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "stephane grappelli": {
+  "name": "Stephane Grappelli",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "django reinhardt": {
+  "name": "Django Reinhardt",
+  "lat": 50.51,
+  "lng": 4.363,
+  "place": "Pont-à-Celles",
+  "country": "France",
+  "precision": "city"
+ },
+ "melody gardot": {
+  "name": "Melody Gardot",
+  "lat": 40,
+  "lng": -74.5,
+  "place": "New Jersey",
+  "country": "United States",
+  "precision": "city"
+ },
+ "madeleine peyroux": {
+  "name": "Madeleine Peyroux",
+  "lat": 33.955,
+  "lng": -83.383,
+  "place": "Athens",
+  "country": "United States",
+  "precision": "city"
+ },
+ "air": {
+  "name": "Air",
+  "lat": 48.85,
+  "lng": 2.317,
+  "place": "Île-de-France",
+  "country": "France",
+  "precision": "city"
+ },
+ "daft punk": {
+  "name": "Daft Punk",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "justice": null,
+ "phoenix": {
+  "name": "Phoenix",
+  "lat": 48.805,
+  "lng": 2.135,
+  "place": "Versailles",
+  "country": "France",
+  "precision": "city"
+ },
+ "m83": {
+  "name": "M83",
+  "lat": 43.58,
+  "lng": 7.123,
+  "place": "Antibes",
+  "country": "France",
+  "precision": "city"
+ },
+ "francoise hardy": {
+  "name": "Francoise Hardy",
+  "lat": 48.878,
+  "lng": 2.337,
+  "place": "9th arrondissement of Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "christine and the queens": {
+  "name": "Christine and the Queens",
+  "lat": 47.217,
+  "lng": -1.554,
+  "place": "Nantes",
+  "country": "France",
+  "precision": "city"
+ },
+ "charlotte gainsbourg": {
+  "name": "Charlotte Gainsbourg",
+  "lat": 51.518,
+  "lng": -0.147,
+  "place": "Marylebone",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "vanessa paradis": {
+  "name": "Vanessa Paradis",
+  "lat": 48.803,
+  "lng": 2.486,
+  "place": "Saint-Maur-des-Fossés",
+  "country": "France",
+  "precision": "city"
+ },
+ "stromae": {
+  "name": "Stromae",
+  "lat": 50.836,
+  "lng": 4.386,
+  "place": "Etterbeek",
+  "country": "Belgium",
+  "precision": "city"
+ },
+ "la femme": null,
+ "yelle": {
+  "name": "Yelle",
+  "lat": 48.514,
+  "lng": -2.76,
+  "place": "Saint-Brieuc",
+  "country": "France",
+  "precision": "city"
+ },
+ "cassius": {
+  "name": "Cassius",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "modjo": {
+  "name": "Modjo",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "bob sinclar": {
+  "name": "Bob Sinclar",
+  "lat": 48.859,
+  "lng": 2.379,
+  "place": "11th arrondissement of Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "iam": {
+  "name": "IAM",
+  "lat": 43.297,
+  "lng": 5.376,
+  "place": "Marseille",
+  "country": "France",
+  "precision": "city"
+ },
+ "mc solaar": {
+  "name": "MC Solaar",
+  "lat": 14.673,
+  "lng": -17.432,
+  "place": "Dakar",
+  "country": "France",
+  "precision": "city"
+ },
+ "pnl": {
+  "name": "PNL",
+  "lat": 47,
+  "lng": 2,
+  "place": "",
+  "country": "France",
+  "precision": "country"
+ },
+ "damso": {
+  "name": "Damso",
+  "lat": -4.322,
+  "lng": 15.312,
+  "place": "Kinshasa",
+  "country": "Democratic Republic of the Congo",
+  "precision": "city"
+ },
+ "booba": {
+  "name": "Booba",
+  "lat": 48.823,
+  "lng": 2.211,
+  "place": "Sèvres",
+  "country": "France",
+  "precision": "city"
+ },
+ "nekfeu": {
+  "name": "Nekfeu",
+  "lat": 43.741,
+  "lng": 7.314,
+  "place": "La Trinité",
+  "country": "France",
+  "precision": "city"
+ },
+ "indochine": {
+  "name": "Indochine",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "telephone": {
+  "name": "Telephone",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "noir desir": {
+  "name": "Noir Desir",
+  "lat": 44.838,
+  "lng": -0.579,
+  "place": "Bordeaux",
+  "country": "France",
+  "precision": "city"
+ },
+ "georges brassens": {
+  "name": "Georges Brassens",
+  "lat": 43.404,
+  "lng": 3.697,
+  "place": "Sète",
+  "country": "France",
+  "precision": "city"
+ },
+ "jacques brel": {
+  "name": "Jacques Brel",
+  "lat": 50.868,
+  "lng": 4.374,
+  "place": "Schaerbeek",
+  "country": "Belgium",
+  "precision": "city"
+ },
+ "edith piaf": {
+  "name": "Edith Piaf",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "serge gainsbourg": {
+  "name": "Serge Gainsbourg",
+  "lat": 48.856,
+  "lng": 2.356,
+  "place": "4th arrondissement of Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "cerrone": {
+  "name": "Cerrone",
+  "lat": 48.788,
+  "lng": 2.393,
+  "place": "Vitry-sur-Seine",
+  "country": "France",
+  "precision": "city"
+ },
+ "sebastien tellier": {
+  "name": "Sebastien Tellier",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "patrick hernandez": {
+  "name": "Patrick Hernandez",
+  "lat": 48.939,
+  "lng": 2.461,
+  "place": "Le Blanc-Mesnil",
+  "country": "France",
+  "precision": "city"
+ },
+ "laurent garnier": {
+  "name": "Laurent Garnier",
+  "lat": 48.835,
+  "lng": 2.241,
+  "place": "Boulogne-Billancourt",
+  "country": "France",
+  "precision": "city"
+ },
+ "vitalic": {
+  "name": "Vitalic",
+  "lat": 47.323,
+  "lng": 5.042,
+  "place": "Dijon",
+  "country": "France",
+  "precision": "city"
+ },
+ "tryo": {
+  "name": "Tryo",
+  "lat": 47,
+  "lng": 2,
+  "place": "France",
+  "country": "France",
+  "precision": "city"
+ },
+ "sinsemilia": {
+  "name": "Sinsemilia",
+  "lat": 47,
+  "lng": 2,
+  "place": "",
+  "country": "France",
+  "precision": "country"
+ },
+ "manu chao": {
+  "name": "Manu Chao",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "charles aznavour": {
+  "name": "Charles Aznavour",
+  "lat": 48.851,
+  "lng": 2.332,
+  "place": "6th arrondissement of Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "ben l oncle soul": {
+  "name": "Ben l'Oncle Soul",
+  "lat": 47.393,
+  "lng": 0.688,
+  "place": "Tours",
+  "country": "France",
+  "precision": "city"
+ },
+ "nouvelle vague": {
+  "name": "Nouvelle Vague",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "pierre barouh": {
+  "name": "Pierre Barouh",
+  "lat": 48.841,
+  "lng": 2.3,
+  "place": "15th arrondissement of Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "berurier noir": {
+  "name": "Bérurier Noir",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "helene grimaud": {
+  "name": "Hélène Grimaud",
+  "lat": 43.528,
+  "lng": 5.446,
+  "place": "Aix-en-Provence",
+  "country": "France",
+  "precision": "city"
+ },
+ "alexandre tharaud": {
+  "name": "Alexandre Tharaud",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "sarkodie": {
+  "name": "Sarkodie",
+  "lat": 5.667,
+  "lng": -0.017,
+  "place": "Tema",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "stonebwoy": {
+  "name": "Stonebwoy",
+  "lat": 5.699,
+  "lng": -0.034,
+  "place": "Ashaiman",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "amaarae": {
+  "name": "Amaarae",
+  "lat": 40.847,
+  "lng": -73.873,
+  "place": "The Bronx",
+  "country": "United States",
+  "precision": "city"
+ },
+ "kwesi arthur": {
+  "name": "Kwesi Arthur",
+  "lat": 5.667,
+  "lng": -0.017,
+  "place": "Tema",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "king promise": {
+  "name": "King Promise",
+  "lat": 5.601,
+  "lng": -0.077,
+  "place": "Nungua",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "black sherif": {
+  "name": "Black Sherif",
+  "lat": 6.617,
+  "lng": -1.217,
+  "place": "Konongo",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "ebo taylor": {
+  "name": "Ebo Taylor",
+  "lat": 5.1,
+  "lng": -1.25,
+  "place": "Cape Coast",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "pat thomas": {
+  "name": "Pat Thomas",
+  "lat": 7.95,
+  "lng": -1.02,
+  "place": "",
+  "country": "Ghana",
+  "precision": "country"
+ },
+ "ata kak": {
+  "name": "Ata Kak",
+  "lat": 6.7,
+  "lng": -1.625,
+  "place": "Kumasi",
+  "country": "Kumasi",
+  "precision": "city"
+ },
+ "gyedu blay ambolley": {
+  "name": "Gyedu-Blay Ambolley",
+  "lat": 7.947,
+  "lng": -1.023,
+  "place": "Ghana",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "king ayisoba": {
+  "name": "King Ayisoba",
+  "lat": 10.75,
+  "lng": -0.75,
+  "place": "Upper East Region",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "m anifest": {
+  "name": "M.anifest",
+  "lat": 7.947,
+  "lng": -1.023,
+  "place": "",
+  "country": "Ghana",
+  "precision": "country"
+ },
+ "wanlov the kubolor": {
+  "name": "Wanlov the Kubolor",
+  "lat": 44.941,
+  "lng": 26.023,
+  "place": "Ploiești",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "fokn bois": null,
+ "rocky dawuni": {
+  "name": "Rocky Dawuni",
+  "lat": 7.947,
+  "lng": -1.023,
+  "place": "Ghana",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "dj katapila": null,
+ "gafacci": {
+  "name": "Gafacci",
+  "lat": 5.556,
+  "lng": -0.197,
+  "place": "Accra",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "juls": {
+  "name": "Juls",
+  "lat": 51.51,
+  "lng": -0.13,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "osibisa": {
+  "name": "Osibisa",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "dark suburb": null,
+ "george darko": {
+  "name": "George Darko",
+  "lat": 7.947,
+  "lng": -1.023,
+  "place": "",
+  "country": "Ghana",
+  "precision": "country"
+ },
+ "charles amoah": {
+  "name": "Charles Amoah",
+  "lat": 5.556,
+  "lng": -0.197,
+  "place": "Accra",
+  "country": "Ghana",
+  "precision": "city"
+ },
+ "wilson boateng": null,
+ "marijata": null,
+ "louiz banks": null,
+ "rudy wallang": null,
+ "trilok gurtu": {
+  "name": "Trilok Gurtu",
+  "lat": 19.076,
+  "lng": 72.878,
+  "place": "Mumbai",
+  "country": "India",
+  "precision": "city"
+ },
+ "l subramaniam": null,
+ "sandunes": null,
+ "soulmate": {
+  "name": "Soulmate",
+  "lat": 25.57,
+  "lng": 91.88,
+  "place": "Shillong",
+  "country": "India",
+  "precision": "city"
+ },
+ "ravi shankar": {
+  "name": "Ravi Shankar",
+  "lat": 25.319,
+  "lng": 83.013,
+  "place": "Varanasi",
+  "country": "British Raj",
+  "precision": "city"
+ },
+ "zakir hussain": {
+  "name": "Zakir Hussain",
+  "lat": 19.076,
+  "lng": 72.878,
+  "place": "Mumbai",
+  "country": "India",
+  "precision": "city"
+ },
+ "ali akbar khan": {
+  "name": "Ali Akbar Khan",
+  "lat": 23.972,
+  "lng": 91.11,
+  "place": "Brahmanbaria",
+  "country": "British Raj",
+  "precision": "city"
+ },
+ "hariprasad chaurasia": {
+  "name": "Hariprasad Chaurasia",
+  "lat": 25.45,
+  "lng": 81.85,
+  "place": "Prayagraj",
+  "country": "British Raj",
+  "precision": "city"
+ },
+ "bombay jayashri": {
+  "name": "Bombay Jayashri",
+  "lat": 22.568,
+  "lng": 88.37,
+  "place": "Kolkata",
+  "country": "India",
+  "precision": "city"
+ },
+ "t m krishna": null,
+ "kailash kher": {
+  "name": "Kailash Kher",
+  "lat": 28.98,
+  "lng": 77.706,
+  "place": "Meerut",
+  "country": "India",
+  "precision": "city"
+ },
+ "rajasthan roots": null,
+ "indian ocean": {
+  "name": "Indian Ocean",
+  "lat": 22.8,
+  "lng": 83,
+  "place": "",
+  "country": "India",
+  "precision": "country"
+ },
+ "prateek kuhad": {
+  "name": "Prateek Kuhad",
+  "lat": 26.915,
+  "lng": 75.82,
+  "place": "Jaipur",
+  "country": "India",
+  "precision": "city"
+ },
+ "peter cat recording co": null,
+ "parekh and singh": null,
+ "when chai met toast": null,
+ "the local train": {
+  "name": "The Local Train",
+  "lat": 30.736,
+  "lng": 76.788,
+  "place": "Chandigarh",
+  "country": "India",
+  "precision": "city"
+ },
+ "arijit singh": {
+  "name": "Arijit Singh",
+  "lat": 24.23,
+  "lng": 88.27,
+  "place": "Jiaganj Azimganj",
+  "country": "India",
+  "precision": "city"
+ },
+ "a r rahman": {
+  "name": "A R Rahman",
+  "lat": 13.083,
+  "lng": 80.275,
+  "place": "Chennai",
+  "country": "India",
+  "precision": "city"
+ },
+ "shreya ghoshal": {
+  "name": "Shreya Ghoshal",
+  "lat": 23.55,
+  "lng": 87.32,
+  "place": "Durgapur",
+  "country": "India",
+  "precision": "city"
+ },
+ "sonu nigam": {
+  "name": "Sonu Nigam",
+  "lat": 28.417,
+  "lng": 77.3,
+  "place": "Faridabad",
+  "country": "India",
+  "precision": "city"
+ },
+ "parikrama": {
+  "name": "Parikrama",
+  "lat": 22.8,
+  "lng": 83,
+  "place": "",
+  "country": "India",
+  "precision": "country"
+ },
+ "pentagram": {
+  "name": "Pentagram",
+  "lat": 19.076,
+  "lng": 72.877,
+  "place": "Mumbai",
+  "country": "India",
+  "precision": "city"
+ },
+ "thermal and a quarter": {
+  "name": "Thermal And A Quarter",
+  "lat": 12.979,
+  "lng": 77.591,
+  "place": "Bengaluru",
+  "country": "India",
+  "precision": "city"
+ },
+ "divine": {
+  "name": "Divine",
+  "lat": 19.076,
+  "lng": 72.877,
+  "place": "Mumbai",
+  "country": "India",
+  "precision": "city"
+ },
+ "naezy": {
+  "name": "Naezy",
+  "lat": 19.06,
+  "lng": 72.89,
+  "place": "Kurla",
+  "country": "India",
+  "precision": "city"
+ },
+ "seedhe maut": null,
+ "raftaar": {
+  "name": "Raftaar",
+  "lat": 8.488,
+  "lng": 76.953,
+  "place": "Thiruvananthapuram",
+  "country": "India",
+  "precision": "city"
+ },
+ "prabh deep": {
+  "name": "Prabh Deep",
+  "lat": 22.8,
+  "lng": 83,
+  "place": "",
+  "country": "India",
+  "precision": "country"
+ },
+ "nucleya": {
+  "name": "Nucleya",
+  "lat": 27.18,
+  "lng": 78.02,
+  "place": "Agra",
+  "country": "India",
+  "precision": "city"
+ },
+ "ritviz": null,
+ "su real": null,
+ "karsh kale": {
+  "name": "Karsh Kale",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "talvin singh": {
+  "name": "Talvin Singh",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "niraj chag": {
+  "name": "Niraj Chag",
+  "lat": 50.907,
+  "lng": -1.404,
+  "place": "Southampton",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "bappi lahiri": {
+  "name": "Bappi Lahiri",
+  "lat": 22.568,
+  "lng": 88.37,
+  "place": "Kolkata",
+  "country": "India",
+  "precision": "city"
+ },
+ "asha bhosle": {
+  "name": "Asha Bhosle",
+  "lat": 16.867,
+  "lng": 74.567,
+  "place": "Sangli",
+  "country": "British Raj",
+  "precision": "city"
+ },
+ "mohammad reza shajarian": {
+  "name": "Mohammad Reza Shajarian",
+  "lat": 36.297,
+  "lng": 59.606,
+  "place": "Mashhad",
+  "country": "Pahlavi Iran",
+  "precision": "city"
+ },
+ "hossein alizadeh": {
+  "name": "Hossein Alizadeh",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "parisa": {
+  "name": "Parisa",
+  "lat": 36.816,
+  "lng": 50.874,
+  "place": "Tonekabon",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "kayhan kalhor": {
+  "name": "Kayhan Kalhor",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "niyaz": {
+  "name": "Niyaz",
+  "lat": 34.052,
+  "lng": -118.244,
+  "place": "Los Angeles",
+  "country": "United States",
+  "precision": "city"
+ },
+ "mohsen namjoo": {
+  "name": "Mohsen Namjoo",
+  "lat": 35.244,
+  "lng": 60.623,
+  "place": "Torbat-e Jam",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "mohammad reza lotfi": {
+  "name": "Mohammad Reza Lotfi",
+  "lat": 36.847,
+  "lng": 54.43,
+  "place": "Gorgan",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "kiosk": {
+  "name": "Kiosk",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "hayedeh": {
+  "name": "Hayedeh",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "googoosh": {
+  "name": "Googoosh",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "ebi": null,
+ "dariush": {
+  "name": "Dariush",
+  "lat": 35.69,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "o hum": {
+  "name": "O-Hum",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "kourosh yaghmaei": {
+  "name": "Kourosh Yaghmaei",
+  "lat": 36.418,
+  "lng": 54.976,
+  "place": "Shahrud",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "hichkas": {
+  "name": "Hichkas",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "yas": {
+  "name": "Yas",
+  "lat": 35.689,
+  "lng": 51.39,
+  "place": "Tehran",
+  "country": "Iran",
+  "precision": "city"
+ },
+ "bahram": null,
+ "9t antiope": null,
+ "sote": {
+  "name": "Sote",
+  "lat": 53.55,
+  "lng": 10,
+  "place": "Hamburg",
+  "country": "Hamburg",
+  "precision": "city"
+ },
+ "hiromi uehara": {
+  "name": "Hiromi Uehara",
+  "lat": 34.711,
+  "lng": 137.726,
+  "place": "Hamamatsu",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "toshiko akiyoshi": {
+  "name": "Toshiko Akiyoshi",
+  "lat": 41.264,
+  "lng": 123.177,
+  "place": "Liaoyang",
+  "country": "United States",
+  "precision": "city"
+ },
+ "sadao watanabe": {
+  "name": "Sadao Watanabe",
+  "lat": 36.555,
+  "lng": 139.883,
+  "place": "Utsunomiya",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "casiopea": {
+  "name": "Casiopea",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "hiroshi yoshimura": {
+  "name": "Hiroshi Yoshimura",
+  "lat": 35.45,
+  "lng": 139.634,
+  "place": "Yokohama",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "susumu yokota": {
+  "name": "Susumu Yokota",
+  "lat": 36.696,
+  "lng": 137.214,
+  "place": "Toyama",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "ryuichi sakamoto": {
+  "name": "Ryuichi Sakamoto",
+  "lat": 35.707,
+  "lng": 139.664,
+  "place": "Nakano",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "midori takada": {
+  "name": "Midori Takada",
+  "lat": 35,
+  "lng": 136,
+  "place": "",
+  "country": "Japan",
+  "precision": "country"
+ },
+ "cornelius": {
+  "name": "Cornelius",
+  "lat": 35.68,
+  "lng": 139.69,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "yellow magic orchestra": {
+  "name": "Yellow Magic Orchestra",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "towa tei": {
+  "name": "Towa Tei",
+  "lat": 35.45,
+  "lng": 139.634,
+  "place": "Yokohama",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "mariya takeuchi": {
+  "name": "Mariya Takeuchi",
+  "lat": 35.367,
+  "lng": 132.755,
+  "place": "Izumo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "tatsuro yamashita": {
+  "name": "Tatsuro Yamashita",
+  "lat": 35.735,
+  "lng": 139.707,
+  "place": "Ikebukuro",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "anri": {
+  "name": "Anri",
+  "lat": 35.488,
+  "lng": 139.458,
+  "place": "Yamato",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "utada hikaru": {
+  "name": "Utada Hikaru",
+  "lat": 40.728,
+  "lng": -73.994,
+  "place": "Manhattan",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "yumi matsutoya": {
+  "name": "Yumi Matsutoya",
+  "lat": 35.666,
+  "lng": 139.316,
+  "place": "Hachiōji-shi",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "mono": {
+  "name": "Mono",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "boris": {
+  "name": "Boris",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "toe": null,
+ "number girl": null,
+ "lamp": null,
+ "ichiko aoba": {
+  "name": "Ichiko Aoba",
+  "lat": 35.653,
+  "lng": 139.902,
+  "place": "Urayasu",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "haruomi hosono": {
+  "name": "Haruomi Hosono",
+  "lat": 35.658,
+  "lng": 139.752,
+  "place": "Minato",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "awich": {
+  "name": "Awich",
+  "lat": 26.212,
+  "lng": 127.679,
+  "place": "Naha",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "kohh": {
+  "name": "Kohh",
+  "lat": 35.684,
+  "lng": 139.774,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "creepy nuts": {
+  "name": "Creepy Nuts",
+  "lat": 35,
+  "lng": 136,
+  "place": "",
+  "country": "Japan",
+  "precision": "country"
+ },
+ "tha blue herb": {
+  "name": "Tha Blue Herb",
+  "lat": 43,
+  "lng": 142,
+  "place": "Hokkaidō",
+  "country": "Hokkaidō",
+  "precision": "city"
+ },
+ "toshiki kadomatsu": {
+  "name": "Toshiki Kadomatsu",
+  "lat": 35.664,
+  "lng": 139.698,
+  "place": "Shibuya",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "akiko yano": {
+  "name": "Akiko Yano",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "happy end": {
+  "name": "Happy End",
+  "lat": 35.694,
+  "lng": 139.754,
+  "place": "Chiyoda",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "soichi terada": {
+  "name": "Soichi Terada",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "crystal": null,
+ "ken ishii": {
+  "name": "Ken Ishii",
+  "lat": 43.062,
+  "lng": 141.354,
+  "place": "Sapporo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "shonen knife": {
+  "name": "Shonen Knife",
+  "lat": 34.694,
+  "lng": 135.502,
+  "place": "Osaka",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "the blue hearts": {
+  "name": "The Blue Hearts",
+  "lat": 35.689,
+  "lng": 139.692,
+  "place": "Tokyo",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "guitar wolf": {
+  "name": "Guitar Wolf",
+  "lat": 32.75,
+  "lng": 129.88,
+  "place": "Nagasaki",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "toru takemitsu": {
+  "name": "Toru Takemitsu",
+  "lat": 35.677,
+  "lng": 139.765,
+  "place": "Tokyo City",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "joe hisaishi": {
+  "name": "Joe Hisaishi",
+  "lat": 36.742,
+  "lng": 138.369,
+  "place": "Nakano",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "lisa ono": {
+  "name": "Lisa Ono",
+  "lat": -23.55,
+  "lng": -46.634,
+  "place": "São Paulo",
+  "country": "Brazil",
+  "precision": "city"
+ },
+ "naomi goro": {
+  "name": "naomi & goro",
+  "lat": 35,
+  "lng": 136,
+  "place": "",
+  "country": "Japan",
+  "precision": "country"
+ },
+ "minyo crusaders": {
+  "name": "Minyo Crusaders",
+  "lat": 35,
+  "lng": 136,
+  "place": "",
+  "country": "Japan",
+  "precision": "country"
+ },
+ "mute beat": {
+  "name": "Mute Beat",
+  "lat": 35,
+  "lng": 136,
+  "place": "",
+  "country": "Japan",
+  "precision": "country"
+ },
+ "pushim": {
+  "name": "Pushim",
+  "lat": 34.686,
+  "lng": 135.52,
+  "place": "Osaka Prefecture",
+  "country": "Japan",
+  "precision": "city"
+ },
+ "celso pina": {
+  "name": "Celso Pina",
+  "lat": 25.684,
+  "lng": -100.318,
+  "place": "Monterrey",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "los angeles azules": {
+  "name": "Los Angeles Azules",
+  "lat": 23,
+  "lng": -102,
+  "place": "",
+  "country": "Mexico",
+  "precision": "country"
+ },
+ "sonora santanera": {
+  "name": "Sonora Santanera",
+  "lat": 18.294,
+  "lng": -93.863,
+  "place": "Sanchez Magallanes",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "lila downs": {
+  "name": "Lila Downs",
+  "lat": 17.055,
+  "lng": -96.654,
+  "place": "Oaxaca",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "natalia lafourcade": {
+  "name": "Natalia Lafourcade",
+  "lat": 19.455,
+  "lng": -96.957,
+  "place": "Coatepec",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "chavela vargas": {
+  "name": "Chavela Vargas",
+  "lat": 10.006,
+  "lng": -84.154,
+  "place": "San Joaquín",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "cafe tacvba": {
+  "name": "Cafe Tacvba",
+  "lat": 19.358,
+  "lng": -99.093,
+  "place": "Iztapalapa",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "zoe": null,
+ "carla morrison": {
+  "name": "Carla Morrison",
+  "lat": 32.573,
+  "lng": -116.627,
+  "place": "Tecate",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "belanova": {
+  "name": "Belanova",
+  "lat": 20.676,
+  "lng": -103.342,
+  "place": "Guadalajara",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "mana": {
+  "name": "Mana",
+  "lat": 20.676,
+  "lng": -103.342,
+  "place": "Guadalajara",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "caifanes": {
+  "name": "Caifanes",
+  "lat": 19.354,
+  "lng": -99.136,
+  "place": "Mexico City",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "cartel de santa": {
+  "name": "Cartel de Santa",
+  "lat": 25.673,
+  "lng": -100.458,
+  "place": "Santa Catarina",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "santa fe klan": {
+  "name": "Santa Fe Klan",
+  "lat": 21.018,
+  "lng": -101.257,
+  "place": "Guanajuato",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "c kan": {
+  "name": "C-Kan",
+  "lat": 20.676,
+  "lng": -103.342,
+  "place": "Guadalajara",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "julieta venegas": {
+  "name": "Julieta Venegas",
+  "lat": 33.768,
+  "lng": -118.196,
+  "place": "Long Beach",
+  "country": "United States",
+  "precision": "city"
+ },
+ "thalia": {
+  "name": "Thalia",
+  "lat": 19.354,
+  "lng": -99.136,
+  "place": "Mexico City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "luis miguel": {
+  "name": "Luis Miguel",
+  "lat": 18.465,
+  "lng": -66.117,
+  "place": "San Juan",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "nortec collective": {
+  "name": "Nortec Collective",
+  "lat": 32.536,
+  "lng": -117.037,
+  "place": "Tijuana",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "mexican institute of sound": {
+  "name": "Mexican Institute of Sound",
+  "lat": 19.354,
+  "lng": -99.136,
+  "place": "Mexico City",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "murcof": {
+  "name": "Murcof",
+  "lat": 32.536,
+  "lng": -117.037,
+  "place": "Tijuana",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "molotov": {
+  "name": "Molotov",
+  "lat": 19.354,
+  "lng": -99.136,
+  "place": "Mexico City",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "botellita de jerez": {
+  "name": "Botellita de Jerez",
+  "lat": 19.354,
+  "lng": -99.136,
+  "place": "Mexico City",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "maldita vecindad": {
+  "name": "Maldita Vecindad",
+  "lat": 19.354,
+  "lng": -99.136,
+  "place": "Mexico City",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "antidoping": null,
+ "arturo marquez": {
+  "name": "Arturo Marquez",
+  "lat": 27.024,
+  "lng": -108.935,
+  "place": "Álamos",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "silvestre revueltas": {
+  "name": "Silvestre Revueltas",
+  "lat": 24.935,
+  "lng": -104.912,
+  "place": "Durango",
+  "country": "Mexico",
+  "precision": "city"
+ },
+ "burna boy": {
+  "name": "Burna Boy",
+  "lat": 4.765,
+  "lng": 7.016,
+  "place": "Port Harcourt",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "wizkid": {
+  "name": "Wizkid",
+  "lat": 6.456,
+  "lng": 3.394,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "davido": {
+  "name": "Davido",
+  "lat": 33.754,
+  "lng": -84.39,
+  "place": "Atlanta",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "tems": {
+  "name": "Tems",
+  "lat": 6.456,
+  "lng": 3.394,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "rema": {
+  "name": "Rema",
+  "lat": 6.318,
+  "lng": 5.615,
+  "place": "Benin City",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "asake": {
+  "name": "Asake",
+  "lat": 6.456,
+  "lng": 3.394,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "ayra starr": {
+  "name": "Ayra Starr",
+  "lat": 6.367,
+  "lng": 2.417,
+  "place": "Cotonou",
+  "country": "Benin",
+  "precision": "city"
+ },
+ "fela kuti": {
+  "name": "Fela Kuti",
+  "lat": 7.15,
+  "lng": 3.35,
+  "place": "Abeokuta",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "tony allen": {
+  "name": "Tony Allen",
+  "lat": 6.455,
+  "lng": 3.39,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "william onyeabor": {
+  "name": "William Onyeabor",
+  "lat": 9,
+  "lng": 8,
+  "place": "Nigeria",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "king sunny ade": {
+  "name": "King Sunny Ade",
+  "lat": 7.083,
+  "lng": 4.833,
+  "place": "Ondo",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "femi kuti": {
+  "name": "Femi Kuti",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "seun kuti": {
+  "name": "Seun Kuti",
+  "lat": 6.456,
+  "lng": 3.394,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "asa": {
+  "name": "Asa",
+  "lat": 48.857,
+  "lng": 2.352,
+  "place": "Paris",
+  "country": "France",
+  "precision": "city"
+ },
+ "yemi alade": {
+  "name": "Yemi Alade",
+  "lat": 9,
+  "lng": 8,
+  "place": "Nigeria",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "tiwa savage": {
+  "name": "Tiwa Savage",
+  "lat": 6.583,
+  "lng": 3.333,
+  "place": "Ikeja",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "m i abaga": {
+  "name": "M.I Abaga",
+  "lat": 9.933,
+  "lng": 8.883,
+  "place": "Jos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "olamide": {
+  "name": "Olamide",
+  "lat": 9,
+  "lng": 8,
+  "place": "",
+  "country": "Nigeria",
+  "precision": "country"
+ },
+ "falz": {
+  "name": "Falz",
+  "lat": 6.456,
+  "lng": 3.394,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "mode 9": {
+  "name": "Mode 9",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "brymo": {
+  "name": "Brymo",
+  "lat": 6.475,
+  "lng": 3.191,
+  "place": "Okokomaiko",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "majek fashek": {
+  "name": "Majek Fashek",
+  "lat": 6.318,
+  "lng": 5.615,
+  "place": "Benin City",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "niniola": {
+  "name": "Niniola",
+  "lat": 6.456,
+  "lng": 3.394,
+  "place": "Lagos",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "sarz": {
+  "name": "Sarz",
+  "lat": 6.318,
+  "lng": 5.615,
+  "place": "Benin City",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "obongjayar": {
+  "name": "Obongjayar",
+  "lat": 4.95,
+  "lng": 8.325,
+  "place": "Calabar",
+  "country": "Calabar",
+  "precision": "city"
+ },
+ "steve monite": null,
+ "livy ekemezie": null,
+ "jan garbarek": {
+  "name": "Jan Garbarek",
+  "lat": 59.571,
+  "lng": 11.331,
+  "place": "Momarken",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "mathias eick": {
+  "name": "Mathias Eick",
+  "lat": 60.841,
+  "lng": 11.021,
+  "place": "Furnes",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "arild andersen": {
+  "name": "Arild Andersen",
+  "lat": 59.95,
+  "lng": 11,
+  "place": "Strømmen",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "bugge wesseltoft": {
+  "name": "Bugge Wesseltoft",
+  "lat": 59.142,
+  "lng": 9.657,
+  "place": "Porsgrunn",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "royksopp": {
+  "name": "Royksopp",
+  "lat": 69.65,
+  "lng": 18.957,
+  "place": "Tromsø Municipality",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "lindstrom": null,
+ "todd terje": {
+  "name": "Todd Terje",
+  "lat": 59.75,
+  "lng": 10.017,
+  "place": "Mjøndalen",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "cashmere cat": {
+  "name": "Cashmere Cat",
+  "lat": 59.126,
+  "lng": 11.483,
+  "place": "Halden",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "aurora": {
+  "name": "Aurora",
+  "lat": 58.97,
+  "lng": 5.73,
+  "place": "Stavanger",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "sigrid": {
+  "name": "Sigrid",
+  "lat": 62.471,
+  "lng": 6.154,
+  "place": "Ålesund Municipality",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "biosphere": {
+  "name": "Biosphere",
+  "lat": 69.65,
+  "lng": 18.957,
+  "place": "Tromsø Municipality",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "deathprod": {
+  "name": "Deathprod",
+  "lat": 62.574,
+  "lng": 11.383,
+  "place": "Røros Municipality",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "bjorn torske": {
+  "name": "Bjorn Torske",
+  "lat": 59.933,
+  "lng": 10.683,
+  "place": "",
+  "country": "Norway",
+  "precision": "country"
+ },
+ "a ha": {
+  "name": "a-ha",
+  "lat": 59.913,
+  "lng": 10.739,
+  "place": "Oslo",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "kygo": {
+  "name": "Kygo",
+  "lat": 1.3,
+  "lng": 103.8,
+  "place": "Singapore",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "turbonegro": {
+  "name": "Turbonegro",
+  "lat": 59.809,
+  "lng": 10.656,
+  "place": "Nesodden",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "madrugada": {
+  "name": "Madrugada",
+  "lat": 68.566,
+  "lng": 14.906,
+  "place": "Stokmarknes",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "kvelertak": {
+  "name": "Kvelertak",
+  "lat": 58.97,
+  "lng": 5.731,
+  "place": "Stavanger",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "prins thomas": {
+  "name": "Prins Thomas",
+  "lat": 59.933,
+  "lng": 10.683,
+  "place": "",
+  "country": "Norway",
+  "precision": "country"
+ },
+ "mari boine": {
+  "name": "Mari Boine",
+  "lat": 69.472,
+  "lng": 25.519,
+  "place": "Karasjok Municipality",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "eivor": {
+  "name": "Eivor",
+  "lat": 62.186,
+  "lng": -6.756,
+  "place": "Syðrugøta",
+  "country": "Kingdom of Denmark",
+  "precision": "city"
+ },
+ "karl seglem": {
+  "name": "Karl Seglem",
+  "lat": 61.237,
+  "lng": 7.698,
+  "place": "Årdalstangen",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "karpe": {
+  "name": "Karpe",
+  "lat": 59.913,
+  "lng": 10.739,
+  "place": "Oslo",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "cezinando": {
+  "name": "Cezinando",
+  "lat": 59.913,
+  "lng": 10.739,
+  "place": "Oslo",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "arif": {
+  "name": "Arif",
+  "lat": 59.913,
+  "lng": 10.739,
+  "place": "Oslo",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "grieg": {
+  "name": "Grieg",
+  "lat": 60.393,
+  "lng": 5.323,
+  "place": "Bergen",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "leif ove andsnes": {
+  "name": "Leif Ove Andsnes",
+  "lat": 59.41,
+  "lng": 5.276,
+  "place": "Haugesund Municipality",
+  "country": "Norway",
+  "precision": "city"
+ },
+ "nusrat fateh ali khan": {
+  "name": "Nusrat Fateh Ali Khan",
+  "lat": 31.418,
+  "lng": 73.079,
+  "place": "Faisalabad",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "abida parveen": {
+  "name": "Abida Parveen",
+  "lat": 27.56,
+  "lng": 68.226,
+  "place": "Larkana",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "reshma": {
+  "name": "Reshma",
+  "lat": 28.018,
+  "lng": 73.317,
+  "place": "Bikaner",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "junoon": {
+  "name": "Junoon",
+  "lat": 31.55,
+  "lng": 74.34,
+  "place": "Lahore",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "ali sethi": {
+  "name": "Ali Sethi",
+  "lat": 31.55,
+  "lng": 74.344,
+  "place": "Lahore",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "atif aslam": {
+  "name": "Atif Aslam",
+  "lat": 32.441,
+  "lng": 74.114,
+  "place": "Wazirabad",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "shafqat amanat ali": {
+  "name": "Shafqat Amanat Ali",
+  "lat": 31.55,
+  "lng": 74.344,
+  "place": "Lahore",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "strings": {
+  "name": "Strings",
+  "lat": 24.86,
+  "lng": 67.01,
+  "place": "Karachi",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "mooroo": {
+  "name": "Mooroo",
+  "lat": 31.55,
+  "lng": 74.344,
+  "place": "Lahore",
+  "country": "Lahore",
+  "precision": "city"
+ },
+ "noori": {
+  "name": "Noori",
+  "lat": 31.55,
+  "lng": 74.344,
+  "place": "Lahore",
+  "country": "Lahore",
+  "precision": "city"
+ },
+ "vital signs": {
+  "name": "Vital Signs",
+  "lat": 33.601,
+  "lng": 73.068,
+  "place": "Rawalpindi",
+  "country": "Rawalpindi",
+  "precision": "city"
+ },
+ "faris shafi": {
+  "name": "Faris Shafi",
+  "lat": 31.55,
+  "lng": 74.344,
+  "place": "Lahore",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "talhah yunus": null,
+ "talha anjum": {
+  "name": "Talha Anjum",
+  "lat": 24.86,
+  "lng": 67.01,
+  "place": "",
+  "country": "Karachi",
+  "precision": "country"
+ },
+ "talal qureshi": {
+  "name": "Talal Qureshi",
+  "lat": 24.65,
+  "lng": 46.71,
+  "place": "Riyadh",
+  "country": "Riyadh",
+  "precision": "city"
+ },
+ "zohaib kazi": {
+  "name": "Zohaib Kazi",
+  "lat": 24.86,
+  "lng": 67.01,
+  "place": "Karachi",
+  "country": "Karachi",
+  "precision": "city"
+ },
+ "mughal e funk": null,
+ "nazia hassan": {
+  "name": "Nazia Hassan",
+  "lat": 24.86,
+  "lng": 67.01,
+  "place": "Karachi",
+  "country": "Pakistan",
+  "precision": "city"
+ },
+ "zoheb hassan": {
+  "name": "Zoheb Hassan",
+  "lat": 30,
+  "lng": 71,
+  "place": "",
+  "country": "Pakistan",
+  "precision": "country"
+ },
+ "krzysztof komeda": {
+  "name": "Krzysztof Komeda",
+  "lat": 52.408,
+  "lng": 16.934,
+  "place": "Poznań",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "tomasz stanko": {
+  "name": "Tomasz Stanko",
+  "lat": 50.041,
+  "lng": 21.999,
+  "place": "Rzeszów",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "marcin wasilewski trio": {
+  "name": "Marcin Wasilewski Trio",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "frederic chopin": {
+  "name": "Frederic Chopin",
+  "lat": 52.25,
+  "lng": 20.317,
+  "place": "Żelazowa Wola",
+  "country": "France",
+  "precision": "city"
+ },
+ "krzysztof penderecki": {
+  "name": "Krzysztof Penderecki",
+  "lat": 50.051,
+  "lng": 21.411,
+  "place": "Dębica",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "witold lutoslawski": {
+  "name": "Witold Lutoslawski",
+  "lat": 52.23,
+  "lng": 21.011,
+  "place": "Warsaw",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "warsaw village band": {
+  "name": "Warsaw Village Band",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "voo voo": {
+  "name": "Voo Voo",
+  "lat": 52.23,
+  "lng": 21.011,
+  "place": "Warsaw",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "skalpel": {
+  "name": "Skalpel",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "smolik": null,
+ "novika": {
+  "name": "Novika",
+  "lat": 52.23,
+  "lng": 21.011,
+  "place": "Warsaw",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "brodka": {
+  "name": "Brodka",
+  "lat": 49.683,
+  "lng": 19.217,
+  "place": "Żywiec",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "mela koteluk": {
+  "name": "Mela Koteluk",
+  "lat": 52.083,
+  "lng": 15.617,
+  "place": "Sulechów",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "coma": {
+  "name": "Coma",
+  "lat": 51.75,
+  "lng": 19.467,
+  "place": "Łódź",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "republika": {
+  "name": "Republika",
+  "lat": 53.017,
+  "lng": 18.617,
+  "place": "Toruń",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "lady pank": {
+  "name": "Lady Pank",
+  "lat": 52.23,
+  "lng": 21.011,
+  "place": "Warsaw",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "hey": {
+  "name": "Hey",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "myslovitz": {
+  "name": "Myslovitz",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "taco hemingway": {
+  "name": "Taco Hemingway",
+  "lat": 30.044,
+  "lng": 31.236,
+  "place": "Cairo",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "quebonafide": {
+  "name": "Quebonafide",
+  "lat": 52.883,
+  "lng": 20.617,
+  "place": "Ciechanów",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "mata": {
+  "name": "Mata",
+  "lat": 52.23,
+  "lng": 21.011,
+  "place": "Warsaw",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "edyta gornika": null,
+ "doda": null,
+ "basia": {
+  "name": "Basia",
+  "lat": 50.2,
+  "lng": 19.275,
+  "place": "Jaworzno",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "dezerter": {
+  "name": "Dezerter",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "daab": {
+  "name": "Daab",
+  "lat": 52,
+  "lng": 19,
+  "place": "",
+  "country": "Poland",
+  "precision": "country"
+ },
+ "izrael": {
+  "name": "Izrael",
+  "lat": 51.817,
+  "lng": 19.3,
+  "place": "Aleksandrów Łódzki",
+  "country": "Poland",
+  "precision": "city"
+ },
+ "amalia rodrigues": {
+  "name": "Amalia Rodrigues",
+  "lat": 38.721,
+  "lng": -9.14,
+  "place": "Freguesia da Pena",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "mariza": {
+  "name": "Mariza",
+  "lat": 38.72,
+  "lng": -9.14,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "carminho": {
+  "name": "Carminho",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "camane": {
+  "name": "Camane",
+  "lat": 38.697,
+  "lng": -9.302,
+  "place": "Oeiras",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "madredeus": {
+  "name": "Madredeus",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "capitao fausto": null,
+ "conjunto corona": null,
+ "linda martini": {
+  "name": "Linda Martini",
+  "lat": 38.757,
+  "lng": -9.255,
+  "place": "Queluz",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "salvador sobral": {
+  "name": "Salvador Sobral",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "carolina deslandes": {
+  "name": "Carolina Deslandes",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "rui veloso": {
+  "name": "Rui Veloso",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "gnr": {
+  "name": "GNR",
+  "lat": 41.15,
+  "lng": -8.61,
+  "place": "Porto",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "os quatro e meia": {
+  "name": "Os Quatro e Meia",
+  "lat": 40.211,
+  "lng": -8.429,
+  "place": "Coimbra",
+  "country": "Coimbra",
+  "precision": "city"
+ },
+ "xutos pontapes": {
+  "name": "Xutos & Pontapés",
+  "lat": 38.524,
+  "lng": -8.893,
+  "place": "Setúbal",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "sam the kid": {
+  "name": "Sam the Kid",
+  "lat": 38.749,
+  "lng": -9.117,
+  "place": "Chelas",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "mundo segundo": {
+  "name": "Mundo Segundo",
+  "lat": 41.15,
+  "lng": -8.611,
+  "place": "Porto",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "boss ac": {
+  "name": "Boss AC",
+  "lat": 15.3,
+  "lng": -23.7,
+  "place": "Cape Verde",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "profjam": {
+  "name": "ProfJam",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "buraka som sistema": {
+  "name": "Buraka Som Sistema",
+  "lat": 38.75,
+  "lng": -9.233,
+  "place": "Amadora",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "branko": {
+  "name": "Branko",
+  "lat": 38.72,
+  "lng": -9.14,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "maria joao": {
+  "name": "Maria Joao",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "mario laginha": {
+  "name": "Mario Laginha",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "maria joao pires": {
+  "name": "Maria João Pires",
+  "lat": 38.708,
+  "lng": -9.139,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "richie campbell": {
+  "name": "Richie Campbell",
+  "lat": 38.72,
+  "lng": -9.14,
+  "place": "Lisbon",
+  "country": "Portugal",
+  "precision": "city"
+ },
+ "hugh masekela": {
+  "name": "Hugh Masekela",
+  "lat": -25.877,
+  "lng": 29.201,
+  "place": "Witbank",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "abdullah ibrahim": {
+  "name": "Abdullah Ibrahim",
+  "lat": -33.925,
+  "lng": 18.424,
+  "place": "Cape Town",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "miriam makeba": {
+  "name": "Miriam Makeba",
+  "lat": -26.204,
+  "lng": 28.042,
+  "place": "Johannesburg",
+  "country": "Guinea",
+  "precision": "city"
+ },
+ "dorothy masuka": {
+  "name": "Dorothy Masuka",
+  "lat": -20.167,
+  "lng": 28.567,
+  "place": "Bulawayo",
+  "country": "Zimbabwe",
+  "precision": "city"
+ },
+ "black coffee": {
+  "name": "Black Coffee",
+  "lat": -29.858,
+  "lng": 31.025,
+  "place": "Durban",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "culoe de song": null,
+ "da capo": {
+  "name": "Da Capo",
+  "lat": -29.0,
+  "lng": 24.0,
+  "place": "",
+  "country": "South Africa",
+  "precision": "country"
+ },
+ "caiiro": null,
+ "ladysmith black mambazo": {
+  "name": "Ladysmith Black Mambazo",
+  "lat": -28.554,
+  "lng": 29.783,
+  "place": "Ladysmith",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "mahotella queens": {
+  "name": "Mahotella Queens",
+  "lat": -29,
+  "lng": 24,
+  "place": "",
+  "country": "South Africa",
+  "precision": "country"
+ },
+ "tyla": {
+  "name": "Tyla",
+  "lat": -26.141,
+  "lng": 28.153,
+  "place": "Edenvale",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "master kg": {
+  "name": "Master KG",
+  "lat": -29,
+  "lng": 24,
+  "place": "South Africa",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "sho madjozi": {
+  "name": "Sho Madjozi",
+  "lat": -24,
+  "lng": 29.5,
+  "place": "Limpopo",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "nasty c": {
+  "name": "Nasty C",
+  "lat": -29.858,
+  "lng": 31.025,
+  "place": "Durban",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "aka": null,
+ "cassper nyovest": {
+  "name": "Cassper Nyovest",
+  "lat": -25.865,
+  "lng": 25.644,
+  "place": "Mahikeng",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "riky rick": {
+  "name": "Riky Rick",
+  "lat": -29.75,
+  "lng": 30.983,
+  "place": "KwaMashu",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "sjava": {
+  "name": "Sjava",
+  "lat": -28.733,
+  "lng": 29.367,
+  "place": "Bergville",
+  "country": "Bergville",
+  "precision": "city"
+ },
+ "lloyiso": {
+  "name": "Lloyiso",
+  "lat": -33.75,
+  "lng": 25.4,
+  "place": "Uitenhage",
+  "country": "Uitenhage",
+  "precision": "city"
+ },
+ "vusi mahlasela": {
+  "name": "Vusi Mahlasela",
+  "lat": -25.746,
+  "lng": 28.188,
+  "place": "Pretoria",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "johnny clegg": {
+  "name": "Johnny Clegg",
+  "lat": 53.704,
+  "lng": -2.199,
+  "place": "Bacup",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "petite noir": {
+  "name": "Petite Noir",
+  "lat": 50.847,
+  "lng": 4.353,
+  "place": "Brussels-Capital Region",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "bcuc": {
+  "name": "BCUC",
+  "lat": -26.268,
+  "lng": 27.859,
+  "place": "Soweto",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "beatenberg": {
+  "name": "Beatenberg",
+  "lat": -33.925,
+  "lng": 18.424,
+  "place": "Cape Town",
+  "country": "Cape Town",
+  "precision": "city"
+ },
+ "mafikizolo": {
+  "name": "Mafikizolo",
+  "lat": -29,
+  "lng": 24,
+  "place": "",
+  "country": "South Africa",
+  "precision": "country"
+ },
+ "lira": null,
+ "abel selaocoe": {
+  "name": "Abel Selaocoe",
+  "lat": -26.577,
+  "lng": 27.841,
+  "place": "Sebokeng",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "brenda fassie": {
+  "name": "Brenda Fassie",
+  "lat": -33.947,
+  "lng": 18.531,
+  "place": "Langa",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "yvonne chaka chaka": {
+  "name": "Yvonne Chaka Chaka",
+  "lat": -26.224,
+  "lng": 27.864,
+  "place": "Dobsonville",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "lucky dube": {
+  "name": "Lucky Dube",
+  "lat": -26.533,
+  "lng": 29.983,
+  "place": "Ermelo",
+  "country": "South Africa",
+  "precision": "city"
+ },
+ "iu": {
+  "name": "IU",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "bts": {
+  "name": "BTS",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "blackpink": {
+  "name": "Blackpink",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "twice": {
+  "name": "Twice",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "newjeans": {
+  "name": "NewJeans",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "aespa": {
+  "name": "aespa",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "hyukoh": {
+  "name": "Hyukoh",
+  "lat": 36,
+  "lng": 128,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "se so neon": {
+  "name": "Se So Neon",
+  "lat": 36,
+  "lng": 128,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "adoy": {
+  "name": "Adoy",
+  "lat": 36,
+  "lng": 128,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "silica gel": {
+  "name": "Silica Gel",
+  "lat": 36,
+  "lng": 128,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "epik high": {
+  "name": "Epik High",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "tablo": {
+  "name": "Tablo",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "Canada",
+  "precision": "city"
+ },
+ "beenzino": {
+  "name": "Beenzino",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "zico": {
+  "name": "Zico",
+  "lat": 37.57,
+  "lng": 126.98,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "loco": {
+  "name": "Loco",
+  "lat": 37.57,
+  "lng": 126.98,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "jambinai": {
+  "name": "Jambinai",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "galaxy express": {
+  "name": "Galaxy Express",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "idiotape": {
+  "name": "Idiotape",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "hitchhiker": {
+  "name": "Hitchhiker",
+  "lat": 37.57,
+  "lng": 126.98,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "peggy gou": {
+  "name": "Peggy Gou",
+  "lat": 37.464,
+  "lng": 126.649,
+  "place": "Incheon",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "kim min ki": {
+  "name": "Kim Min Ki",
+  "lat": 37.28,
+  "lng": 127.115,
+  "place": "Giheung-gu",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "yoon do hyun": {
+  "name": "Yoon Do Hyun",
+  "lat": 37.833,
+  "lng": 126.817,
+  "place": "Paju",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "lucid fall": {
+  "name": "Lucid Fall",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "crush": {
+  "name": "Crush",
+  "lat": 37.57,
+  "lng": 126.98,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "dean": null,
+ "heize": {
+  "name": "Heize",
+  "lat": 35.872,
+  "lng": 128.602,
+  "place": "Daegu",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "crying nut": {
+  "name": "Crying Nut",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "no brain": {
+  "name": "No Brain",
+  "lat": 36,
+  "lng": 128,
+  "place": "",
+  "country": "South Korea",
+  "precision": "country"
+ },
+ "yiruma": {
+  "name": "Yiruma",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "joyce yang": {
+  "name": "Joyce Yang",
+  "lat": 37.56,
+  "lng": 126.99,
+  "place": "Seoul",
+  "country": "South Korea",
+  "precision": "city"
+ },
+ "camaron de la isla": {
+  "name": "Camaron de la Isla",
+  "lat": 36.467,
+  "lng": -6.201,
+  "place": "San Fernando",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "paco de lucia": {
+  "name": "Paco de Lucia",
+  "lat": 36.128,
+  "lng": -5.454,
+  "place": "Algeciras",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "estrella morente": {
+  "name": "Estrella Morente",
+  "lat": 37.175,
+  "lng": -3.6,
+  "place": "Granada",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "rosalia": {
+  "name": "Rosalia",
+  "lat": 41.474,
+  "lng": 2.085,
+  "place": "Sant Cugat del Vallès",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "aitana": {
+  "name": "Aitana",
+  "lat": 41.39,
+  "lng": 2.17,
+  "place": "Barcelona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "bad gyal": {
+  "name": "Bad Gyal",
+  "lat": 41.505,
+  "lng": 2.393,
+  "place": "Vilassar de Mar",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "triangulo de amor bizarro": {
+  "name": "Triangulo de Amor Bizarro",
+  "lat": 43.374,
+  "lng": -8.4,
+  "place": "A Coruña",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "hinds": {
+  "name": "Hinds",
+  "lat": 40.417,
+  "lng": -3.703,
+  "place": "Madrid",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "vetusta morla": {
+  "name": "Vetusta Morla",
+  "lat": 40.607,
+  "lng": -3.707,
+  "place": "Tres Cantos",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "sidonie": {
+  "name": "Sidonie",
+  "lat": 41.39,
+  "lng": 2.17,
+  "place": "Barcelona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "c tangana": {
+  "name": "C. Tangana",
+  "lat": 40.299,
+  "lng": -3.441,
+  "place": "Arganda del Rey",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "tote king": {
+  "name": "Tote King",
+  "lat": 37.389,
+  "lng": -5.996,
+  "place": "Seville",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "kase o": {
+  "name": "Kase O",
+  "lat": 41.65,
+  "lng": -0.883,
+  "place": "Zaragoza",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "heroes del silencio": {
+  "name": "Heroes del Silencio",
+  "lat": 41.65,
+  "lng": -0.883,
+  "place": "Zaragoza",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "los planetas": {
+  "name": "Los Planetas",
+  "lat": 37.175,
+  "lng": -3.6,
+  "place": "Granada",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "extremoduro": {
+  "name": "Extremoduro",
+  "lat": 40.028,
+  "lng": -6.091,
+  "place": "Plasencia",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "marea": {
+  "name": "Marea",
+  "lat": 42.836,
+  "lng": -1.671,
+  "place": "Berriozar",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "dorian": {
+  "name": "Dorian",
+  "lat": 41.39,
+  "lng": 2.17,
+  "place": "Barcelona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "najwajean": {
+  "name": "Najwajean",
+  "lat": 42.817,
+  "lng": -1.65,
+  "place": "Pamplona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "john talabot": {
+  "name": "John Talabot",
+  "lat": 41.383,
+  "lng": 2.177,
+  "place": "Barcelona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "ska p": {
+  "name": "Ska-P",
+  "lat": 40.417,
+  "lng": -3.703,
+  "place": "Madrid",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "macaco": {
+  "name": "Macaco",
+  "lat": 41.383,
+  "lng": 2.177,
+  "place": "Barcelona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "eskorbuto": {
+  "name": "Eskorbuto",
+  "lat": 43.33,
+  "lng": -3.031,
+  "place": "Santurtzi",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "la polla records": {
+  "name": "La Polla Records",
+  "lat": 42.849,
+  "lng": -2.389,
+  "place": "Agurain/Salvatierra",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "kortatu": {
+  "name": "Kortatu",
+  "lat": 43.338,
+  "lng": -1.789,
+  "place": "Irun",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "buika": {
+  "name": "Buika",
+  "lat": 39.567,
+  "lng": 2.65,
+  "place": "Palma",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "andres segovia": {
+  "name": "Andrés Segovia",
+  "lat": 38.1,
+  "lng": -3.633,
+  "place": "Linares",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "alicia de larrocha": {
+  "name": "Alicia de Larrocha",
+  "lat": 41.383,
+  "lng": 2.177,
+  "place": "Barcelona",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "pablo casals": {
+  "name": "Pablo Casals",
+  "lat": 41.22,
+  "lng": 1.535,
+  "place": "El Vendrell",
+  "country": "Spain",
+  "precision": "city"
+ },
+ "abba": {
+  "name": "ABBA",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "robyn": {
+  "name": "Robyn",
+  "lat": 59.319,
+  "lng": 18.067,
+  "place": "Maria Magdalena parish",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "lykke li": {
+  "name": "Lykke Li",
+  "lat": 59.312,
+  "lng": 18.076,
+  "place": "Sofia church parish",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "tove lo": {
+  "name": "Tove Lo",
+  "lat": 56.146,
+  "lng": 12.572,
+  "place": "Viken church parish",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "zara larsson": {
+  "name": "Zara Larsson",
+  "lat": 59.367,
+  "lng": 18.017,
+  "place": "Solna Municipality",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "the tallest man on earth": {
+  "name": "The Tallest Man on Earth",
+  "lat": 61.226,
+  "lng": 14.042,
+  "place": "Älvdalen church parish",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "first aid kit": {
+  "name": "First Aid Kit",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "jose gonzalez": {
+  "name": "Jose Gonzalez",
+  "lat": 57.708,
+  "lng": 11.968,
+  "place": "Gothenburg",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "peter bjorn and john": {
+  "name": "Peter Bjorn and John",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "the knife": {
+  "name": "The Knife",
+  "lat": 61,
+  "lng": 15,
+  "place": "Sweden",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "avicii": {
+  "name": "Avicii",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "eric prydz": {
+  "name": "Eric Prydz",
+  "lat": 59.433,
+  "lng": 18.083,
+  "place": "Täby",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "fever ray": {
+  "name": "Fever Ray",
+  "lat": 57.708,
+  "lng": 11.968,
+  "place": "Gothenburg",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "esbjorn svensson trio": {
+  "name": "Esbjorn Svensson Trio",
+  "lat": 59.617,
+  "lng": 16.542,
+  "place": "Västerås",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "bobo stenson": {
+  "name": "Bobo Stenson",
+  "lat": 59.617,
+  "lng": 16.542,
+  "place": "Västerås",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "jan johansson": {
+  "name": "Jan Johansson",
+  "lat": 61.308,
+  "lng": 17.053,
+  "place": "Söderhamn",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "yung lean": {
+  "name": "Yung Lean",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "bladee": {
+  "name": "Bladee",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "silvana imam": {
+  "name": "Silvana Imam",
+  "lat": 55.713,
+  "lng": 21.135,
+  "place": "Klaipėda",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "refused": {
+  "name": "Refused",
+  "lat": 63.828,
+  "lng": 20.271,
+  "place": "Umeå",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "the hives": {
+  "name": "The Hives",
+  "lat": 59.992,
+  "lng": 15.823,
+  "place": "Fagersta",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "mando diao": {
+  "name": "Mando Diao",
+  "lat": 60.488,
+  "lng": 15.427,
+  "place": "Borlänge",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "the hellacopters": {
+  "name": "The Hellacopters",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "sofia karlsson": {
+  "name": "Sofia Karlsson",
+  "lat": 59.244,
+  "lng": 18.092,
+  "place": "Farsta church parish",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "sofia jannok": {
+  "name": "Sofia Jannok",
+  "lat": 65.596,
+  "lng": 19.167,
+  "place": "Arvidsjaurs parish",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "seinabo sey": {
+  "name": "Seinabo Sey",
+  "lat": 56.674,
+  "lng": 12.857,
+  "place": "Halmstad",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "snoh aalegra": {
+  "name": "Snoh Aalegra",
+  "lat": 59.85,
+  "lng": 17.639,
+  "place": "Uppsala",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "lisa ekdahl": {
+  "name": "Lisa Ekdahl",
+  "lat": 59.304,
+  "lng": 18.002,
+  "place": "Hägerstens församling",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "ebba gron": {
+  "name": "Ebba Grön",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "alcazar": {
+  "name": "Alcazar",
+  "lat": 59.33,
+  "lng": 18.07,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "anne sofie von otter": {
+  "name": "Anne Sofie von Otter",
+  "lat": 59.329,
+  "lng": 18.069,
+  "place": "Stockholm",
+  "country": "Sweden",
+  "precision": "city"
+ },
+ "selda bagcan": {
+  "name": "Selda Bagcan",
+  "lat": 37.217,
+  "lng": 28.367,
+  "place": "Muğla",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "baris manco": {
+  "name": "Baris Manco",
+  "lat": 41.01,
+  "lng": 28.96,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "asik veysel": {
+  "name": "Asik Veysel",
+  "lat": 39.35,
+  "lng": 36.4,
+  "place": "Şarkışla",
+  "country": "Ottoman Empire",
+  "precision": "city"
+ },
+ "nesrin sipahi": {
+  "name": "Nesrin Sipahi",
+  "lat": 40.959,
+  "lng": 28.822,
+  "place": "Yeşilköy",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "erkin koray": {
+  "name": "Erkin Koray",
+  "lat": 41.01,
+  "lng": 28.96,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "cem karaca": {
+  "name": "Cem Karaca",
+  "lat": 40.983,
+  "lng": 28.854,
+  "place": "Bakırköy",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "mfo": {
+  "name": "MFO",
+  "lat": 39,
+  "lng": 36,
+  "place": "",
+  "country": "Turkey",
+  "precision": "country"
+ },
+ "manga": null,
+ "mustafa sandal": {
+  "name": "Mustafa Sandal",
+  "lat": 41.01,
+  "lng": 28.96,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "sezen aksu": {
+  "name": "Sezen Aksu",
+  "lat": 37.926,
+  "lng": 28.927,
+  "place": "Sarayköy",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "tarkan": {
+  "name": "Tarkan",
+  "lat": 49.752,
+  "lng": 8.116,
+  "place": "Alzey",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "aleyna tilki": {
+  "name": "Aleyna Tilki",
+  "lat": 37.873,
+  "lng": 32.492,
+  "place": "Konya",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "hadise": {
+  "name": "Hadise",
+  "lat": 51.184,
+  "lng": 5.116,
+  "place": "Mol",
+  "country": "Belgium",
+  "precision": "city"
+ },
+ "ezhel": {
+  "name": "Ezhel",
+  "lat": 39.908,
+  "lng": 32.846,
+  "place": "Çankaya",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "ceza": {
+  "name": "Ceza",
+  "lat": 41.01,
+  "lng": 28.98,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "sagopa kajmer": {
+  "name": "Sagopa Kajmer",
+  "lat": 41.287,
+  "lng": 36.33,
+  "place": "Samsun",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "khontkar": {
+  "name": "Khontkar",
+  "lat": 38.413,
+  "lng": 27.138,
+  "place": "İzmir",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "mercan dede": {
+  "name": "Mercan Dede",
+  "lat": 40.191,
+  "lng": 29.081,
+  "place": "Bursa",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "mahmut orhan": {
+  "name": "Mahmut Orhan",
+  "lat": 39.645,
+  "lng": 27.883,
+  "place": "Altıeylül district",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "adamlar": {
+  "name": "Adamlar",
+  "lat": 41.01,
+  "lng": 28.96,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "kalben": {
+  "name": "Kalben",
+  "lat": 36.587,
+  "lng": 36.173,
+  "place": "İskenderun",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "madrigal": null,
+ "faz l say": {
+  "name": "Fazıl Say",
+  "lat": 39.936,
+  "lng": 32.839,
+  "place": "Ankara",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "idil biret": {
+  "name": "Idil Biret",
+  "lat": 39.936,
+  "lng": 32.839,
+  "place": "Ankara",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "ahmet adnan saygun": {
+  "name": "Ahmet Adnan Saygun",
+  "lat": 38.413,
+  "lng": 27.138,
+  "place": "İzmir",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "ajda pekkan": {
+  "name": "Ajda Pekkan",
+  "lat": 41.01,
+  "lng": 28.96,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "senay": {
+  "name": "Senay",
+  "lat": 39,
+  "lng": 36,
+  "place": "",
+  "country": "Turkey",
+  "precision": "country"
+ },
+ "nil burak": {
+  "name": "Nil Burak",
+  "lat": 35.109,
+  "lng": 32.845,
+  "place": "Lefka",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "sattas": {
+  "name": "Sattas",
+  "lat": 41.01,
+  "lng": 28.96,
+  "place": "Istanbul",
+  "country": "Turkey",
+  "precision": "city"
+ },
+ "radiohead": {
+  "name": "Radiohead",
+  "lat": 51.672,
+  "lng": -1.278,
+  "place": "Abingdon-on-Thames",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the beatles": {
+  "name": "The Beatles",
+  "lat": 53.407,
+  "lng": -2.992,
+  "place": "Liverpool",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the cure": {
+  "name": "The Cure",
+  "lat": 51.116,
+  "lng": -0.194,
+  "place": "Crawley",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "arctic monkeys": {
+  "name": "Arctic Monkeys",
+  "lat": 53.381,
+  "lng": -1.47,
+  "place": "Sheffield",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "led zeppelin": {
+  "name": "Led Zeppelin",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "England",
+  "precision": "city"
+ },
+ "pink floyd": {
+  "name": "Pink Floyd",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the smiths": {
+  "name": "The Smiths",
+  "lat": 53.467,
+  "lng": -2.233,
+  "place": "Manchester",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "black country new road": null,
+ "wet leg": {
+  "name": "Wet Leg",
+  "lat": 50.7,
+  "lng": -1.3,
+  "place": "",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "yard act": {
+  "name": "Yard Act",
+  "lat": 53.798,
+  "lng": -1.544,
+  "place": "Leeds",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "squid": null,
+ "black midi": {
+  "name": "Black Midi",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "nubya garcia": {
+  "name": "Nubya Garcia",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "London",
+  "precision": "city"
+ },
+ "ezra collective": null,
+ "sons of kemet": {
+  "name": "Sons of Kemet",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "shabaka hutchings": {
+  "name": "Shabaka Hutchings",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "aphex twin": {
+  "name": "Aphex Twin",
+  "lat": 52.665,
+  "lng": -8.624,
+  "place": "Limerick",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "bonobo": {
+  "name": "Bonobo",
+  "lat": 50.821,
+  "lng": -0.137,
+  "place": "Brighton",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "jamie xx": {
+  "name": "Jamie xx",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "four tet": {
+  "name": "Four Tet",
+  "lat": 51.465,
+  "lng": -0.221,
+  "place": "Putney",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "burial": {
+  "name": "Burial",
+  "lat": 51.373,
+  "lng": -0.11,
+  "place": "Croydon",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "amy winehouse": {
+  "name": "Amy Winehouse",
+  "lat": 51.632,
+  "lng": -0.126,
+  "place": "Southgate",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "sade": {
+  "name": "Sade",
+  "lat": 7.378,
+  "lng": 3.906,
+  "place": "Ibadan",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "cleo sol": {
+  "name": "Cleo Sol",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "joss stone": {
+  "name": "Joss Stone",
+  "lat": 51.128,
+  "lng": 1.312,
+  "place": "Dover",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "fka twigs": {
+  "name": "FKA twigs",
+  "lat": 51.897,
+  "lng": -2.078,
+  "place": "Cheltenham",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "charli xcx": {
+  "name": "Charli XCX",
+  "lat": 52.208,
+  "lng": 0.123,
+  "place": "Cambridge",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "adele": {
+  "name": "Adele",
+  "lat": 51.598,
+  "lng": -0.068,
+  "place": "Tottenham",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "dua lipa": {
+  "name": "Dua Lipa",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "little simz": {
+  "name": "Little Simz",
+  "lat": 51.544,
+  "lng": -0.103,
+  "place": "Islington",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "skepta": {
+  "name": "Skepta",
+  "lat": 51.598,
+  "lng": -0.068,
+  "place": "Tottenham",
+  "country": "Nigeria",
+  "precision": "city"
+ },
+ "slowthai": {
+  "name": "Slowthai",
+  "lat": 52.233,
+  "lng": -0.9,
+  "place": "Northampton",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "dave": {
+  "name": "Dave",
+  "lat": 51.51,
+  "lng": -0.13,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "stormzy": {
+  "name": "Stormzy",
+  "lat": 51.373,
+  "lng": -0.11,
+  "place": "Croydon",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the clash": {
+  "name": "The Clash",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "idles": {
+  "name": "Idles",
+  "lat": 51.454,
+  "lng": -2.597,
+  "place": "Bristol",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "fontaines dc": {
+  "name": "Fontaines DC",
+  "lat": 53.35,
+  "lng": -6.26,
+  "place": "Dublin",
+  "country": "Ireland",
+  "precision": "city"
+ },
+ "sex pistols": {
+  "name": "Sex Pistols",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the damned": {
+  "name": "The Damned",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "disclosure": {
+  "name": "Disclosure",
+  "lat": 51.238,
+  "lng": -0.206,
+  "place": "Reigate",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "joy orbison": {
+  "name": "Joy Orbison",
+  "lat": 54.6,
+  "lng": -2,
+  "place": "",
+  "country": "United Kingdom",
+  "precision": "country"
+ },
+ "floating points": {
+  "name": "Floating Points",
+  "lat": 53.467,
+  "lng": -2.233,
+  "place": "Manchester",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "surgeon": {
+  "name": "Surgeon",
+  "lat": 54.6,
+  "lng": -2,
+  "place": "",
+  "country": "United Kingdom",
+  "precision": "country"
+ },
+ "karenn": {
+  "name": "Karenn",
+  "lat": 51.51,
+  "lng": -0.13,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "steel pulse": {
+  "name": "Steel Pulse",
+  "lat": 52.48,
+  "lng": -1.902,
+  "place": "Birmingham",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "aswad": {
+  "name": "Aswad",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "ub40": {
+  "name": "UB40",
+  "lat": 52.48,
+  "lng": -1.902,
+  "place": "Birmingham",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "nick drake": {
+  "name": "Nick Drake",
+  "lat": 16.795,
+  "lng": 96.16,
+  "place": "Yangon",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "laura marling": {
+  "name": "Laura Marling",
+  "lat": 53,
+  "lng": -1,
+  "place": "England",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "fairport convention": {
+  "name": "Fairport Convention",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "brian eno": {
+  "name": "Brian Eno",
+  "lat": 52.106,
+  "lng": 1.332,
+  "place": "Melton",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the caretaker": {
+  "name": "The Caretaker",
+  "lat": 53.398,
+  "lng": -2.172,
+  "place": "Edgeley",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "jamiroquai": {
+  "name": "Jamiroquai",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "cymande": {
+  "name": "Cymande",
+  "lat": 54.6,
+  "lng": -2,
+  "place": "",
+  "country": "United Kingdom",
+  "precision": "country"
+ },
+ "average white band": {
+  "name": "Average White Band",
+  "lat": 56.461,
+  "lng": -2.97,
+  "place": "Dundee",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "john coltrane": {
+  "name": "John Coltrane",
+  "lat": 34.888,
+  "lng": -79.706,
+  "place": "Hamlet",
+  "country": "United States",
+  "precision": "city"
+ },
+ "miles davis": {
+  "name": "Miles Davis",
+  "lat": 38.9,
+  "lng": -90.16,
+  "place": "Alton",
+  "country": "United States",
+  "precision": "city"
+ },
+ "bill evans": {
+  "name": "Bill Evans",
+  "lat": 40.615,
+  "lng": -74.416,
+  "place": "Plainfield",
+  "country": "United States",
+  "precision": "city"
+ },
+ "alice coltrane": {
+  "name": "Alice Coltrane",
+  "lat": 42.332,
+  "lng": -83.047,
+  "place": "Detroit",
+  "country": "United States",
+  "precision": "city"
+ },
+ "charles mingus": {
+  "name": "Charles Mingus",
+  "lat": 31.354,
+  "lng": -110.939,
+  "place": "Nogales",
+  "country": "United States",
+  "precision": "city"
+ },
+ "aretha franklin": {
+  "name": "Aretha Franklin",
+  "lat": 35.146,
+  "lng": -90.052,
+  "place": "Memphis",
+  "country": "United States",
+  "precision": "city"
+ },
+ "bill withers": {
+  "name": "Bill Withers",
+  "lat": 37.687,
+  "lng": -81.331,
+  "place": "Slab Fork",
+  "country": "United States",
+  "precision": "city"
+ },
+ "dangelo": {
+  "name": "DAngelo",
+  "lat": 37.54,
+  "lng": -77.44,
+  "place": "Richmond",
+  "country": "United States",
+  "precision": "city"
+ },
+ "stevie wonder": {
+  "name": "Stevie Wonder",
+  "lat": 43.42,
+  "lng": -83.95,
+  "place": "Saginaw",
+  "country": "United States",
+  "precision": "city"
+ },
+ "marvin gaye": {
+  "name": "Marvin Gaye",
+  "lat": 38.895,
+  "lng": -77.037,
+  "place": "Washington, D.C.",
+  "country": "United States",
+  "precision": "city"
+ },
+ "a tribe called quest": {
+  "name": "A Tribe Called Quest",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "kendrick lamar": {
+  "name": "Kendrick Lamar",
+  "lat": 33.897,
+  "lng": -118.225,
+  "place": "Compton",
+  "country": "United States",
+  "precision": "city"
+ },
+ "mf doom": {
+  "name": "MF DOOM",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "outkast": {
+  "name": "Outkast",
+  "lat": 33.754,
+  "lng": -84.39,
+  "place": "Atlanta",
+  "country": "United States",
+  "precision": "city"
+ },
+ "tyler the creator": null,
+ "sly and the family stone": {
+  "name": "Sly and the Family Stone",
+  "lat": 39.828,
+  "lng": -98.579,
+  "place": "",
+  "country": "United States",
+  "precision": "country"
+ },
+ "parliament": null,
+ "james brown": {
+  "name": "James Brown",
+  "lat": 33.244,
+  "lng": -81.363,
+  "place": "Barnwell",
+  "country": "United States",
+  "precision": "city"
+ },
+ "funkadelic": {
+  "name": "Funkadelic",
+  "lat": 40.615,
+  "lng": -74.416,
+  "place": "Plainfield",
+  "country": "United States",
+  "precision": "city"
+ },
+ "fleetwood mac": {
+  "name": "Fleetwood Mac",
+  "lat": 51.507,
+  "lng": -0.127,
+  "place": "London",
+  "country": "United Kingdom",
+  "precision": "city"
+ },
+ "the velvet underground": {
+  "name": "The Velvet Underground",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "big thief": {
+  "name": "Big Thief",
+  "lat": 40.651,
+  "lng": -73.95,
+  "place": "Brooklyn",
+  "country": "United States",
+  "precision": "city"
+ },
+ "nirvana": {
+  "name": "Nirvana",
+  "lat": 46.975,
+  "lng": -123.816,
+  "place": "Aberdeen",
+  "country": "United States",
+  "precision": "city"
+ },
+ "the strokes": {
+  "name": "The Strokes",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "phoebe bridgers": {
+  "name": "Phoebe Bridgers",
+  "lat": 34.148,
+  "lng": -118.144,
+  "place": "Pasadena",
+  "country": "United States",
+  "precision": "city"
+ },
+ "vampire weekend": {
+  "name": "Vampire Weekend",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "arcade fire": {
+  "name": "Arcade Fire",
+  "lat": 45.503,
+  "lng": -73.587,
+  "place": "Montreal",
+  "country": "Canada",
+  "precision": "city"
+ },
+ "mitski": {
+  "name": "Mitski",
+  "lat": 34.73,
+  "lng": 136.509,
+  "place": "Mie Prefecture",
+  "country": "United States",
+  "precision": "city"
+ },
+ "bob dylan": {
+  "name": "Bob Dylan",
+  "lat": 46.784,
+  "lng": -92.105,
+  "place": "Duluth",
+  "country": "United States",
+  "precision": "city"
+ },
+ "joni mitchell": {
+  "name": "Joni Mitchell",
+  "lat": 49.727,
+  "lng": -113.407,
+  "place": "Fort Macleod",
+  "country": "Canada",
+  "precision": "city"
+ },
+ "joan baez": {
+  "name": "Joan Baez",
+  "lat": 40.572,
+  "lng": -74.147,
+  "place": "Staten Island",
+  "country": "United States",
+  "precision": "city"
+ },
+ "flying lotus": {
+  "name": "Flying Lotus",
+  "lat": 34.052,
+  "lng": -118.244,
+  "place": "Los Angeles",
+  "country": "United States",
+  "precision": "city"
+ },
+ "caribou": {
+  "name": "Caribou",
+  "lat": 43.264,
+  "lng": -79.953,
+  "place": "Dundas",
+  "country": "Canada",
+  "precision": "city"
+ },
+ "oneohtrix point never": {
+  "name": "Oneohtrix Point Never",
+  "lat": 42.36,
+  "lng": -71.058,
+  "place": "Boston",
+  "country": "United States",
+  "precision": "city"
+ },
+ "stars of the lid": {
+  "name": "Stars of the Lid",
+  "lat": 30.3,
+  "lng": -97.733,
+  "place": "Austin",
+  "country": "United States",
+  "precision": "city"
+ },
+ "grouper": {
+  "name": "Grouper",
+  "lat": 38,
+  "lng": -122.75,
+  "place": "West Marin",
+  "country": "United States",
+  "precision": "city"
+ },
+ "william basinski": {
+  "name": "William Basinski",
+  "lat": 29.763,
+  "lng": -95.383,
+  "place": "Houston",
+  "country": "United States",
+  "precision": "city"
+ },
+ "frank ocean": {
+  "name": "Frank Ocean",
+  "lat": 33.768,
+  "lng": -118.196,
+  "place": "Long Beach",
+  "country": "United States",
+  "precision": "city"
+ },
+ "solange": {
+  "name": "Solange",
+  "lat": 29.763,
+  "lng": -95.383,
+  "place": "Houston",
+  "country": "United States",
+  "precision": "city"
+ },
+ "steve lacy": {
+  "name": "Steve Lacy",
+  "lat": 33.897,
+  "lng": -118.225,
+  "place": "Compton",
+  "country": "United States",
+  "precision": "city"
+ },
+ "billie eilish": {
+  "name": "Billie Eilish",
+  "lat": 34.052,
+  "lng": -118.244,
+  "place": "Los Angeles",
+  "country": "United States",
+  "precision": "city"
+ },
+ "taylor swift": {
+  "name": "Taylor Swift",
+  "lat": 40.334,
+  "lng": -75.947,
+  "place": "West Reading",
+  "country": "United States",
+  "precision": "city"
+ },
+ "black flag": {
+  "name": "Black Flag",
+  "lat": 33.866,
+  "lng": -118.4,
+  "place": "Hermosa Beach",
+  "country": "United States",
+  "precision": "city"
+ },
+ "dead kennedys": {
+  "name": "Dead Kennedys",
+  "lat": 37.775,
+  "lng": -122.419,
+  "place": "San Francisco",
+  "country": "United States",
+  "precision": "city"
+ },
+ "bad brains": {
+  "name": "Bad Brains",
+  "lat": 38.895,
+  "lng": -77.037,
+  "place": "Washington, D.C.",
+  "country": "United States",
+  "precision": "city"
+ },
+ "green day": {
+  "name": "Green Day",
+  "lat": 38.033,
+  "lng": -122.267,
+  "place": "Rodeo",
+  "country": "United States",
+  "precision": "city"
+ },
+ "bikini kill": {
+  "name": "Bikini Kill",
+  "lat": 47.043,
+  "lng": -122.893,
+  "place": "Olympia",
+  "country": "United States",
+  "precision": "city"
+ },
+ "donna summer": {
+  "name": "Donna Summer",
+  "lat": 42.36,
+  "lng": -71.058,
+  "place": "Boston",
+  "country": "United States",
+  "precision": "city"
+ },
+ "chic": {
+  "name": "Chic",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "earth wind and fire": {
+  "name": "Earth Wind and Fire",
+  "lat": 41.882,
+  "lng": -87.628,
+  "place": "Chicago",
+  "country": "United States",
+  "precision": "city"
+ },
+ "sister sledge": {
+  "name": "Sister Sledge",
+  "lat": 39.953,
+  "lng": -75.164,
+  "place": "Philadelphia",
+  "country": "United States",
+  "precision": "city"
+ },
+ "derrick may": {
+  "name": "Derrick May",
+  "lat": 42.332,
+  "lng": -83.047,
+  "place": "Detroit",
+  "country": "United States",
+  "precision": "city"
+ },
+ "juan atkins": {
+  "name": "Juan Atkins",
+  "lat": 42.332,
+  "lng": -83.047,
+  "place": "Detroit",
+  "country": "United States",
+  "precision": "city"
+ },
+ "jeff mills": {
+  "name": "Jeff Mills",
+  "lat": 42.332,
+  "lng": -83.047,
+  "place": "Detroit",
+  "country": "United States",
+  "precision": "city"
+ },
+ "carl craig": {
+  "name": "Carl Craig",
+  "lat": 42.332,
+  "lng": -83.047,
+  "place": "Detroit",
+  "country": "United States",
+  "precision": "city"
+ },
+ "frankie knuckles": {
+  "name": "Frankie Knuckles",
+  "lat": 40.847,
+  "lng": -73.873,
+  "place": "The Bronx",
+  "country": "United States",
+  "precision": "city"
+ },
+ "larry heard": {
+  "name": "Larry Heard",
+  "lat": 41.882,
+  "lng": -87.628,
+  "place": "Chicago",
+  "country": "United States",
+  "precision": "city"
+ },
+ "mk": {
+  "name": "MK",
+  "lat": 42.33,
+  "lng": -83.05,
+  "place": "Detroit",
+  "country": "United States",
+  "precision": "city"
+ },
+ "honey dijon": {
+  "name": "Honey Dijon",
+  "lat": 41.882,
+  "lng": -87.628,
+  "place": "Chicago",
+  "country": "United States",
+  "precision": "city"
+ },
+ "slightly stoopid": {
+  "name": "Slightly Stoopid",
+  "lat": 32.715,
+  "lng": -117.162,
+  "place": "San Diego",
+  "country": "United States",
+  "precision": "city"
+ },
+ "stick figure": {
+  "name": "Stick Figure",
+  "lat": 32.715,
+  "lng": -117.162,
+  "place": "San Diego",
+  "country": "United States",
+  "precision": "city"
+ },
+ "aaron copland": {
+  "name": "Aaron Copland",
+  "lat": 40.651,
+  "lng": -73.95,
+  "place": "Brooklyn",
+  "country": "United States",
+  "precision": "city"
+ },
+ "philip glass": {
+  "name": "Philip Glass",
+  "lat": 39.286,
+  "lng": -76.615,
+  "place": "Baltimore",
+  "country": "United States",
+  "precision": "city"
+ },
+ "steve reich": {
+  "name": "Steve Reich",
+  "lat": 40.713,
+  "lng": -74.006,
+  "place": "New York City",
+  "country": "United States",
+  "precision": "city"
+ },
+ "john adams": {
+  "name": "John Adams",
+  "lat": 42.206,
+  "lng": -71.005,
+  "place": "Braintree",
+  "country": "United States",
+  "precision": "city"
+ },
+ "grupo fantasma": null
+}

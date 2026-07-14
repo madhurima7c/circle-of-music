@@ -123,10 +123,10 @@ export function ConnectorTags() {
  * ================================================================ */
 export function CenterStack() {
   const {
-    tracks, trackIdx, status, isPlaying, countryIdx, genreIdx,
+    tracks, trackIdx, status, isPlaying, countryName, genreIdx,
     togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
   } = useStore();
-  const country = COUNTRIES[countryIdx] ?? '';
+  const country = countryName || '';
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
