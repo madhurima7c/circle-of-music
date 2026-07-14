@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { COUNTRIES, GENRES } from '@/lib/data';
+import { coverSlug } from '@/lib/covers';
 import {
   Title,
   Heart,
@@ -22,17 +24,39 @@ import {
 const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
 
 export default function CirclePage() {
-  const { commit, tracks, handMode } = useStore();
+  const {
+    commit, tracks, handMode, status,
+    countryIdx, genreIdx, setCountry, setGenre,
+  } = useStore();
 
-  // First auto-commit after first paint so the ready state actually
-  // populates. Skipped when returning mid-session (tracks already loaded) —
-  // the store lives at the root layout, so selection survives navigation.
+  // On first load: restore a shared pairing from the URL
+  // (/circle?country=turkey&genre=funk) if present, else auto-commit the
+  // default after first paint. Skipped when returning mid-session (tracks
+  // already loaded) — the store lives at the root layout, so selection
+  // survives navigation.
   useEffect(() => {
     if (tracks.length > 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const ci = COUNTRIES.findIndex(c => coverSlug(c) === params.get('country'));
+    const gi = GENRES.findIndex(g => coverSlug(g) === params.get('genre'));
+    if (ci >= 0 || gi >= 0) {
+      // setCountry/setGenre schedule the debounced auto-commit themselves.
+      if (ci >= 0) setCountry(ci);
+      if (gi >= 0) setGenre(gi);
+      return;
+    }
     const t = setTimeout(commit, 900);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the URL in sync with the committed pairing so any moment is
+  // shareable — replaceState avoids polluting history while spinning.
+  useEffect(() => {
+    if (status !== 'populating' && status !== 'ready') return;
+    const url = `/circle?country=${coverSlug(COUNTRIES[countryIdx])}&genre=${coverSlug(GENRES[genreIdx])}`;
+    window.history.replaceState(null, '', url);
+  }, [status, countryIdx, genreIdx]);
 
   return (
     <main className="frame">
