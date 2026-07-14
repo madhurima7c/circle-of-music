@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from 'next/font/google';
+import { StoreProvider } from '@/lib/store';
 import './globals.css';
 
 // Maddy's center card renders in Inter (see src/style.css --font-ui on the
@@ -23,8 +24,8 @@ const plexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Circle of Music',
-  description: 'Country × Genre, on a circle.',
+  title: 'Music Exploration',
+  description: 'Wander, don’t search — discover the world’s music by place and genre.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -104,7 +105,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </filter>
           </defs>
         </svg>
-        {children}
+        {/* Store lives at the root so selection + playback state survives
+            client-side navigation between /circle, /world, and the hub. */}
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );

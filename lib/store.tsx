@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -193,12 +192,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setLockedRight(next);
   }, []);
 
-  // first auto-commit after first paint so the ready state actually populates
-  useEffect(() => {
-    const t = setTimeout(commit, 900);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // NOTE: the initial auto-commit (first playlist fetch) now lives in the
+  // Circle page, not here — the store mounts at the root layout for all
+  // routes, and the hub/world routes shouldn't fetch music on load.
 
   /* ---------- playback ---------- */
   const togglePlay = useCallback(() => {
