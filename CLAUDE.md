@@ -22,6 +22,8 @@ npm run dev          # Next 16 (Turbopack) at http://localhost:3000
 npm run build        # prod build (runs tsc; does NOT run eslint)
 npm run audit        # pairing genre-mismatch report (no changes)
 npm run curate       # LLM-fill seeds.json (needs ANTHROPIC_API_KEY in .env.local)
+npm run origins      # Wikidata → lib/origins.json artist origin coords (resumable; manual fixes in the JSON persist because existing keys are skipped)
+npm run enrich       # propose verified artists for weak pairings → seed-proposals.json (review; never edits seeds)
 ```
 
 No env vars are needed to run — the Anthropic key only powers optional
@@ -58,10 +60,13 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 
 | File | Role |
 |---|---|
-| `lib/store.tsx` | all app state + actions: `spinLeft/Right`, `setCountry/Genre`, `commit`, `surprise`, `playPlace` (globe, instant, no debounce), `loadQueue` (library), `toggleLock*`, `toggleHandMode`, playback. Indices mirrored into refs. |
-| `components/Overlay.tsx` | 2D UI: Title, CenterStack (card), Dial (letter ladder), WheelLock, Dock (surprise + hand toggle), Hint, **HandTracking** (opt-in VR-cursor gesture system), GestureToast. |
+| `lib/store.tsx` | all app state + actions: `spinLeft/Right`, `setCountry/Genre`, `commit`, `surprise`, `playPlace` (globe, instant, no debounce), `playPlaceNamed` (any globe nation → MusicBrainz tier; sets `customCountry`, cleared by any wheel action), `countryName` (display name incl. custom), `loadQueue` (library), `toggleLock*`, `toggleHandMode`, playback. Indices mirrored into refs. |
+| `components/Overlay.tsx` | 2D UI: Title, CenterStack (card incl. **origin line** — story or facts fallback), Dial (letter ladder), WheelLock, Dock (surprise + hand toggle), Hint, **HandTracking** (opt-in VR-cursor gesture system), GestureToast. |
 | `components/Stage.tsx` / `Wheel.tsx` | R3F wheels; `MOBILE_CAMERA`/`MOBILE_TUNING` swap in ≤640px; leva dev panel (hidden on mobile). |
-| `components/WorldGlobe.tsx` | react-globe.gl globe; `lib/geo.ts` maps GeoJSON `NAME`→seed country; data at `public/geo/countries-110m.geojson`. |
+| `components/WorldGlobe.tsx` | react-globe.gl globe; every nation tappable (seeded = curated pipeline, rest = MusicBrainz); artist-origin **dots** per queue (playing dot glows + ring, hover story tooltip, click jumps playback); vertical genre rail (left). `lib/geo.ts` maps GeoJSON `NAME`→seed country; data at `public/geo/countries-110m.geojson`. |
+| `lib/stories.ts` + `lib/track-stories.json` | curated artist/song stories (90) + `releaseYear`; keys are normalized artist names, optional `country\|genre\|artist` override. Grounded facts only. |
+| `lib/origins.ts` + `lib/origins.json` | artist → origin coords (city-level where Wikidata knows); built by `scripts/build-origins.ts`; manual fixes live in the JSON and survive re-runs. |
+| `lib/geo-iso.json` | GeoJSON NAME → ISO-3166 alpha-2 (generated from the Natural Earth file) — lets `/api/musicbrainz` accept any globe nation. |
 | `components/GlobalPlayer.tsx` | the one `<audio>` + MediaSession + mini-player. |
 | `components/Library.tsx` + `lib/library.ts` | local "finds" (localStorage, `useSyncExternalStore`). |
 | `lib/links.ts` | search deep links (Spotify/Apple/YouTube/Deezer) built locally — Odesli's free tier no longer returns the big three. |
@@ -96,11 +101,13 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 
 **Done:** Phase 0 (routes/hub, opt-in hand tracking, shareable URLs, deep links,
 persistent player + MediaSession, mobile Circle, strings module) + Phase 1A
-(GSAP card polish, surprise/shuffle, finds library, audit script) + Phase 1B
-**alpha** (interactive globe: tap country → instant audio, genre chips,
-globe-shuffle). See **`todo.md`** for what's next.
+(GSAP card polish, surprise/shuffle, finds library, audit script) + content
+wave 1 (+80 verified seeds, related-genre net — fallbacks 26%→5%; card origin
+line with 90 curated stories) + World **Phase 2** (origin dots w/ glow ring +
+story tooltips + dot-click playback, every nation tappable via MusicBrainz
+tier, vertical genre rail). See **`todo.md`** for what's next.
 
-**Not done / known:** content expansion (audit flags 26% of pairings as pure
-fallback — Ghana/Pakistan/Turkey weakest); World Phase 2 (origin points, reach
-arcs, layer toggles, Circle↔globe cross-links); full playback + library export
-(Phase 3); real-device testing (webcam gestures, iOS background audio).
+**Not done / known:** seed-proposals.json review + the 19 remaining fallbacks;
+axes growth (24×24/28×28) awaiting user decision + covers; reach arcs + layer
+toggles + Circle→globe flyover; full playback + library export (Phase 3);
+real-device testing (webcam gestures, iOS background audio, origin-dot visuals).

@@ -29,20 +29,34 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 
 ---
 
-## ▶️ Next up (pick one)
+## ✅ Done this session (2026-07-13, pushed)
 
-### A. Content expansion + genre correctness  *(uses the audit output)*
-- [ ] Run `npm run audit` → 104 FALLBACK pairings (0 direct + 0 related seeds). Weakest countries: **Ghana, Pakistan, Turkey, Iran, Nigeria** (13/20 genres fall back).
-- [ ] Hand-add curated artists to `lib/seeds.json` for the worst offenders (or `npm run curate` to LLM-fill, then review). **User wanted to review before seed changes land.**
-- [ ] Consider growing to bigger EQUAL axes (24×24 or 28×28 — must stay equal for symmetric wheels). Candidate country adds: Germany, Italy, Colombia, Jamaica, Cuba, Ethiopia, Indonesia, Australia. Genre adds: Blues, Country, Metal, R&B, Reggaeton, Amapiano, Salsa, Flamenco.
-- [ ] If axes grow, add matching covers to `public/covers/` (kebab-case; see `lib/covers.ts`) and geo works automatically.
+**Content wave 1 (was Track A):**
+- `RELATED_GENRES` gaps filled (Bossa Nova/Classical/Cumbia/Disco/Punk; Reggae deliberately skipped — borrowed World seeds sound wrong). Mirrored in the audit script.
+- +80 Deezer-verified seed artists (worst five countries + slam dunks). Audit: **FALLBACK 104 (26%) → 19 (5%)**, DIRECT 49%→55%.
+- Card **origin line**: `lib/stories.ts` + `lib/track-stories.json` (90 curated artist stories) with a grounded facts fallback ("A Disco find from Ghana, released 2022"); album row shows a clean year.
 
-### B. World of Music — Phase 2 (the data-viz layer)
-- [ ] Artist-origin **points** layer (MusicBrainz `begin-area` → city coords; geoapify/Natural Earth populated-places).
-- [ ] "Reach" **arcs**: genre origin → where it spread (seed from everynoise frozen country pages + curate).
-- [ ] **Layer toggles** UI (Google-Earth style: countries / origins / reach).
-- [ ] Cross-links: Circle track → "see on globe" flyover; globe → open in Circle (mini-player already bridges audio).
-- [ ] Globe polish: on-demand render loop (`frameloop`/idle) for battery; verify touch rotate/pinch on a real phone.
+**World Phase 2 (origin dots + any nation):**
+- `npm run origins` → `lib/origins.json`: 624/678 seed artists resolved to origin coords via Wikidata (570 city-level; ~35 wrong-entity matches hand-corrected in place — re-runs skip existing keys so fixes persist).
+- Globe: origin **dots** per queue artist; playing dot glows + pulse ring; hover = artist · origin city · story; **click a dot to jump playback** to that artist.
+- **Every nation tappable** — unseeded countries resolve via MusicBrainz tier (`playPlaceNamed` + `countryName` in store; `/api/musicbrainz` whitelist extended via generated `lib/geo-iso.json`). Verified: Mongolia × Rock → The HU, Altan Urag.
+- Genre chips → **vertical scrollable rail on the left** (user-requested).
+
+**Pipelines:**
+- `npm run enrich` → `scripts/enrich-seeds.ts`: Wikidata SPARQL ∪ MusicBrainz candidates, Deezer-verified, writes `seed-proposals.json` for review. Never edits seeds directly.
+
+## ▶️ Next up
+
+### A. Content — finish the tail
+- [ ] Review `seed-proposals.json` (output of `npm run enrich`) with the user; merge approved rows into seeds.json; re-run `npm run audit` (19 fallbacks remain: mostly Bossa Nova/Reggae in countries without scenes).
+- [ ] Axes growth decision pending user: 24×24 or 28×28 EQUAL axes. Candidate countries: Germany, Italy, Colombia, Jamaica, Cuba, Ethiopia, Indonesia, Australia. Genres: Blues, Country, Metal, R&B, Reggaeton, Amapiano, Salsa, Flamenco. User must supply covers (`public/covers/`, kebab-case). After adding: re-run `npm run origins` + `npm run audit`.
+- [ ] More stories in `lib/track-stories.json` (keys = normalized artist names; grounded facts only).
+
+### B. World — remaining polish
+- [ ] "Reach" **arcs**: genre origin → where it spread.
+- [ ] **Layer toggles** UI (countries / origins / reach).
+- [ ] Cross-links: Circle track → "see on globe" flyover (globe → Circle already bridges via mini-player).
+- [ ] Globe polish: on-demand render loop for battery; touch on a real phone.
 
 ### C. Full playback + export (Phase 3, opt-in)
 - [ ] Spotify **Embed iframe** panel (full track for Premium users, no app registration) + optional YouTube iframe.
@@ -55,6 +69,8 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - [ ] GSAP card animations actually play (preview tab is hidden → rAF paused).
 - [ ] Globe touch: rotate/pinch-zoom + tap-to-play on a phone.
 - [ ] iOS Safari: does audio keep playing with the screen locked? (known-unreliable in PWAs.)
+- [ ] **Origin dots visually** (data path verified headless; rAF-driven globe canvas doesn't paint in the hidden tab): dot density, glow/ring on the playing artist, hover tooltip, dot-click jump.
+- [ ] Vertical genre rail feel: scroll, edge fade, active-chip auto-scroll.
 
 ## 🐞 Known, low-priority
 - Dev-only console warning `getServerSnapshot should be cached` ×4 → Next's `usePathname` in GlobalPlayer, not our code. Benign.
