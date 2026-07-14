@@ -81,6 +81,14 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Playlist fetch retries once on empty (transient Deezer flakes caused false "no results", e.g. US × Rock).
 - Deferred by user: axes growth (later version), Spotify client-ID setup (will use the published site URL as redirect).
 
+## ✅ World coverage + v5 (2026-07-14, pushed)
+- **world-seeds.json**: 161/175 nations with Deezer-verified, genre-bucketed artists (Wikidata sitelink-ranked; `npm run world-seeds`, resumable, WDQS-backoff). Circle stays curated 20×20; World taps get world-seeds → related genres → MusicBrainz → country-top fallback (no more dead ends). `lib/enao-genres.json` (Every Noise) supplies per-country `featured` genres.
+- Globe: world-covered countries mid-tint; wheel countries accent; "tap to explore" only where truly empty.
+- **Zoom snap-back fixed**: initial pointOfView ran on every status change (reset the camera right after fly-in); now runs once. Same-country reclick no longer refetches/strips dots.
+- Bottom controls → one centered horizontal dock: hand toggle · artists|songs segmented toggle · shuffle.
+- World playlist panel height == genre rail (620px verified).
+- Dev note: `window.__world.select(name, genreIdx)` (dev-only) drives country taps headless. Turbopack stale-bundle bit twice more (once splitting the store into two module instances — UI dead while network fires). rm -rf .next + restart.
+
 ## 🔎 Needs real-device testing (can't verify in the hidden preview tab)
 - [ ] Hand mode: toggle on with a real webcam — cursor tracking, pinch-hold click, pinch-drag spin.
 - [ ] GSAP card animations actually play (preview tab is hidden → rAF paused).
