@@ -75,6 +75,12 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - **Spotify full songs**: lib/spotify.ts (PKCE + Web Playback SDK), Connect button in card links row, per-track fallback to previews. Needs `NEXT_PUBLIC_SPOTIFY_CLIENT_ID` (see CLAUDE.md) — **user must create the free Spotify app**; untested live until then.
 - **Live origins** (lib/origins-live.ts): unknown queue artists resolve via Wikidata at runtime, cached in localStorage — Spain × Jazz shows 13/13 artist dots.
 
+## ✅ World v4 (2026-07-13, pushed)
+- Dots restyled to the radio.garden reference: small flat green points in both filter modes; only the playing marker shows album art (avatar + sonar ring). 8px invisible hit area, hover z-bump, 290px popups.
+- normKey/normName now Unicode-aware + fold table (Korean names no longer normalize to ''; "Fazıl Say" matches his story/origin). origins.json keys migrated; all 4 normalizer copies synced.
+- Playlist fetch retries once on empty (transient Deezer flakes caused false "no results", e.g. US × Rock).
+- Deferred by user: axes growth (later version), Spotify client-ID setup (will use the published site URL as redirect).
+
 ## 🔎 Needs real-device testing (can't verify in the hidden preview tab)
 - [ ] Hand mode: toggle on with a real webcam — cursor tracking, pinch-hold click, pinch-drag spin.
 - [ ] GSAP card animations actually play (preview tab is hidden → rAF paused).
