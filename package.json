@@ -9,7 +9,8 @@
     "lint": "eslint",
     "curate": "tsx scripts/curate.ts",
     "curate:test": "tsx scripts/curate.ts -- --test",
-    "curate:all": "tsx scripts/curate.ts -- --all"
+    "curate:all": "tsx scripts/curate.ts -- --all",
+    "audit": "tsx scripts/audit-pairings.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
