@@ -2,11 +2,28 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
+
+gsap.registerPlugin(useGSAP);
+
+/**
+ * GSAP `.from()` tweens set their start state immediately, then animate back
+ * via requestAnimationFrame. If rAF never runs — a background/hidden tab, or
+ * the user honoring reduced-motion — the tween is stranded and the element
+ * stays invisible. So only animate when the page is actually visible and
+ * motion is welcome; otherwise elements render at their natural (visible)
+ * CSS state with no entrance.
+ */
+const canAnimate = () =>
+  typeof document !== 'undefined' &&
+  !document.hidden &&
+  !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function Title() {
   return (
@@ -123,10 +140,38 @@ export function CenterStack() {
   const pending  = status === 'populating' || status === 'error';
   const hasTrack = status === 'ready' && !!track;
 
+  /* ---------- GSAP polish (scoped to the card) ---------- */
+  const stackRef  = useRef<HTMLDivElement | null>(null);
+  const pairingKey = `${country}|${genre}`;
+  const lastPairing = useRef(pairingKey);
+
+  // Playlist entrance: when a fresh pairing becomes ready, the transport,
+  // now-playing row, and queue rise and stagger in together.
+  useGSAP(() => {
+    if (!hasTrack || !canAnimate()) return;
+    gsap.timeline({ defaults: { ease: 'power2.out' } })
+      .from('.center__controls', { autoAlpha: 0, y: 6, duration: 0.35 })
+      .from('.center__now',      { autoAlpha: 0, y: 8, duration: 0.40 }, '-=0.22')
+      .from('.center__links',    { autoAlpha: 0, y: 4, duration: 0.30 }, '-=0.26')
+      .from('.center__queue-item', { autoAlpha: 0, y: 6, stagger: 0.045, duration: 0.30 }, '-=0.18');
+  }, { scope: stackRef, dependencies: [pairingKey, hasTrack] });
+
+  // Track swap WITHIN a playlist (next/prev/auto-advance): the cover pops
+  // and the meta slides, so the change reads without a full re-entrance.
+  useGSAP(() => {
+    const samePlaylist = lastPairing.current === pairingKey;
+    lastPairing.current = pairingKey;
+    if (!hasTrack || !samePlaylist || !canAnimate()) return;  // fresh playlist → entrance owns it
+    gsap.fromTo('.center__cover',
+      { autoAlpha: 0.35, scale: 0.93 },
+      { autoAlpha: 1, scale: 1, duration: 0.42, ease: 'power2.out' });
+    gsap.from('.center__meta', { autoAlpha: 0, x: 10, duration: 0.42, ease: 'power2.out' });
+  }, { scope: stackRef, dependencies: [track?.id] });
+
   return (
     <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
       {status !== 'empty' && (
-        <div className="center__stack">
+        <div className="center__stack" ref={stackRef}>
           <div
             className="center__card center__card--main"
             data-main-card=""

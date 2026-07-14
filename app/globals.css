@@ -626,7 +626,7 @@ html, body {
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.05em;
-  animation: links-in 300ms ease backwards;
+  /* entrance handled by GSAP in CenterStack (mini-player still uses links-in) */
 }
 @keyframes links-in {
   from { opacity: 0; transform: translateY(3px); }
