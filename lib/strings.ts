@@ -39,6 +39,9 @@ export const STR = {
     backName: 'Back to the hub',
     backDesc: 'The front door.',
     backCta: 'Home →',
+    tapHint: 'Tap a highlighted country to hear its music · drag to spin, pinch to zoom',
+    surprise: 'Spin to a random country',
+    toCircle: 'Open in Circle',
   },
 
   circle: {

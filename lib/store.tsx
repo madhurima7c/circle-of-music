@@ -84,6 +84,10 @@ type StoreShape = {
   surprise: () => void;
   /** Play an arbitrary queue (used by the finds library) from startIdx. */
   loadQueue: (queue: Track[], startIdx: number) => void;
+  /** Set a pairing and fetch it immediately (no settle debounce) — the World
+   *  globe wants instant audio on a country tap. genreIdx optional (keeps
+   *  the current genre when omitted). */
+  playPlace: (countryIdx: number, genreIdx?: number) => void;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -309,6 +313,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIsPlaying(true);
   }, []);
 
+  const playPlace = useCallback((ci: number, gi?: number) => {
+    const c = ((ci % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length;
+    countryIdxRef.current = c;
+    setCountryIdx(c);
+    if (gi != null) {
+      const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
+      genreIdxRef.current = g;
+      setGenreIdx(g);
+    }
+    if (settleTimer.current) clearTimeout(settleTimer.current);  // skip the debounce
+    commit();  // reads the refs just set — fetches this pairing right away
+  }, [commit]);
+
   /* ---------- transient toast for gesture confirmation ---------- */
   const flashToast = useCallback((t: GestureToast) => {
     setToast(t);
@@ -334,14 +351,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
-    surprise, loadQueue,
+    surprise, loadQueue, playPlace,
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
        autoplayBlocked,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
-       toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue]);
+       toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue, playPlace]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }
