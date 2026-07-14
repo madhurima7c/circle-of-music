@@ -23,6 +23,11 @@ import seeds from '../lib/seeds.json';
 import overrides from '../lib/track-overrides.json';
 
 const RELATED_GENRES: Record<string, string[]> = {
+  'Bossa Nova': ['Jazz'],
+  Classical: ['Ambient'],
+  Cumbia: ['World', 'Folk'],
+  Disco: ['Funk', 'Soul'],
+  Punk: ['Rock', 'Indie'],
   Electronic: ['House', 'Techno', 'Ambient'],
   'Hip Hop': ['Soul', 'Funk'],
   Rock: ['Indie', 'Punk'],

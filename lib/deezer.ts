@@ -64,6 +64,11 @@ const API = 'https://api.deezer.com';
 
 /** Wheel genres that share territory with the primary pick — fallback seed lookup. */
 const RELATED_GENRES: Record<string, string[]> = {
+  'Bossa Nova': ['Jazz'],
+  Classical: ['Ambient'],
+  Cumbia: ['World', 'Folk'],
+  Disco: ['Funk', 'Soul'],
+  Punk: ['Rock', 'Indie'],
   Electronic: ['House', 'Techno', 'Ambient'],
   'Hip Hop': ['Soul', 'Funk'],
   Rock: ['Indie', 'Punk'],
