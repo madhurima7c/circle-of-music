@@ -6,15 +6,16 @@ import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
+import { STR } from '@/lib/strings';
 
 export function Title() {
   return (
     <Link
       href="/"
       className="title absolute left-1/2 top-[38px] z-30 -translate-x-1/2 text-[38px] text-[var(--accent)] select-none no-underline"
-      title="Back to the hub"
+      title={STR.circle.backToHub}
     >
-      Circle of Music
+      {STR.circle.title}
     </Link>
   );
 }
@@ -154,31 +155,29 @@ export function CenterStack() {
                 <span className="center__card-rail__label">{genre.toUpperCase()}</span>
               </div>
               <p className="center__card-pane__msg">
-                {status === 'error'
-                  ? 'Could not find music\nfrom these pairing,\ntry something different.'
-                  : 'Populating music...'}
+                {status === 'error' ? STR.card.noResults : STR.card.populating}
               </p>
             </div>
 
             <div className="center__track" hidden={!hasTrack}>
               <div className="center__controls">
-                <button className="ctrl" onClick={prevTrack} title="Previous" aria-label="Previous">
+                <button className="ctrl" onClick={prevTrack} title={STR.card.prev} aria-label={STR.card.prev}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 6v12" />
                     <path d="M19 6L9 12l10 6V6z" />
                   </svg>
                 </button>
-                <button className="ctrl ctrl--lg" onClick={togglePlay} title="Play / pause" aria-label="Play / pause">
+                <button className="ctrl ctrl--lg" onClick={togglePlay} title={STR.card.playPause} aria-label={STR.card.playPause}>
                   <svg className="ctrl__play" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>
                   <svg className="ctrl__pause" viewBox="0 0 24 24" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
                 </button>
-                <button className="ctrl" onClick={nextTrack} title="Next" aria-label="Next">
+                <button className="ctrl" onClick={nextTrack} title={STR.card.next} aria-label={STR.card.next}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 6l10 6-10 6V6z" />
                     <path d="M19 6v12" />
                   </svg>
                 </button>
-                <button className="ctrl" onClick={() => shuffleTracks(true)} title="Shuffle" aria-label="Shuffle">
+                <button className="ctrl" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
                   {/* Lucide "shuffle" (MIT), optimized for 16×16 glyph in 32px button */}
                   <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <polyline points="16 3 21 3 21 8" />
@@ -193,7 +192,7 @@ export function CenterStack() {
               {/* Continue this find in the listener's own app. */}
               {links && (
                 <div className="center__links">
-                  <span className="center__links-label">open in</span>
+                  <span className="center__links-label">{STR.card.openIn}</span>
                   <a href={links.spotify}    target="_blank" rel="noreferrer">Spotify</a>
                   <a href={links.appleMusic} target="_blank" rel="noreferrer">Apple</a>
                   <a href={links.youtube}    target="_blank" rel="noreferrer">YouTube</a>
@@ -216,11 +215,11 @@ export function CenterStack() {
               </div>
 
               <div className="center__up-next">
-                <h3 className="center__up-next-title">Up next:</h3>
+                <h3 className="center__up-next-title">{STR.card.upNext}</h3>
                 <ul className="center__queue" aria-label="Queued tracks">
                   {tracks.length <= 1 ? (
                     <li className="center__queue-empty">
-                      {tracks.length === 0 ? 'No tracks.' : 'No other tracks in this queue.'}
+                      {tracks.length === 0 ? STR.card.noTracks : STR.card.noOtherTracks}
                     </li>
                   ) : (
                     Array.from({ length: tracks.length - 1 }, (_, step) => {
@@ -291,7 +290,9 @@ export function WheelLock({ side }: { side: 'left' | 'right' }) {
   const { lockedLeft, lockedRight, toggleLockLeft, toggleLockRight } = useStore();
   const locked = side === 'left' ? lockedLeft : lockedRight;
   const toggle = side === 'left' ? toggleLockLeft : toggleLockRight;
-  const label  = side === 'left' ? 'country wheel' : 'genre wheel';
+  const label = side === 'left'
+    ? (locked ? STR.locks.unlockCountry : STR.locks.lockCountry)
+    : (locked ? STR.locks.unlockGenre   : STR.locks.lockGenre);
 
   return (
     <button
@@ -299,8 +300,8 @@ export function WheelLock({ side }: { side: 'left' | 'right' }) {
       className={`wheel-lock wheel-lock--${side}`}
       data-locked={locked ? 'true' : 'false'}
       onClick={toggle}
-      title={`${locked ? 'Unlock' : 'Lock'} the ${label}`}
-      aria-label={`${locked ? 'Unlock' : 'Lock'} the ${label}`}
+      title={label}
+      aria-label={label}
       aria-pressed={locked}
     >
       {locked ? (
@@ -838,7 +839,7 @@ export function HandTracking() {
                 opacity: handCount > 0 ? 1 : 0.5,
               }}
             />
-            {handCount} hand{handCount === 1 ? '' : 's'}
+            {STR.camera.hands(handCount)}
           </div>
         </div>
       )}
@@ -849,15 +850,15 @@ export function HandTracking() {
 /** Placeholder shown in the camera-frame slot when the webcam can't be used. */
 function CameraUnavailable({ status }: { status: CameraStatus }) {
   const headline =
-    status === 'in-use'    ? 'Camera in use'    :
-    status === 'denied'    ? 'Camera blocked'   :
-    status === 'no-device' ? 'No camera found'  :
-                             'Camera unavailable';
+    status === 'in-use'    ? STR.camera.inUseHeadline    :
+    status === 'denied'    ? STR.camera.deniedHeadline   :
+    status === 'no-device' ? STR.camera.noDeviceHeadline :
+                             STR.camera.errorHeadline;
   const detail =
-    status === 'in-use'    ? 'Another app (Zoom, Meet, FaceTime…) is using it. Use the mouse to scroll the wheels.' :
-    status === 'denied'    ? 'Grant camera permission in your browser, then refresh.' :
-    status === 'no-device' ? 'Plug in a webcam, then refresh. The wheels still respond to mouse scroll & drag.' :
-                             'Use the mouse to scroll the wheels.';
+    status === 'in-use'    ? STR.camera.inUseDetail    :
+    status === 'denied'    ? STR.camera.deniedDetail   :
+    status === 'no-device' ? STR.camera.noDeviceDetail :
+                             STR.camera.errorDetail;
   return (
     <div
       className="absolute z-20 flex flex-col items-center justify-center overflow-hidden rounded-lg bg-neutral-100 px-3 text-center"
@@ -891,18 +892,7 @@ function CameraUnavailable({ status }: { status: CameraStatus }) {
 export function GestureToast() {
   const { toast } = useStore();
   if (!toast) return null;
-  const text =
-    toast.kind === 'play'         ? '▶ Play'  :
-    toast.kind === 'pause'        ? '⏸ Pause' :
-    toast.kind === 'next'         ? '⏭ Next'  :
-    toast.kind === 'prev'         ? '⏮ Prev'  :
-    toast.kind === 'shuffle'      ? '🔀 Shuffle' :
-    toast.kind === 'lock-left'    ? '🔒 Country locked' :
-    toast.kind === 'unlock-left'  ? '🔓 Country unlocked' :
-    toast.kind === 'lock-right'   ? '🔒 Genre locked' :
-    toast.kind === 'unlock-right' ? '🔓 Genre unlocked' :
-    toast.kind === 'select-left'  ? '✓ Country' :
-    /* select-right */              '✓ Genre';
+  const text = STR.toasts[toast.kind] ?? toast.kind;
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[15%] z-40 -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-[13px] text-white"
@@ -940,8 +930,8 @@ export function Dock() {
             background: handMode ? 'var(--accent)' : 'transparent',
             color:      handMode ? '#fff' : '#262626',
           }}
-          title={handMode ? 'Turn off hand control' : 'Control with your hands (webcam)'}
-          aria-label={handMode ? 'Turn off hand control' : 'Turn on hand control'}
+          title={handMode ? STR.dock.handTitleOff : STR.dock.handTitleOn}
+          aria-label={handMode ? STR.dock.handOff : STR.dock.handOn}
           aria-pressed={handMode}
         >
           {/* hand outline */}
@@ -955,7 +945,7 @@ export function Dock() {
       )}
       <button
         className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
-        aria-label="info"
+        aria-label={STR.dock.info}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
           <circle cx="12" cy="12" r="9" />
@@ -965,11 +955,11 @@ export function Dock() {
       </button>
       <button
         onClick={() => {
-          const subject = encodeURIComponent('Circle of Music recommendation');
-          window.location.href = `mailto:?subject=${subject}&body=Add an artist or album you'd recommend: `;
+          const subject = encodeURIComponent(STR.dock.mailSubject);
+          window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(STR.dock.mailBody)}`;
         }}
         className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
-        aria-label="recommend"
+        aria-label={STR.dock.recommend}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 5h18v12H7l-4 4z" />
@@ -986,9 +976,7 @@ export function Hint() {
       className="hint absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
       style={{ left: 28, bottom: 12 }}
     >
-      {handMode
-        ? <>👆 move your hand to aim the cursor · 🤏 pinch &amp; hold ~1s on a button to press it · pinch over a wheel and move up/down to spin it</>
-        : <>↕ drag or scroll a wheel to spin it · click a letter to jump · ✋ hand control available in the dock below</>}
+      {handMode ? STR.hints.hand : STR.hints.mouse}
     </div>
   );
 }

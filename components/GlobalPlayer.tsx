@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
+import { STR } from '@/lib/strings';
 
 /**
  * GlobalPlayer — the one <audio> element for the whole app.
@@ -121,7 +122,7 @@ export function GlobalPlayer() {
       />
 
       {showMini && (
-        <div className="mini-player" role="region" aria-label="Now playing">
+        <div className="mini-player" role="region" aria-label={STR.player.nowPlaying}>
           {track.image
             ? <img className="mini-player__cover" src={track.image} alt="" />
             : <div className="mini-player__cover" />}
@@ -129,17 +130,17 @@ export function GlobalPlayer() {
             <div className="mini-player__title">{track.title}</div>
             <div className="mini-player__artist">{track.artist}</div>
           </div>
-          <button className="mini-player__btn" onClick={togglePlay} aria-label="Play / pause">
+          <button className="mini-player__btn" onClick={togglePlay} aria-label={STR.card.playPause}>
             {isPlaying
               ? <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
               : <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>}
           </button>
-          <button className="mini-player__btn" onClick={nextTrack} aria-label="Next">
+          <button className="mini-player__btn" onClick={nextTrack} aria-label={STR.card.next}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
               <path d="M5 6l10 6-10 6V6z" /><path d="M19 6v12" />
             </svg>
           </button>
-          <Link className="mini-player__go" href="/circle" title="Open in Circle of Music">◐</Link>
+          <Link className="mini-player__go" href="/circle" title={STR.player.openInCircle}>◐</Link>
         </div>
       )}
     </>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from 'next/font/google';
 import { StoreProvider } from '@/lib/store';
 import { GlobalPlayer } from '@/components/GlobalPlayer';
+import { STR } from '@/lib/strings';
 import './globals.css';
 
 // Maddy's center card renders in Inter (see src/style.css --font-ui on the
@@ -25,8 +26,8 @@ const plexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Music Exploration',
-  description: 'Wander, don’t search — discover the world’s music by place and genre.',
+  title: STR.app.name,
+  description: STR.app.tagline,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
