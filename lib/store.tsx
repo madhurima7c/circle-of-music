@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -52,6 +53,9 @@ type StoreShape = {
   /** Locked wheels ignore all spin input (drag, scroll, gestures, ladder). */
   lockedLeft:  boolean;
   lockedRight: boolean;
+  /** Hand tracking is a delight layer, not a gate — OFF by default,
+   *  toggled by the user, persisted in localStorage. */
+  handMode: boolean;
 
   spinLeft:  (dir: number) => void;
   spinRight: (dir: number) => void;
@@ -70,6 +74,7 @@ type StoreShape = {
   flashToast:  (t: GestureToast) => void;
   toggleLockLeft:  () => void;
   toggleLockRight: () => void;
+  toggleHandMode:  () => void;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -110,6 +115,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [toast,      setToast]      = useState<GestureToast | null>(null);
   const [lockedLeft,  setLockedLeft]  = useState(false);
   const [lockedRight, setLockedRight] = useState(false);
+  // Starts false on server AND first client render (hydration-safe), then
+  // syncs from localStorage after mount.
+  const [handMode, setHandMode] = useState(false);
+  useEffect(() => {
+    if (window.localStorage.getItem('handMode') === 'on') setHandMode(true);
+  }, []);
 
   // Refs mirror the lock state so the spin guards always read the latest
   // value without forcing every spin/set callback to be recreated on toggle.
@@ -192,6 +203,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setLockedRight(next);
   }, []);
 
+  const toggleHandMode = useCallback(() => {
+    setHandMode(prev => {
+      const next = !prev;
+      window.localStorage.setItem('handMode', next ? 'on' : 'off');
+      return next;
+    });
+  }, []);
+
   // NOTE: the initial auto-commit (first playlist fetch) now lives in the
   // Circle page, not here — the store mounts at the root layout for all
   // routes, and the hub/world routes shouldn't fetch music on load.
@@ -246,17 +265,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<StoreShape>(() => ({
     countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
-    hoverLeft, hoverRight, toast, lockedLeft, lockedRight,
+    hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
     spinLeft, spinRight, setCountry, setGenre, commit, setTrackIdx,
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
-    toggleLockLeft, toggleLockRight,
+    toggleLockLeft, toggleLockRight, toggleHandMode,
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
-       hoverLeft, hoverRight, toast, lockedLeft, lockedRight,
+       hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
-       toggleLockLeft, toggleLockRight]);
+       toggleLockLeft, toggleLockRight, toggleHandMode]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }

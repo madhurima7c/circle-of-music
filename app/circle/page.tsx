@@ -22,7 +22,7 @@ import {
 const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
 
 export default function CirclePage() {
-  const { commit, tracks } = useStore();
+  const { commit, tracks, handMode } = useStore();
 
   // First auto-commit after first paint so the ready state actually
   // populates. Skipped when returning mid-session (tracks already loaded) —
@@ -55,7 +55,9 @@ export default function CirclePage() {
       <div className="glass bottom" style={{ bottom: 0, height: 160 }} />
 
       <Dock />
-      <HandTracking />
+      {/* Hand tracking is opt-in: camera + MediaPipe only spin up when the
+          user flips the dock toggle. Unmounting releases the webcam. */}
+      {handMode && <HandTracking />}
       <GestureToast />
       <Hint />
     </main>

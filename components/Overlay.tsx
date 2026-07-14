@@ -944,8 +944,14 @@ export function GestureToast() {
   );
 }
 
-/** Bottom-center icon dock — info + recommend (no more Spotify popover). */
+/** Bottom-center icon dock — hand-mode toggle + info + recommend. */
 export function Dock() {
+  const { handMode, toggleHandMode } = useStore();
+  // Hand tracking makes no sense on touch-primary devices — hide the toggle.
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    setCoarse(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
   return (
     <div
       className="absolute z-20 flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5"
@@ -957,6 +963,27 @@ export function Dock() {
           '0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)',
       }}
     >
+      {!coarse && (
+        <button
+          onClick={toggleHandMode}
+          className="flex size-10 items-center justify-center rounded-full transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]"
+          style={{
+            background: handMode ? 'var(--accent)' : 'transparent',
+            color:      handMode ? '#fff' : '#262626',
+          }}
+          title={handMode ? 'Turn off hand control' : 'Control with your hands (webcam)'}
+          aria-label={handMode ? 'Turn off hand control' : 'Turn on hand control'}
+          aria-pressed={handMode}
+        >
+          {/* hand outline */}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 11V6a2 2 0 0 0-4 0v5" />
+            <path d="M14 10V4a2 2 0 0 0-4 0v6" />
+            <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+          </svg>
+        </button>
+      )}
       <button
         className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
         aria-label="info"
@@ -984,12 +1011,15 @@ export function Dock() {
 }
 
 export function Hint() {
+  const { handMode } = useStore();
   return (
     <div
       className="absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
       style={{ left: 28, bottom: 12 }}
     >
-      👆 move your hand to aim the cursor · 🤏 pinch &amp; hold ~1s on a button to press it · pinch over a wheel and move up/down to spin it
+      {handMode
+        ? <>👆 move your hand to aim the cursor · 🤏 pinch &amp; hold ~1s on a button to press it · pinch over a wheel and move up/down to spin it</>
+        : <>↕ drag or scroll a wheel to spin it · click a letter to jump · ✋ hand control available in the dock below</>}
     </div>
   );
 }
