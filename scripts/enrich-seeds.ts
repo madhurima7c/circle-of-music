@@ -58,12 +58,18 @@ const WHEEL_TO_DEEZER_GENRE_IDS: Record<string, number[]> = {
   'World':      [2, 12, 16, 197],
 };
 
+// Keep in sync with lib/stories.ts normKey (Unicode-aware + fold table).
+const FOLD: Record<string, string> = {
+  'ı': 'i', 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss',
+  'æ': 'ae', 'œ': 'oe', 'ð': 'd', 'þ': 'th',
+};
 function normName(s: string): string {
   return String(s || '')
     .toLowerCase()
+    .replace(/[ıøłđßæœðþ]/g, (c) => FOLD[c] ?? c)
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }
 

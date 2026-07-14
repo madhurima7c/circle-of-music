@@ -178,7 +178,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const genre   = GENRES[genreIdxRef.current];
 
     try {
-      const raw = await buildPlaylist({ country, genre, seeds: SEEDS });
+      let raw = await buildPlaylist({ country, genre, seeds: SEEDS });
+      // Deezer's anonymous JSONP flakes under transient rate limits — an
+      // empty result for a seeded pairing is almost always noise, so retry
+      // once before showing the "no results" card.
+      if (raw.length === 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (gen !== populateGen.current) return;
+        raw = await buildPlaylist({ country, genre, seeds: SEEDS });
+      }
       if (gen !== populateGen.current) return;
       const mapped = raw.map(toTrack);
       setTracks(mapped);

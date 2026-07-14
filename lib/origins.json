@@ -3019,8 +3019,8 @@
  "culoe de song": null,
  "da capo": {
   "name": "Da Capo",
-  "lat": -29.0,
-  "lng": 24.0,
+  "lat": -29,
+  "lng": 24,
   "place": "",
   "country": "South Africa",
   "precision": "country"
@@ -4063,7 +4063,7 @@
   "precision": "city"
  },
  "madrigal": null,
- "faz l say": {
+ "fazil say": {
   "name": "Fazıl Say",
   "lat": 39.936,
   "lng": 32.839,

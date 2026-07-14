@@ -200,9 +200,13 @@ export default function WorldGlobe() {
         const where = o.place && o.place !== o.country ? `${o.place}, ${o.country}` : o.place || o.country;
         const songs = tracks.filter(x => x.artist === t.artist).slice(0, 3).map(x => x.title);
         const story = storyFor(t.artist, countryName, genre);
+        const playing = t.artist === playingArtist;
         seen.set(t.artist, {
-          lat: o.lat, lng: o.lng, id: `a:${t.artist}`, img: t.image || '',
-          playing: t.artist === playingArtist, firstIdx: i,
+          lat: o.lat, lng: o.lng, id: `a:${t.artist}`,
+          // Reference style: a field of small uniform dots; only the playing
+          // marker carries artwork (avatar + sonar ring).
+          img: playing ? t.image || '' : '',
+          playing, firstIdx: i,
           popupHtml:
             `<strong>${esc(t.artist)}</strong>` +
             `<span class="origin-pop__where">${esc(where)}</span>` +
@@ -230,9 +234,11 @@ export default function WorldGlobe() {
       const where = o.place && o.place !== o.country ? `${o.place}, ${o.country}` : o.place || o.country;
       const year = releaseYear(t.releaseDate);
       const story = storyFor(t.artist, countryName, genre);
+      const playing = i === trackIdx;
       out.push({
-        lat: o.lat + jLat, lng: o.lng + jLng, id: `s:${t.id}`, img: '',
-        playing: i === trackIdx, firstIdx: i,
+        lat: o.lat + jLat, lng: o.lng + jLng, id: `s:${t.id}`,
+        img: playing ? t.image || '' : '',
+        playing, firstIdx: i,
         popupHtml:
           `<strong>${esc(t.title)}</strong>` +
           `<span class="origin-pop__where">${esc(t.artist)}${year ? ` · ${year}` : ''}${t.album ? ` · ${esc(t.album)}` : ''}</span>` +

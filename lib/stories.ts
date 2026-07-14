@@ -12,13 +12,23 @@ import stories from './track-stories.json';
 
 const table = stories as Record<string, string>;
 
-/** Same normalization as lib/deezer.ts normName — keep in sync. */
+/** Letters that don't NFKD-decompose to ASCII — folded by hand so
+ *  "Fazıl Say" and "Fazil Say" collapse to the same key. */
+const FOLD: Record<string, string> = {
+  'ı': 'i', 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss',
+  'æ': 'ae', 'œ': 'oe', 'ð': 'd', 'þ': 'th',
+};
+
+/** Same normalization as lib/deezer.ts normName — keep in sync.
+ *  Unicode-aware: CJK/Arabic/Cyrillic names keep their letters (a Korean
+ *  artist must not normalize to the empty string). */
 export function normKey(s: string): string {
   return String(s || '')
     .toLowerCase()
+    .replace(/[ıøłđßæœðþ]/g, (c) => FOLD[c] ?? c)
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }
 

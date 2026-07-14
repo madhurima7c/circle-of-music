@@ -89,12 +89,18 @@ function withPreview(tracks: DeezerTrack[] | null | undefined): DeezerTrack[] {
   return (tracks || []).filter((t) => t && t.preview);
 }
 
+// Keep in sync with lib/stories.ts normKey (Unicode-aware + fold table).
+const NORM_FOLD: Record<string, string> = {
+  'ı': 'i', 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss',
+  'æ': 'ae', 'œ': 'oe', 'ð': 'd', 'þ': 'th',
+};
 function normName(s: string): string {
   return String(s || '')
     .toLowerCase()
+    .replace(/[ıøłđßæœðþ]/g, (c) => NORM_FOLD[c] ?? c)
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }
 
