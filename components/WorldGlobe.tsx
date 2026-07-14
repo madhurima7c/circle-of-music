@@ -6,8 +6,9 @@ import * as THREE from 'three';
 import { useStore } from '@/lib/store';
 import { GENRES } from '@/lib/data';
 import { GEO_URL, PLAYABLE_GEO_NAMES, seedCountryIdx } from '@/lib/geo';
-import { originFor } from '@/lib/origins';
-import { storyFor, releaseYear } from '@/lib/stories';
+import { originFor, type ArtistOrigin } from '@/lib/origins';
+import { originForLive } from '@/lib/origins-live';
+import { storyFor, releaseYear, normKey } from '@/lib/stories';
 import { STR } from '@/lib/strings';
 
 type Feature = {
@@ -167,6 +168,25 @@ export default function WorldGlobe() {
   const playingArtist = tracks[trackIdx]?.artist ?? null;
   const genre = GENRES[genreIdx] ?? '';
 
+  // Origins for artists outside the build-time table (MusicBrainz finds on
+  // unseeded countries) resolve live against Wikidata and stream in.
+  const [liveOrigins, setLiveOrigins] = useState<Record<string, ArtistOrigin>>({});
+  useEffect(() => {
+    if (!tracks.length) return;
+    let alive = true;
+    [...new Set(tracks.map(t => t.artist).filter(Boolean))].forEach((a) => {
+      if (originFor(a)) return;
+      originForLive(a).then((o) => {
+        if (!alive || !o) return;
+        setLiveOrigins(prev =>
+          prev[normKey(a)] ? prev : { ...prev, [normKey(a)]: o });
+      });
+    });
+    return () => { alive = false; };
+  }, [tracks]);
+  const lookupOrigin = (artist: string): ArtistOrigin | null =>
+    originFor(artist) ?? liveOrigins[normKey(artist)] ?? null;
+
   const markers = useMemo<Marker[]>(() => {
     // Dots belong to the zoomed-country moment: nothing until a pick lands.
     if (!selectedGeo || status !== 'ready' || !tracks.length) return [];
@@ -175,7 +195,7 @@ export default function WorldGlobe() {
       const seen = new Map<string, Marker>();
       tracks.forEach((t, i) => {
         if (!t.artist || seen.has(t.artist)) return;
-        const o = originFor(t.artist);
+        const o = lookupOrigin(t.artist);
         if (!o) return;
         const where = o.place && o.place !== o.country ? `${o.place}, ${o.country}` : o.place || o.country;
         const songs = tracks.filter(x => x.artist === t.artist).slice(0, 3).map(x => x.title);
@@ -200,7 +220,7 @@ export default function WorldGlobe() {
     const out: Marker[] = [];
     tracks.forEach((t, i) => {
       if (!t.artist) return;
-      const o = originFor(t.artist);
+      const o = lookupOrigin(t.artist);
       if (!o) return;
       const spotKey = `${o.lat}|${o.lng}`;
       const n = perSpot.get(spotKey) ?? 0;
@@ -222,7 +242,8 @@ export default function WorldGlobe() {
       });
     });
     return out;
-  }, [selectedGeo, status, tracks, dotMode, playingArtist, trackIdx, countryName, genre]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lookupOrigin is stable per (tracks, liveOrigins)
+  }, [selectedGeo, status, tracks, dotMode, playingArtist, trackIdx, countryName, genre, liveOrigins]);
 
   // Keep the sonar ring on the active spot — sound radiates from there.
   const playingMarker = useMemo(() => markers.find(m => m.playing) ?? null, [markers]);

@@ -30,6 +30,15 @@ No env vars are needed to run — the Anthropic key only powers optional
 build-time/runtime curation. The app is anonymous, serverless (only the two
 Next API proxies), no accounts.
 
+**Optional Spotify full-song mode** (`lib/spotify.ts`): set
+`NEXT_PUBLIC_SPOTIFY_CLIENT_ID` in `.env.local` (free app at
+developer.spotify.com/dashboard; whitelist redirect URIs `<origin>/`,
+`<origin>/circle`, `<origin>/world`). A "Connect Spotify" link then appears
+in the card's links row; connected Premium users hear FULL tracks via the
+Web Playback SDK (PKCE, no server/secret), with automatic fallback to the
+30s Deezer preview for anything Spotify can't match. Without the env var,
+Spotify login is never mentioned.
+
 ## Routes & the shared spine
 
 - `app/page.tsx` — landing **hub** (server component) linking the two instruments.
