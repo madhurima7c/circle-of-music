@@ -47,6 +47,9 @@ export const STR = {
     dotCta: 'click to play',
     filterToSongs: 'Dots show artists — switch to songs',
     filterToArtists: 'Dots show songs — switch to artists',
+    dotsLabel: 'What the dots represent',
+    dotsArtists: 'Dots represent artists',
+    dotsSongs: 'Dots represent songs',
     handToggle: 'Hand control (webcam)',
   },
 

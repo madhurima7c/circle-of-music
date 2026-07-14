@@ -1027,11 +1027,17 @@ html, body {
   color: #fff;
 }
 
-/* Fab stack, bottom-right: shuffle (primary), dot filter, hand toggle. */
-.world-fab {
+/* Bottom dock, centered: hand · artists|songs segmented toggle · shuffle. */
+.world-dock {
   position: absolute;
-  right: 24px;
+  left: 50%; bottom: 30px;
+  transform: translateX(-50%);
   z-index: 16;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.world-fab {
   width: 44px; height: 44px;
   display: grid; place-items: center;
   border-radius: 50%;
@@ -1043,27 +1049,63 @@ html, body {
 .world-fab:hover { filter: brightness(1.12); }
 .world-fab:active { transform: scale(0.94); }
 .world-fab--shuffle {
-  bottom: 30px;
   background: var(--accent);
   color: #fff;
   box-shadow: 0 8px 24px rgba(31, 43, 214, 0.4);
 }
-.world-fab--filter,
 .world-fab--hand {
   background: rgba(255, 255, 255, 0.08);
   color: rgba(205, 211, 255, 0.85);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(205, 211, 255, 0.18);
 }
-.world-fab--filter { bottom: 84px; }
-.world-fab--hand   { bottom: 138px; }
 .world-fab--hand[data-active="true"] {
   background: rgba(120, 130, 255, 0.28);
   color: #fff;
   box-shadow: 0 6px 18px rgba(31, 43, 214, 0.35), inset 0 0 0 1px rgba(150, 160, 255, 0.6);
 }
+/* Segmented artists|songs toggle — one control, both options visible. */
+.world-seg {
+  display: flex;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(205, 211, 255, 0.18);
+  overflow: hidden;
+}
+.world-seg button {
+  width: 46px;
+  display: grid; place-items: center;
+  border: none;
+  background: transparent;
+  color: rgba(205, 211, 255, 0.7);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.world-seg button:hover { color: #fff; }
+.world-seg button[data-active="true"] {
+  background: linear-gradient(100deg, var(--accent) 0%, #4a5cff 100%);
+  color: #fff;
+}
 /* Hand tracking needs a webcam + fine pointer — hide the toggle on touch. */
 @media (pointer: coarse) {
   .world-fab--hand { display: none; }
+}
+
+/* World playlist panel: same height as the genre rail on the left. */
+.center--dock-right .center__stack {
+  height: min(68vh, 620px);
+  min-height: 0;
+  max-height: none;
+}
+.center--dock-right .center__up-next {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.center--dock-right .center__queue {
+  flex: 1;
+  max-height: none;
 }
 .globe-tip {
   font-family: var(--font-mono);
@@ -1211,11 +1253,13 @@ html, body {
   .hub { gap: 30px; }
   .hint { display: none; } /* too long for a phone; interactions are direct */
 
-  /* World genre rail + fabs: tighter on phones so the globe stays visible. */
+  /* World genre rail + dock: tighter on phones so the globe stays visible. */
   .world-genres { left: 8px; max-height: 54vh; width: 116px; }
   .world-genre-chip { font-size: 10px; padding: 6px 10px; }
-  .world-fab { width: 38px; height: 38px; right: 14px; }
-  .world-fab--filter { bottom: 76px; }
-  .world-fab--hand { bottom: 122px; }
+  .world-dock { bottom: 18px; gap: 8px; }
+  .world-fab { width: 38px; height: 38px; }
+  .world-seg { height: 38px; }
+  .world-seg button { width: 40px; }
   .world-to-circle-link { top: 62px; }
+  .center--dock-right .center__stack { height: 54vh; }
 }

@@ -75,12 +75,9 @@ export default function WorldGlobe() {
     const saved = window.localStorage.getItem('worldDots');
     if (saved === 'songs' || saved === 'artists') setDotMode(saved);
   }, []);
-  const toggleDotMode = () => {
-    setDotMode((m) => {
-      const next = m === 'artists' ? 'songs' : 'artists';
-      window.localStorage.setItem('worldDots', next);
-      return next;
-    });
+  const setDotModePersist = (mode: DotMode) => {
+    setDotMode(mode);
+    window.localStorage.setItem('worldDots', mode);
   };
 
   /* ---------- load country polygons ---------- */
@@ -112,7 +109,10 @@ export default function WorldGlobe() {
     return m;
   }, []);
 
-  /* ---------- constrain controls + gentle auto-spin until first pick ---------- */
+  /* ---------- constrain controls; set the opening viewpoint ONCE ----------
+   * The initial pointOfView must never re-run on status changes — that was
+   * snapping the camera back out right after a country fly-in. */
+  const povInitialised = useRef(false);
   useEffect(() => {
     const g = globeRef.current;
     if (!g || !size.w) return;
@@ -122,10 +122,19 @@ export default function WorldGlobe() {
     controls.maxDistance = 520;
     controls.enableDamping = true;
     controls.dampingFactor = 0.12;
-    controls.autoRotate = status === 'empty';
     controls.autoRotateSpeed = 0.35;
-    g.pointOfView({ altitude: 2.4 }, 0);
-  }, [size.w, status]);
+    if (!povInitialised.current) {
+      povInitialised.current = true;
+      g.pointOfView({ altitude: 2.4 }, 0);
+    }
+  }, [size.w]);
+
+  /* gentle auto-spin only until the first pick */
+  useEffect(() => {
+    const g = globeRef.current;
+    if (!g || !size.w) return;
+    g.controls().autoRotate = status === 'empty';
+  }, [status, size.w]);
 
   /* ---------- keep the active genre visible in the rail ---------- */
   useEffect(() => {
@@ -158,12 +167,15 @@ export default function WorldGlobe() {
   };
 
   // Any nation plays: seeded countries use the curated pipeline, the rest
-  // go through the MusicBrainz tier (thin but real).
+  // go through the world-seeds/MusicBrainz tiers.
   const onClick = (feat: object) => {
     const f = feat as Feature;
     const name = f.properties.NAME;
-    setSelectedGeo(name);
     flyTo(f);
+    // Re-clicking the loaded country (e.g. a double-click while zooming)
+    // must not refetch — that emptied the queue and stripped the dots.
+    if (name === selectedGeo && status !== 'error' && status !== 'empty') return;
+    setSelectedGeo(name);
     const idx = seedCountryIdx(name);
     if (idx >= 0) playPlace(idx, genreIdx);
     else playPlaceNamed(name, genreIdx);
@@ -374,44 +386,56 @@ export default function WorldGlobe() {
         <div className="world-hint">{STR.world.tapHint}</div>
       )}
 
-      {/* Fab stack, bottom-right: hand toggle · dot filter · shuffle. */}
-      <button
-        className="world-fab world-fab--hand"
-        data-active={handMode ? 'true' : 'false'}
-        onClick={toggleHandMode}
-        title={STR.world.handToggle}
-        aria-label={STR.world.handToggle}
-        aria-pressed={handMode}
-      >
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 11V6a2 2 0 0 0-4 0v5" /><path d="M14 10V4a2 2 0 0 0-4 0v2" />
-          <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
-          <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
-        </svg>
-      </button>
-      <button
-        className="world-fab world-fab--filter"
-        onClick={toggleDotMode}
-        title={dotMode === 'artists' ? STR.world.filterToSongs : STR.world.filterToArtists}
-        aria-label={dotMode === 'artists' ? STR.world.filterToSongs : STR.world.filterToArtists}
-      >
-        {dotMode === 'artists' ? (
-          // person glyph — dots currently show artists
+      {/* Bottom dock, centered: hand toggle · artists|songs segmented toggle · shuffle. */}
+      <div className="world-dock">
+        <button
+          className="world-fab world-fab--hand"
+          data-active={handMode ? 'true' : 'false'}
+          onClick={toggleHandMode}
+          title={STR.world.handToggle}
+          aria-label={STR.world.handToggle}
+          aria-pressed={handMode}
+        >
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+            <path d="M18 11V6a2 2 0 0 0-4 0v5" /><path d="M14 10V4a2 2 0 0 0-4 0v2" />
+            <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
           </svg>
-        ) : (
-          // note glyph — dots currently show songs
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+        </button>
+
+        <div className="world-seg" role="radiogroup" aria-label={STR.world.dotsLabel}>
+          <button
+            role="radio"
+            aria-checked={dotMode === 'artists'}
+            data-active={dotMode === 'artists' ? 'true' : 'false'}
+            title={STR.world.dotsArtists}
+            aria-label={STR.world.dotsArtists}
+            onClick={() => setDotModePersist('artists')}
+          >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+            </svg>
+          </button>
+          <button
+            role="radio"
+            aria-checked={dotMode === 'songs'}
+            data-active={dotMode === 'songs' ? 'true' : 'false'}
+            title={STR.world.dotsSongs}
+            aria-label={STR.world.dotsSongs}
+            onClick={() => setDotModePersist('songs')}
+          >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+            </svg>
+          </button>
+        </div>
+
+        <button className="world-fab world-fab--shuffle" onClick={shuffle} title={STR.world.surprise} aria-label={STR.world.surprise}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 3h5v5" /><path d="M4 20 21 3" /><path d="M21 16v5h-5" /><path d="m15 15 6 6" /><path d="M4 4l5 5" />
           </svg>
-        )}
-      </button>
-      <button className="world-fab world-fab--shuffle" onClick={shuffle} title={STR.world.surprise} aria-label={STR.world.surprise}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M16 3h5v5" /><path d="M4 20 21 3" /><path d="M21 16v5h-5" /><path d="m15 15 6 6" /><path d="M4 4l5 5" />
-        </svg>
-      </button>
+        </button>
+      </div>
     </div>
   );
 }

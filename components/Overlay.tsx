@@ -180,7 +180,7 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
     <div
       className={
         dock === 'right'
-          ? 'absolute right-7 top-1/2 z-[5] -translate-y-1/2'
+          ? 'center--dock-right absolute right-7 top-1/2 z-[5] -translate-y-1/2'
           : 'absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2'
       }
     >
