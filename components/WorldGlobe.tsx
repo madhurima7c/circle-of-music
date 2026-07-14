@@ -32,9 +32,10 @@ type Marker = {
 
 // Stylized, non-satellite palette (matches the app's ink/accent).
 const COL = {
-  playable:      'rgba(31, 43, 214, 0.55)',   // accent — has curated music
+  playable:      'rgba(31, 43, 214, 0.55)',   // accent — hand-curated wheel country
+  world:         'rgba(31, 43, 214, 0.26)',   // world-seeds coverage (all nations pipeline)
   playableSel:   'rgba(120, 130, 255, 0.95)',
-  dim:           'rgba(120, 120, 130, 0.10)',  // unseeded — still tappable (MusicBrainz tier)
+  dim:           'rgba(120, 120, 130, 0.10)',  // no data yet — still tappable (MusicBrainz tier)
   hover:         'rgba(205, 208, 220, 0.38)',  // light grey hover, both kinds
   dimHover:      'rgba(205, 208, 220, 0.22)',
   side:          'rgba(20, 20, 30, 0.45)',
@@ -58,6 +59,17 @@ export default function WorldGlobe() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [selectedGeo, setSelectedGeo] = useState<string | null>(null);
   const [dotMode, setDotMode] = useState<DotMode>('artists');
+  // Countries the world-seeds pipeline has verified artists for.
+  const [worldCovered, setWorldCovered] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    import('@/lib/world-seeds.json')
+      .then((m) => {
+        const data = (m.default ?? m) as unknown as Record<string, { top: string[] }>;
+        setWorldCovered(new Set(Object.keys(data).filter((k) => data[k].top.length > 0)));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('worldDots');
@@ -122,6 +134,20 @@ export default function WorldGlobe() {
       ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [genreIdx]);
 
+  /* Dev-only: the headless preview can't raycast canvas clicks (no rAF in
+   * hidden tabs), so expose the tap actions for scripted verification. */
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    (window as unknown as Record<string, unknown>).__world = {
+      select: (name: string, gi?: number) => {
+        setSelectedGeo(name);
+        const idx = seedCountryIdx(name);
+        if (idx >= 0) playPlace(idx, gi);
+        else playPlaceNamed(name, gi);
+      },
+    };
+  }, [playPlace, playPlaceNamed]);
+
   // Country-level zoom: close enough that the country fills the view (the
   // globe may overflow the frame — users zoom/rotate out freely).
   const flyTo = (f: Feature) => {
@@ -154,14 +180,15 @@ export default function WorldGlobe() {
     const name = (feat as Feature).properties.NAME;
     const playable = PLAYABLE_GEO_NAMES.has(name);
     if (name === selectedGeo) return COL.playableSel;
-    if (name === hovered) return playable ? COL.hover : COL.dimHover;
-    return playable ? COL.playable : COL.dim;
+    if (name === hovered) return playable || worldCovered.has(name) ? COL.hover : COL.dimHover;
+    if (playable) return COL.playable;
+    return worldCovered.has(name) ? COL.world : COL.dim;
   };
 
   const label = (feat: object) => {
     const name = (feat as Feature).properties.NAME;
-    const playable = PLAYABLE_GEO_NAMES.has(name);
-    return `<div class="globe-tip" data-playable="${playable}">${esc(name)}${playable ? '' : STR.world.exploreSuffix}</div>`;
+    const hasMusic = PLAYABLE_GEO_NAMES.has(name) || worldCovered.has(name);
+    return `<div class="globe-tip" data-playable="${hasMusic}">${esc(name)}${hasMusic ? '' : STR.world.exploreSuffix}</div>`;
   };
 
   /* ---------- flat markers: artists (avatars) or songs (dots) ---------- */

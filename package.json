@@ -12,7 +12,8 @@
     "curate:all": "tsx scripts/curate.ts -- --all",
     "audit": "tsx scripts/audit-pairings.ts",
     "origins": "tsx scripts/build-origins.ts",
-    "enrich": "tsx scripts/enrich-seeds.ts"
+    "enrich": "tsx scripts/enrich-seeds.ts",
+    "world-seeds": "tsx scripts/build-world-seeds.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

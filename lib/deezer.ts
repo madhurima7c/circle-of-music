@@ -379,6 +379,40 @@ async function curateRuntime(country: string, genre: string): Promise<string[]> 
 
 /** Case-insensitive union — keeps order from the primary list, appends any
  *  names from secondary that aren't already present. */
+/* ---------- world seeds (every globe nation) ----------
+ * Built by scripts/build-world-seeds.ts from Wikidata + Every Noise +
+ * Deezer verification. Loaded lazily — only the World's "any country"
+ * path pays for the chunk. */
+type WorldEntry = { top: string[]; featured: string[]; genres: Record<string, string[]> };
+let worldSeedsCache: Record<string, WorldEntry> | null | undefined;
+
+async function worldEntry(country: string): Promise<WorldEntry | null> {
+  if (worldSeedsCache === undefined) {
+    try {
+      const mod = await import('./world-seeds.json');
+      worldSeedsCache = (mod.default ?? mod) as unknown as Record<string, WorldEntry>;
+    } catch {
+      worldSeedsCache = null;
+    }
+  }
+  return worldSeedsCache?.[country] ?? null;
+}
+
+/** Genre-bucketed world artists (+ related-genre borrows), like
+ *  orderedSeedArtists but for countries outside the wheel. */
+async function worldSeedArtists(country: string, genre: string): Promise<string[]> {
+  const entry = await worldEntry(country);
+  if (!entry) return [];
+  const out = [...(entry.genres[genre] ?? [])];
+  const seen = new Set(out);
+  for (const g of RELATED_GENRES[genre] ?? []) {
+    for (const a of entry.genres[g] ?? []) {
+      if (!seen.has(a)) { seen.add(a); out.push(a); }
+    }
+  }
+  return out;
+}
+
 function unionArtists(primary: string[], secondary: string[]): string[] {
   const out = [...primary];
   const lower = new Set(primary.map((s) => s.toLowerCase()));
@@ -428,12 +462,15 @@ export async function buildPlaylist({
     if (!seen.has(t.id)) { seen.add(t.id); queue.push(t); }
   }
 
-  /* Tiers 1+2: MusicBrainz ∪ seeds.json artists. */
+  /* Tiers 1+2: MusicBrainz ∪ seeds.json artists. Countries outside the
+   * wheel have no seeds.json bucket — world-seeds.json (all nations,
+   * Wikidata-sourced + Deezer-verified) takes its place. */
   const [mbArtists, seedArtists] = await Promise.all([
     findArtistsViaMusicBrainz(country, genre),
     Promise.resolve(orderedSeedArtists(country, genre, seeds)),
   ]);
-  const combined = unionArtists(mbArtists, seedArtists);
+  const worldArtists = seedArtists.length ? [] : await worldSeedArtists(country, genre);
+  const combined = unionArtists(unionArtists(worldArtists, seedArtists), mbArtists);
 
   if (combined.length && queue.length < 22) {
     const perArtist = await Promise.all(
@@ -442,6 +479,20 @@ export async function buildPlaylist({
       ),
     );
     queue.push(...roundRobinMerge(perArtist, 26 - queue.length, seen));
+  }
+
+  /* Tier 2.5: still empty on a world country → the country's most notable
+   * artists across ANY genre. Hearing the place beats dead air. */
+  if (queue.length === 0) {
+    const entry = await worldEntry(country);
+    if (entry?.top.length) {
+      const perArtist = await Promise.all(
+        entry.top.slice(0, 10).map((a) =>
+          searchArtistTracksStrict(a, genre, 11).catch(() => [] as DeezerTrack[]),
+        ),
+      );
+      queue.push(...roundRobinMerge(perArtist, 26, seen));
+    }
   }
 
   /* Tier 3: LLM fallback if all the above failed. */
