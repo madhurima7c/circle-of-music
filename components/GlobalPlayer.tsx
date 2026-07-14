@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { STR } from '@/lib/strings';
+import {
+  spotifyEnabled, subscribeSpotify, isSpotifyConnected, handleSpotifyCallback,
+  ensurePlayer, findTrackUri, playUri, sdkPause, sdkResume,
+} from '@/lib/spotify';
 
 /**
  * GlobalPlayer — the one <audio> element for the whole app.
@@ -17,7 +21,15 @@ import { STR } from '@/lib/strings';
  * Also owns the MediaSession integration (lock-screen / hardware-key
  * metadata + transport controls) and a compact mini-player pill shown on
  * routes where the Circle's center card isn't visible.
+ *
+ * Spotify mode (env-gated, opt-in): when the user has connected Spotify and
+ * the Web Playback SDK device is ready, each track is searched on Spotify
+ * and played in FULL through the SDK; the <audio> preview stays silent for
+ * that track. Any miss (track not on Spotify, non-Premium account, SDK
+ * failure) falls back to the 30s Deezer preview — never dead air.
  */
+const serverFalse = () => false;
+
 export function GlobalPlayer() {
   const {
     tracks, trackIdx, isPlaying, status,
@@ -28,26 +40,88 @@ export function GlobalPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pathname = usePathname();
 
+  /* ---------- Spotify (full songs) ---------- */
+  const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, serverFalse);
+  const [spotifyDevice, setSpotifyDevice] = useState<string | null>(null);
+  // True while the CURRENT track is sounding through the SDK, so the
+  // isPlaying effect and end-of-track logic route to the right backend.
+  const viaSpotify = useRef(false);
+  const sdkPrev = useRef<{ position: number; duration: number } | null>(null);
+  const onEndedRef = useRef<() => void>(() => {});
+
+  useEffect(() => { handleSpotifyCallback(); }, []);
+
+  useEffect(() => {
+    if (!spotifyEnabled || !spotifyOn) { setSpotifyDevice(null); return; }
+    let alive = true;
+    ensurePlayer((s) => {
+      if (!s) return;
+      const prev = sdkPrev.current;
+      sdkPrev.current = { position: s.position, duration: s.duration };
+      // "Track finished" signature: SDK rewinds to a paused position 0
+      // after having been near the end.
+      if (
+        viaSpotify.current && prev && s.paused && s.position === 0 &&
+        prev.duration > 0 && prev.position > prev.duration - 5000
+      ) {
+        onEndedRef.current();
+      }
+    }).then((id) => { if (alive) setSpotifyDevice(id); });
+    return () => { alive = false; };
+  }, [spotifyOn]);
+
   /* ---------- sync audio src + autoplay when track changes ---------- */
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     setAutoplayBlocked(false);
-    if (!track?.preview) {
-      audio.pause();
-      audio.removeAttribute('src');
+    viaSpotify.current = false;
+
+    const playPreview = () => {
+      if (!track?.preview) {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        return;
+      }
+      audio.src = track.preview;
       audio.load();
+      // Always autoplay a newly loaded track; a rejected play() means the
+      // browser wants a user gesture first — surfaced on the play button.
+      audio.play().catch(() => setAutoplayBlocked(true));
+    };
+
+    if (!(spotifyOn && spotifyDevice && track)) {
+      playPreview();
       return;
     }
-    audio.src = track.preview;
-    audio.load();
-    // Always autoplay a newly loaded track; a rejected play() means the
-    // browser wants a user gesture first — surfaced on the play button.
-    audio.play().catch(() => setAutoplayBlocked(true));
-  }, [track?.id, track?.preview]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ---------- sync isPlaying with the audio element ---------- */
+    let cancelled = false;
+    findTrackUri(track.artist, track.title)
+      .then((uri) => (uri && !cancelled ? playUri(uri) : false))
+      .then((ok) => {
+        if (cancelled) return;
+        if (ok) {
+          viaSpotify.current = true;
+          setIsPlaying(true);
+          audio.pause();
+          audio.removeAttribute('src');
+          audio.load();
+        } else {
+          playPreview();
+        }
+      })
+      .catch(() => { if (!cancelled) playPreview(); });
+    return () => { cancelled = true; };
+  }, [track?.id, track?.preview, spotifyOn, spotifyDevice]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ---------- sync isPlaying with whichever backend is sounding ---------- */
   useEffect(() => {
+    if (viaSpotify.current) {
+      if (isPlaying) sdkResume();
+      else sdkPause();
+      return;
+    }
     const audio = audioRef.current;
     if (!audio) return;
     if (isPlaying) audio.play().catch(() => setIsPlaying(false));
@@ -91,12 +165,12 @@ export function GlobalPlayer() {
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
   }, [isPlaying]);
 
-  /* ---------- end of preview: advance, or reshuffle the pool ---------- */
+  /* ---------- end of track: advance, or reshuffle the pool ---------- */
   const onEnded = () => {
     if (tracks.length === 0) return;
     if (tracks.length === 1) {
       const audio = audioRef.current;
-      if (audio) {
+      if (audio && !viaSpotify.current) {
         audio.currentTime = 0;
         audio.play().catch(() => setAutoplayBlocked(true));
       }
@@ -106,9 +180,12 @@ export function GlobalPlayer() {
     else nextTrack();
     setIsPlaying(true);
   };
+  onEndedRef.current = onEnded;
 
-  // The mini pill shows wherever the Circle's center card isn't the player UI.
-  const showMini = pathname !== '/circle' && status === 'ready' && !!track;
+  // The mini pill shows wherever neither the Circle card nor the World's
+  // docked playlist panel is the player UI.
+  const showMini =
+    pathname !== '/circle' && pathname !== '/world' && status === 'ready' && !!track;
 
   return (
     <>

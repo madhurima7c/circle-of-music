@@ -945,17 +945,27 @@ html, body {
   color: #cdd3ff;
   text-decoration: none;
 }
-.world-to-circle {
+/* Instrument toggles — plain underlined links, right edge on both routes. */
+.world-to-circle-link,
+.circle-to-world-link {
   position: absolute;
-  left: 24px; top: 30px;
+  right: 24px; top: 34px;
   z-index: 20;
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: rgba(205, 211, 255, 0.6);
-  text-decoration: none;
-  max-width: 220px;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: rgba(205, 211, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 140ms ease;
 }
-.world-to-circle:hover { color: #fff; }
+.world-to-circle-link:hover { color: #fff; }
+.circle-to-world-link {
+  top: 72px; /* below the library button, same right edge */
+  color: rgba(20, 22, 40, 0.55);
+  z-index: 30;
+}
+.circle-to-world-link:hover { color: var(--accent); }
 .world-globe { position: absolute; inset: 0; }
 .world-loading {
   position: absolute; inset: 0;
@@ -977,7 +987,8 @@ html, body {
   pointer-events: none;
   white-space: nowrap;
 }
-/* Vertical genre rail, docked left — scrolls when the list outgrows it. */
+/* Vertical genre rail, docked left — a quiet list with hairline separators,
+   not pills. May overlap the globe; that's by design. */
 .world-genres {
   position: absolute;
   left: 18px; top: 50%;
@@ -985,10 +996,10 @@ html, body {
   z-index: 16;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  width: 148px;
   max-height: min(68vh, 620px);
   overflow-y: auto;
-  padding: 24px 4px;
+  padding: 12px 0;
   scrollbar-width: none;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 24px), transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 24px), transparent);
@@ -999,36 +1010,61 @@ html, body {
   text-align: left;
   font-family: var(--font-mono);
   font-size: 11px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  border: 1px solid rgba(205, 211, 255, 0.2);
-  background: rgba(255, 255, 255, 0.04);
+  letter-spacing: 0.02em;
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 1px solid rgba(205, 211, 255, 0.14); /* the light line between rows */
+  background: transparent;
   color: rgba(205, 211, 255, 0.7);
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  transition: background 140ms ease, color 140ms ease;
 }
-.world-genre-chip:hover { color: #fff; border-color: rgba(205, 211, 255, 0.45); }
+.world-genre-chip:last-child { border-bottom: none; }
+.world-genre-chip:hover { color: #fff; background: rgba(205, 211, 255, 0.07); }
+.world-genre-chip:active { color: #fff; }
 .world-genre-chip[data-active="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(100deg, var(--accent) 0%, #4a5cff 100%);
   color: #fff;
 }
-.world-shuffle {
+
+/* Fab stack, bottom-right: shuffle (primary), dot filter, hand toggle. */
+.world-fab {
   position: absolute;
-  right: 24px; bottom: 30px;
+  right: 24px;
   z-index: 16;
   width: 44px; height: 44px;
   display: grid; place-items: center;
   border-radius: 50%;
   border: none;
+  cursor: pointer;
+  transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1), filter 150ms ease,
+              background 150ms ease, color 150ms ease;
+}
+.world-fab:hover { filter: brightness(1.12); }
+.world-fab:active { transform: scale(0.94); }
+.world-fab--shuffle {
+  bottom: 30px;
   background: var(--accent);
   color: #fff;
-  cursor: pointer;
   box-shadow: 0 8px 24px rgba(31, 43, 214, 0.4);
-  transition: transform 150ms ease, filter 150ms ease;
 }
-.world-shuffle:hover { filter: brightness(1.1); }
-.world-shuffle:active { transform: scale(0.94); }
+.world-fab--filter,
+.world-fab--hand {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(205, 211, 255, 0.85);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(205, 211, 255, 0.18);
+}
+.world-fab--filter { bottom: 84px; }
+.world-fab--hand   { bottom: 138px; }
+.world-fab--hand[data-active="true"] {
+  background: rgba(120, 130, 255, 0.28);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(31, 43, 214, 0.35), inset 0 0 0 1px rgba(150, 160, 255, 0.6);
+}
+/* Hand tracking needs a webcam + fine pointer — hide the toggle on touch. */
+@media (pointer: coarse) {
+  .world-fab--hand { display: none; }
+}
 .globe-tip {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1039,28 +1075,111 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 .globe-tip[data-playable="false"] { color: rgba(255, 255, 255, 0.5); }
-/* Artist-origin dot tooltip: artist · place · optional story. */
-.globe-tip--origin {
+
+/* ---------- flat origin markers (html elements layer) ---------- */
+/* The wrapper is positioned by the globe; keep it flat — a 2D pin on the
+   surface, no 3D extrusion. */
+.origin-marker {
+  position: relative;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: opacity 200ms ease;
+}
+/* Plain dot (songs mode + artists without artwork): outline ring by default… */
+.origin-marker__dot {
+  display: block;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: rgba(14, 15, 26, 0.55);
+  border: 1.5px solid rgba(160, 170, 255, 0.9);
+  box-shadow: 0 0 6px rgba(80, 95, 255, 0.35);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+/* …filled and larger on the playing marker. */
+.origin-marker[data-playing="true"] .origin-marker__dot {
+  width: 15px; height: 15px;
+  background: #aab4ff;
+  border-color: #dfe4ff;
+  box-shadow: 0 0 12px rgba(140, 155, 255, 0.8);
+}
+/* Artist avatars (artists mode): small round profile images. */
+.origin-marker__img {
+  display: block;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(160, 170, 255, 0.65);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
+}
+.origin-marker[data-playing="true"] .origin-marker__img {
+  width: 34px; height: 34px;
+  border-color: #dfe4ff;
+  box-shadow: 0 0 14px rgba(140, 155, 255, 0.85);
+}
+@media (hover: hover) and (pointer: fine) {
+  .origin-marker:hover .origin-marker__dot,
+  .origin-marker:hover .origin-marker__img { transform: scale(1.15); }
+}
+/* Hover popup — artist or song blurb, above the marker. */
+.origin-pop {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  transform-origin: bottom center;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  max-width: 240px;
-  white-space: normal;
-  padding: 7px 10px;
+  width: max-content;
+  max-width: 250px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  background: rgba(10, 10, 18, 0.94);
+  border: 1px solid rgba(205, 211, 255, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 5;
 }
-.globe-tip--origin strong { font-size: 12px; }
-.globe-tip__where { color: rgba(205, 211, 255, 0.85); }
-.globe-tip__story {
+.origin-marker:hover .origin-pop {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+.origin-pop strong { font-size: 12px; }
+.origin-pop__where { color: rgba(205, 211, 255, 0.85); }
+.origin-pop__songs { color: rgba(255, 255, 255, 0.65); }
+.origin-pop__story {
   color: rgba(255, 255, 255, 0.55);
   font-size: 10.5px;
   line-height: 1.45;
+  white-space: normal;
 }
-.globe-tip__cta {
+.origin-pop__cta {
   color: rgba(150, 160, 255, 0.9);
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
+/* Spotify connect — sits in the card's links row, styled like a link. */
+.center__spotify-connect {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  color: #1db954;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.center__spotify-connect:hover { filter: brightness(1.2); }
+.center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
 @media (max-width: 640px) {
   .frame { inset: 10px; }
@@ -1096,7 +1215,11 @@ html, body {
   .hub { gap: 30px; }
   .hint { display: none; } /* too long for a phone; interactions are direct */
 
-  /* World genre rail: tighter on phones so the globe stays visible. */
-  .world-genres { left: 8px; max-height: 54vh; }
-  .world-genre-chip { font-size: 10px; padding: 4px 9px; }
+  /* World genre rail + fabs: tighter on phones so the globe stays visible. */
+  .world-genres { left: 8px; max-height: 54vh; width: 116px; }
+  .world-genre-chip { font-size: 10px; padding: 6px 10px; }
+  .world-fab { width: 38px; height: 38px; right: 14px; }
+  .world-fab--filter { bottom: 76px; }
+  .world-fab--hand { bottom: 122px; }
+  .world-to-circle-link { top: 62px; }
 }

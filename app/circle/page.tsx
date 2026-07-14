@@ -1,7 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useEffect } from 'react';
+import { STR } from '@/lib/strings';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { coverSlug } from '@/lib/covers';
@@ -80,6 +82,11 @@ export default function CirclePage() {
 
       <div className="glass top"    style={{ top: 0,    height: 130 }} />
       <div className="glass bottom" style={{ bottom: 0, height: 160 }} />
+
+      {/* Instrument toggle: mirror of the World's right-edge link. */}
+      <Link href="/world" className="circle-to-world-link">
+        ◍ {STR.circle.toWorldLink}
+      </Link>
 
       <Dock />
       {/* Hand tracking is opt-in: camera + MediaPipe only spin up when the

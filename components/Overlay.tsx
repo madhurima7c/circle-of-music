@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -11,6 +11,10 @@ import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
+import {
+  spotifyEnabled, subscribeSpotify, isSpotifyConnected,
+  connectSpotify, disconnectSpotify,
+} from '@/lib/spotify';
 
 gsap.registerPlugin(useGSAP);
 
@@ -121,11 +125,12 @@ export function ConnectorTags() {
  *  re-orders the queue around the current track, and when the last
  *  preview ends the pool reshuffles and replays from the top.
  * ================================================================ */
-export function CenterStack() {
+export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } = {}) {
   const {
     tracks, trackIdx, status, isPlaying, countryName, genreIdx,
     togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
   } = useStore();
+  const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
   const country = countryName || '';
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
@@ -172,7 +177,13 @@ export function CenterStack() {
   }, { scope: stackRef, dependencies: [track?.id] });
 
   return (
-    <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
+    <div
+      className={
+        dock === 'right'
+          ? 'absolute right-7 top-1/2 z-[5] -translate-y-1/2'
+          : 'absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2'
+      }
+    >
       {status !== 'empty' && (
         <div className="center__stack" ref={stackRef}>
           <div
@@ -245,6 +256,16 @@ export function CenterStack() {
                   <a href={links.appleMusic} target="_blank" rel="noreferrer">Apple</a>
                   <a href={links.youtube}    target="_blank" rel="noreferrer">YouTube</a>
                   <a href={links.deezer}     target="_blank" rel="noreferrer">Deezer</a>
+                  {spotifyEnabled && (
+                    <button
+                      className="center__spotify-connect"
+                      data-connected={spotifyOn ? 'true' : 'false'}
+                      onClick={() => (spotifyOn ? disconnectSpotify() : connectSpotify())}
+                      title={spotifyOn ? STR.spotify.disconnect : STR.spotify.connect}
+                    >
+                      {spotifyOn ? STR.spotify.connected : STR.spotify.connect}
+                    </button>
+                  )}
                 </div>
               )}
 

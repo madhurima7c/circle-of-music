@@ -42,14 +42,25 @@ export const STR = {
     tapHint: 'Tap any country to hear its music · drag to spin, pinch to zoom',
     surprise: 'Spin to a random country',
     toCircle: 'Open in Circle',
+    toCircleLink: 'Go to Circle of Music',
     exploreSuffix: ' · tap to explore',
     dotCta: 'click to play',
+    filterToSongs: 'Dots show artists — switch to songs',
+    filterToArtists: 'Dots show songs — switch to artists',
+    handToggle: 'Hand control (webcam)',
   },
 
   circle: {
     title: 'Circle of Music',
     description: 'Country × Genre, on a circle.',
     backToHub: 'Back to the hub',
+    toWorldLink: 'Go to World of Music',
+  },
+
+  spotify: {
+    connect: 'Connect Spotify',
+    connected: 'Spotify ✓ full songs',
+    disconnect: 'Disconnect Spotify (back to previews)',
   },
 
   card: {
