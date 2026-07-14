@@ -9,6 +9,7 @@ import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
+import { toggleFind, useIsFind } from '@/lib/library';
 
 gsap.registerPlugin(useGSAP);
 
@@ -133,6 +134,7 @@ export function CenterStack() {
 
   // Deep links out for the current track — pure local URLs, no API.
   const links = track ? trackLinks(track.artist, track.title, track.id) : null;
+  const saved = useIsFind(track?.id);
 
   // Stable HSL pair consumed by the pending-view gradient.
   const gradient = illustrationGradientPair(country, genre);
@@ -257,6 +259,26 @@ export function CenterStack() {
                     {track ? `${track.album} — ${track.artist}${track.releaseDate ? ` · ${track.releaseDate}` : ''}` : ''}
                   </p>
                 </div>
+                {track && (
+                  <button
+                    className="center__heart"
+                    data-saved={saved ? 'true' : 'false'}
+                    onClick={() => toggleFind({
+                      id: track.id, title: track.title, artist: track.artist,
+                      album: track.album, image: track.image, preview: track.preview,
+                      country, genre, savedAt: Date.now(),
+                    })}
+                    title={saved ? STR.card.unsave : STR.card.save}
+                    aria-label={saved ? STR.card.unsave : STR.card.save}
+                    aria-pressed={saved}
+                  >
+                    <svg viewBox="0 0 24 24" width="17" height="17"
+                      fill={saved ? 'currentColor' : 'none'}
+                      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                    </svg>
+                  </button>
+                )}
               </div>
 
               <div className="center__up-next">

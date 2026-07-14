@@ -15,10 +15,10 @@ import {
   WheelLock,
   Dock,
   Hint,
-  MenuMark,
   HandTracking,
   GestureToast,
 } from '@/components/Overlay';
+import { Library } from '@/components/Library';
 
 // 3D stage is client-only and bundle-heavy — split it.
 const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
@@ -61,7 +61,7 @@ export default function CirclePage() {
   return (
     <main className="frame">
       <Title />
-      <MenuMark />
+      <Library />
 
       <Stage />
 

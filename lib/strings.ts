@@ -58,6 +58,20 @@ export const STR = {
     playPause: 'Play / pause',
     next: 'Next',
     shuffle: 'Shuffle',
+    save: 'Save to your finds',
+    unsave: 'Remove from your finds',
+  },
+
+  library: {
+    title: 'Your finds',
+    open: 'Your finds',
+    empty: 'No finds yet. Tap the ♥ on a track you love to keep it here.',
+    playAll: 'Play all',
+    export: 'Export',
+    import: 'Import',
+    remove: 'Remove',
+    close: 'Close',
+    imported: (n: number) => (n ? `Imported ${n} find${n === 1 ? '' : 's'}.` : 'Nothing new to import.'),
   },
 
   player: {

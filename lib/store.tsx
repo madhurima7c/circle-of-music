@@ -82,6 +82,8 @@ type StoreShape = {
   /** "Surprise me": random new pairing, respecting locked wheels. If both
    *  wheels are locked, reshuffles the current playlist instead. */
   surprise: () => void;
+  /** Play an arbitrary queue (used by the finds library) from startIdx. */
+  loadQueue: (queue: Track[], startIdx: number) => void;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -296,6 +298,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     scheduleAutoCommit();
   }, [scheduleAutoCommit, shuffleTracks]);
 
+  const loadQueue = useCallback((queue: Track[], startIdx: number) => {
+    if (!queue.length) return;
+    // Bump the generation so any in-flight pairing fetch can't overwrite this.
+    populateGen.current++;
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    setTracks(queue);
+    setTrackIdx(Math.max(0, Math.min(startIdx, queue.length - 1)));
+    setStatus('ready');
+    setIsPlaying(true);
+  }, []);
+
   /* ---------- transient toast for gesture confirmation ---------- */
   const flashToast = useCallback((t: GestureToast) => {
     setToast(t);
@@ -321,14 +334,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
-    surprise,
+    surprise, loadQueue,
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
        autoplayBlocked,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
-       toggleLockLeft, toggleLockRight, toggleHandMode, surprise]);
+       toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }
