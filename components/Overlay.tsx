@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
+import { trackLinks } from '@/lib/links';
 
 export function Title() {
   return (
@@ -106,6 +107,9 @@ export function CenterStack() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+
+  // Deep links out for the current track — pure local URLs, no API.
+  const links = track ? trackLinks(track.artist, track.title, track.id) : null;
 
   // Stable HSL pair consumed by the pending-view gradient.
   const gradient = illustrationGradientPair(country, genre);
@@ -222,6 +226,17 @@ export function CenterStack() {
                   </svg>
                 </button>
               </div>
+
+              {/* Continue this find in the listener's own app. */}
+              {links && (
+                <div className="center__links">
+                  <span className="center__links-label">open in</span>
+                  <a href={links.spotify}    target="_blank" rel="noreferrer">Spotify</a>
+                  <a href={links.appleMusic} target="_blank" rel="noreferrer">Apple</a>
+                  <a href={links.youtube}    target="_blank" rel="noreferrer">YouTube</a>
+                  <a href={links.deezer}     target="_blank" rel="noreferrer">Deezer</a>
+                </div>
+              )}
 
               <div className="center__now">
                 <div className="center__cover-wrap">
