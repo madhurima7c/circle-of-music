@@ -63,6 +63,8 @@ export const STR = {
     shuffle: 'Shuffle',
     save: 'Save to your finds',
     unsave: 'Remove from your finds',
+    aboutFallback: (genre: string, country: string, year: string | null) =>
+      `A ${genre} find from ${country}${year ? `, released ${year}` : ''}.`,
   },
 
   library: {

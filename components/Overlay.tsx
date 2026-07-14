@@ -10,6 +10,7 @@ import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind } from '@/lib/library';
+import { storyFor, releaseYear } from '@/lib/stories';
 
 gsap.registerPlugin(useGSAP);
 
@@ -256,8 +257,16 @@ export function CenterStack() {
                 <div className="center__meta">
                   <h2 className="center__title">{track?.title}</h2>
                   <p className="center__album">
-                    {track ? `${track.album} — ${track.artist}${track.releaseDate ? ` · ${track.releaseDate}` : ''}` : ''}
+                    {track ? `${track.album} — ${track.artist}${releaseYear(track.releaseDate) ? ` · ${releaseYear(track.releaseDate)}` : ''}` : ''}
                   </p>
+                  {/* Origin line: curated story when we have one, otherwise a
+                      grounded facts fallback (genre · country · year). */}
+                  {track && (
+                    <p className="center__about">
+                      {storyFor(track.artist, country, genre)
+                        ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))}
+                    </p>
+                  )}
                 </div>
                 {track && (
                   <button
@@ -267,6 +276,7 @@ export function CenterStack() {
                       id: track.id, title: track.title, artist: track.artist,
                       album: track.album, image: track.image, preview: track.preview,
                       country, genre, savedAt: Date.now(),
+                      releaseDate: track.releaseDate ?? null,
                     })}
                     title={saved ? STR.card.unsave : STR.card.save}
                     aria-label={saved ? STR.card.unsave : STR.card.save}

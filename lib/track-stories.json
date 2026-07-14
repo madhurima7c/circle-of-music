@@ -1,0 +1,13 @@
+{
+  "_doc": "Curated 'about this song/artist' blurbs shown in the card's About section. Keys are normalized artist names (lowercase, diacritics stripped, non-alphanumerics collapsed to single spaces — see normKey in lib/stories.ts). A more specific 'country|genre|artist' key wins over a plain artist key. Values are short grounded prose (2–3 sentences max) — cite era/place/genre facts, no invented history. Populated by scripts/enrich-stories.ts and by hand.",
+  "ghana|disco|george darko": "George Darko pioneered 'burger highlife' in early-1980s West Berlin — Ghanaian highlife guitar over synth-funk and disco grooves, made by and for the Ghanaian diaspora. His 1983 hit 'Akoo Te Brofo' defined the style.",
+  "nazia hassan": "Karachi-born Nazia Hassan became South Asia's first pop superstar at 15 with 'Aap Jaisa Koi' (1980), then made 'Disco Deewane' with producer Biddu — a disco record that topped charts from Pakistan to Brazil.",
+  "fazil say": "Fazıl Say is Turkey's most celebrated concert pianist and composer, equally known for Beethoven cycles and works that fold Anatolian folk modes into Western classical forms.",
+  "kourosh yaghmaei": "Kourosh Yaghmaei is the godfather of Iranian psychedelic rock — his fuzz-drenched 1970s singles like 'Gol-e Yakh' circulated underground for decades after the 1979 revolution pushed his music out of official channels.",
+  "lisa ono": "Lisa Ono, born in São Paulo and raised in Tokyo, is the best-known voice of Japanese bossa nova — she has recorded with Antônio Carlos Jobim's circle and made bossa a fixture of Japanese café culture since 1989.",
+  "minyo crusaders": "Minyo Crusaders rework Japanese min'yō folk songs — fishermen's and farmers' work songs — over cumbia, ska and Afro-Cuban rhythms, a ten-piece band from Fussa that made traditional Japan danceable again.",
+  "steve monite": "Steve Monite's 'Only You' (1984) is the crown jewel of Nigerian boogie — Lagos disco-funk pressed in tiny quantities, rediscovered by collectors and reissued to global acclaim three decades later.",
+  "sattas": "Sattas are Istanbul's flagship reggae band, singing roots reggae in Turkish since 2007 and proving the genre could take hold on the Bosphorus.",
+  "lucky dube": "Lucky Dube was South Africa's biggest reggae star — he switched from mbaqanga to reggae in 1984 under apartheid, and albums like 'Slave' made him one of Africa's best-selling artists ever.",
+  "tatsuro yamashita": "Tatsuro Yamashita is the king of Japanese city pop — the polished, disco-and-boogie-inflected sound of 1980s bubble-era Tokyo that found a second global life through online crate-digging."
+}

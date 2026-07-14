@@ -785,6 +785,17 @@ html, body {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+/* Origin line: curated story (or facts fallback) under the album row. */
+.center__about {
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.42);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 /* Deep links out — sits right under the transport controls. */
 .center__links {
   order: 2;

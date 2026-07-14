@@ -24,6 +24,7 @@ export type Find = {
   country: string;
   genre: string;
   savedAt: number;      // epoch ms
+  releaseDate?: string | null; // optional — older saved finds predate it
 };
 
 const KEY = 'finds';
@@ -102,7 +103,7 @@ export function importFinds(json: string): number {
 export function findToTrack(f: Find): Track {
   return {
     id: f.id, title: f.title, artist: f.artist, artistId: 0,
-    album: f.album, releaseDate: null, image: f.image, preview: f.preview,
+    album: f.album, releaseDate: f.releaseDate ?? null, image: f.image, preview: f.preview,
   };
 }
 
