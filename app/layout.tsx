@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from 'next/font/google';
 import { StoreProvider } from '@/lib/store';
+import { GlobalPlayer } from '@/components/GlobalPlayer';
 import './globals.css';
 
 // Maddy's center card renders in Inter (see src/style.css --font-ui on the
@@ -106,8 +107,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </defs>
         </svg>
         {/* Store lives at the root so selection + playback state survives
-            client-side navigation between /circle, /world, and the hub. */}
-        <StoreProvider>{children}</StoreProvider>
+            client-side navigation between /circle, /world, and the hub.
+            GlobalPlayer owns the one <audio> element for the same reason. */}
+        <StoreProvider>
+          {children}
+          <GlobalPlayer />
+        </StoreProvider>
       </body>
     </html>
   );

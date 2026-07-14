@@ -113,6 +113,75 @@ html, body {
 .tabular { font-variant-numeric: tabular-nums; }
 
 /* =====================================================================
+ *  Mini player — compact now-playing pill on routes where the Circle's
+ *  center card isn't visible (hub, world). Same dark-card language.
+ * ===================================================================== */
+.mini-player {
+  position: fixed;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
+  max-width: min(420px, calc(100vw - 48px));
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  animation: links-in 260ms ease backwards;
+}
+.mini-player__cover {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  background: #555;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.mini-player__meta { min-width: 0; flex: 1; }
+.mini-player__title {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-player__artist {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-player__btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background 150ms;
+}
+.mini-player__btn:hover { background: rgba(255, 255, 255, 0.16); }
+.mini-player__go {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  padding: 0 4px;
+  flex: 0 0 auto;
+}
+.mini-player__go:hover { color: #fff; }
+
+/* =====================================================================
  *  Hub — the landing front door to the two experiences.
  * ===================================================================== */
 .hub {

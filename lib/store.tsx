@@ -56,6 +56,9 @@ type StoreShape = {
   /** Hand tracking is a delight layer, not a gate — OFF by default,
    *  toggled by the user, persisted in localStorage. */
   handMode: boolean;
+  /** True when the browser refused autoplay — the play button pulses
+   *  until the user clicks once. Owned by GlobalPlayer, read by the card. */
+  autoplayBlocked: boolean;
 
   spinLeft:  (dir: number) => void;
   spinRight: (dir: number) => void;
@@ -75,6 +78,7 @@ type StoreShape = {
   toggleLockLeft:  () => void;
   toggleLockRight: () => void;
   toggleHandMode:  () => void;
+  setAutoplayBlocked: (b: boolean) => void;
 };
 
 const Store = createContext<StoreShape | null>(null);
@@ -121,6 +125,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (window.localStorage.getItem('handMode') === 'on') setHandMode(true);
   }, []);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
   // Refs mirror the lock state so the spin guards always read the latest
   // value without forcing every spin/set callback to be recreated on toggle.
@@ -134,6 +139,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // results of a fresh one.
   const populateGen = useRef(0);
 
+  // Refs mirror the wheel indices so `commit` always reads the CURRENT
+  // selection. Reading the state vars directly had a stale-closure bug: the
+  // debounced auto-commit timer captured the `commit` from the render BEFORE
+  // the index update, so the fetched playlist lagged the displayed pairing
+  // (e.g. UI saying Brazil|Funk while playing the previous pairing's music).
+  const countryIdxRef = useRef(countryIdx);
+  const genreIdxRef   = useRef(genreIdx);
+
   const commit = useCallback(async () => {
     const gen = ++populateGen.current;
     setStatus('populating');
@@ -141,8 +154,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTrackIdx(0);
     setIsPlaying(false);
 
-    const country = COUNTRIES[countryIdx];
-    const genre   = GENRES[genreIdx];
+    const country = COUNTRIES[countryIdxRef.current];
+    const genre   = GENRES[genreIdxRef.current];
 
     try {
       const raw = await buildPlaylist({ country, genre, seeds: SEEDS });
@@ -156,7 +169,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setTracks([]);
       setStatus('error');
     }
-  }, [countryIdx, genreIdx]);
+  }, []);
 
   const scheduleAutoCommit = useCallback(() => {
     if (settleTimer.current) clearTimeout(settleTimer.current);
@@ -165,28 +178,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const spinLeft = useCallback((dir: number) => {
     if (lockedLeftRef.current) return;       // locked country wheel ignores input
-    setCountryIdx(i => (i + dir + COUNTRIES.length) % COUNTRIES.length);
+    const next = (countryIdxRef.current + dir + COUNTRIES.length) % COUNTRIES.length;
+    countryIdxRef.current = next;
+    setCountryIdx(next);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
 
   const spinRight = useCallback((dir: number) => {
     if (lockedRightRef.current) return;      // locked genre wheel ignores input
-    setGenreIdx(i => (i + dir + GENRES.length) % GENRES.length);
+    const next = (genreIdxRef.current + dir + GENRES.length) % GENRES.length;
+    genreIdxRef.current = next;
+    setGenreIdx(next);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
 
   const setCountry = useCallback((i: number) => {
     if (lockedLeftRef.current) return;
-    setCountryIdx(((i % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length);
+    const next = ((i % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length;
+    countryIdxRef.current = next;
+    setCountryIdx(next);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
 
   const setGenre = useCallback((i: number) => {
     if (lockedRightRef.current) return;
-    setGenreIdx(((i % GENRES.length) + GENRES.length) % GENRES.length);
+    const next = ((i % GENRES.length) + GENRES.length) % GENRES.length;
+    genreIdxRef.current = next;
+    setGenreIdx(next);
     setStatus('empty');
     scheduleAutoCommit();
   }, [scheduleAutoCommit]);
@@ -266,12 +287,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<StoreShape>(() => ({
     countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
     hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
+    autoplayBlocked,
     spinLeft, spinRight, setCountry, setGenre, commit, setTrackIdx,
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
-    toggleLockLeft, toggleLockRight, toggleHandMode,
+    toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
+       autoplayBlocked,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,

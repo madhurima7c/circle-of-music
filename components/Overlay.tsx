@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
@@ -8,9 +9,13 @@ import { trackLinks } from '@/lib/links';
 
 export function Title() {
   return (
-    <div className="title pointer-events-none absolute left-1/2 top-[38px] z-30 -translate-x-1/2 text-[38px] text-[var(--accent)] select-none">
+    <Link
+      href="/"
+      className="title absolute left-1/2 top-[38px] z-30 -translate-x-1/2 text-[38px] text-[var(--accent)] select-none no-underline"
+      title="Back to the hub"
+    >
       Circle of Music
-    </div>
+    </Link>
   );
 }
 
@@ -99,14 +104,14 @@ export function ConnectorTags() {
 export function CenterStack() {
   const {
     tracks, trackIdx, status, isPlaying, countryIdx, genreIdx,
-    togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
+    togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
   } = useStore();
   const country = COUNTRIES[countryIdx] ?? '';
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  // Audio itself lives in <GlobalPlayer> (root layout) so playback survives
+  // navigation — this card is pure UI over the same store.
 
   // Deep links out for the current track — pure local URLs, no API.
   const links = track ? trackLinks(track.artist, track.title, track.id) : null;
@@ -116,48 +121,6 @@ export function CenterStack() {
 
   const pending  = status === 'populating' || status === 'error';
   const hasTrack = status === 'ready' && !!track;
-
-  /* ---------- sync audio src + autoplay when track changes ---------- */
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    setAutoplayBlocked(false);
-    if (!track?.preview) {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-      return;
-    }
-    audio.src = track.preview;
-    audio.load();
-    // Maddy's loadCurrent always autoplays; a rejected play() means the
-    // browser wants a user gesture first — surface it on the play button.
-    audio.play().catch(() => setAutoplayBlocked(true));
-  }, [track?.id, track?.preview]);  // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* ---------- sync isPlaying with the audio element ---------- */
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isPlaying) audio.play().catch(() => setIsPlaying(false));
-    else           audio.pause();
-  }, [isPlaying, setIsPlaying]);
-
-  /* ---------- end of preview: advance, or reshuffle the pool ---------- */
-  const onEnded = () => {
-    if (tracks.length === 0) return;
-    if (tracks.length === 1) {
-      const audio = audioRef.current;
-      if (audio) {
-        audio.currentTime = 0;
-        audio.play().catch(() => setAutoplayBlocked(true));
-      }
-      return;
-    }
-    if (trackIdx >= tracks.length - 1) shuffleTracks();  // replay the same pool from the top
-    else nextTrack();
-    setIsPlaying(true);
-  };
 
   return (
     <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
@@ -272,15 +235,6 @@ export function CenterStack() {
                   )}
                 </ul>
               </div>
-
-              <audio
-                ref={audioRef}
-                preload="auto"
-                playsInline
-                onPlay={() => { setIsPlaying(true); setAutoplayBlocked(false); }}
-                onPause={() => setIsPlaying(false)}
-                onEnded={onEnded}
-              />
             </div>
           </div>
         </div>
