@@ -1,0 +1,1097 @@
+{
+  "Argentina|Disco": [
+    {
+      "name": "Julian Sanza",
+      "deezerName": "Julian Sanza",
+      "fans": 244,
+      "genreTagged": true
+    },
+    {
+      "name": "Phunktastike",
+      "deezerName": "Phunktastike",
+      "fans": 181,
+      "genreTagged": true
+    },
+    {
+      "name": "Alexny",
+      "deezerName": "Alexny",
+      "fans": 45,
+      "genreTagged": true
+    },
+    {
+      "name": "Victorio Pezzolla",
+      "deezerName": "Victorio Pezzolla",
+      "fans": 4,
+      "genreTagged": true
+    },
+    {
+      "name": "Mi Nave",
+      "deezerName": "Mi Nave",
+      "fans": 117,
+      "genreTagged": false
+    },
+    {
+      "name": "Trix",
+      "deezerName": "Trix.",
+      "fans": 105,
+      "genreTagged": false
+    }
+  ],
+  "Brazil|Classical": [
+    {
+      "name": "Alberto Nepomuceno",
+      "deezerName": "Alberto Nepomuceno",
+      "fans": 235,
+      "genreTagged": true
+    },
+    {
+      "name": "Francisco Mignone",
+      "deezerName": "Francisco Mignone",
+      "fans": 190,
+      "genreTagged": true
+    },
+    {
+      "name": "Eleazar de Carvalho",
+      "deezerName": "Eleazar de Carvalho",
+      "fans": 59,
+      "genreTagged": true
+    },
+    {
+      "name": "Mozart Camargo Guarnieri",
+      "deezerName": "Mozart Camargo Guarnieri",
+      "fans": 23,
+      "genreTagged": true
+    },
+    {
+      "name": "Antônio Carlos Gomes",
+      "deezerName": "Antonio Carlos Gomes",
+      "fans": 376,
+      "genreTagged": false
+    },
+    {
+      "name": "Alexandre Levy",
+      "deezerName": "Alexandre Levy",
+      "fans": 14,
+      "genreTagged": false
+    }
+  ],
+  "Brazil|Punk": [
+    {
+      "name": "Charlie Brown Jr.",
+      "deezerName": "Charlie Brown Jr.",
+      "fans": 3944273,
+      "genreTagged": true
+    },
+    {
+      "name": "Legião Urbana",
+      "deezerName": "Legião Urbana",
+      "fans": 2883104,
+      "genreTagged": true
+    },
+    {
+      "name": "Raimundos",
+      "deezerName": "Raimundos",
+      "fans": 952991,
+      "genreTagged": true
+    },
+    {
+      "name": "Rodolfo Abrantes",
+      "deezerName": "Rodolfo Abrantes",
+      "fans": 294474,
+      "genreTagged": true
+    },
+    {
+      "name": "Supla",
+      "deezerName": "Supla",
+      "fans": 12324,
+      "genreTagged": true
+    },
+    {
+      "name": "Melanie Martinez",
+      "deezerName": "Melanie Martinez",
+      "fans": 1909526,
+      "genreTagged": false
+    }
+  ],
+  "France|Punk": [
+    {
+      "name": "Noir Désir",
+      "deezerName": "Noir Désir",
+      "fans": 1044635,
+      "genreTagged": true
+    },
+    {
+      "name": "Mano Negra",
+      "deezerName": "Mano Negra",
+      "fans": 567372,
+      "genreTagged": true
+    },
+    {
+      "name": "Avril Lavigne",
+      "deezerName": "Avril Lavigne",
+      "fans": 5700231,
+      "genreTagged": false
+    },
+    {
+      "name": "Mylène Farmer",
+      "deezerName": "Mylène Farmer",
+      "fans": 945478,
+      "genreTagged": false
+    },
+    {
+      "name": "Eths",
+      "deezerName": "Eths",
+      "fans": 55126,
+      "genreTagged": false
+    },
+    {
+      "name": "Jean-Jacques Burnel",
+      "deezerName": "Jean-Jacques Burnel",
+      "fans": 588,
+      "genreTagged": false
+    }
+  ],
+  "Ghana|Classical": [],
+  "Ghana|Reggae": [
+    {
+      "name": "Shatta Wale",
+      "deezerName": "Shatta Wale",
+      "fans": 68630,
+      "genreTagged": true
+    },
+    {
+      "name": "Moliy",
+      "deezerName": "Moliy",
+      "fans": 9023,
+      "genreTagged": true
+    },
+    {
+      "name": "MzVee",
+      "deezerName": "MzVee",
+      "fans": 6561,
+      "genreTagged": true
+    },
+    {
+      "name": "Kaakie",
+      "deezerName": "Kaakie",
+      "fans": 3035,
+      "genreTagged": false
+    },
+    {
+      "name": "Fancy Gadam",
+      "deezerName": "Fancy Gadam",
+      "fans": 786,
+      "genreTagged": false
+    },
+    {
+      "name": "Paulina Oduro",
+      "deezerName": "Paulina Oduro",
+      "fans": 78,
+      "genreTagged": false
+    }
+  ],
+  "India|Reggae": [],
+  "Iran|Bossa Nova": [],
+  "Iran|Reggae": [
+    {
+      "name": "Shahin Najafi",
+      "deezerName": "Shahin Najafi",
+      "fans": 14344,
+      "genreTagged": false
+    }
+  ],
+  "Japan|Cumbia": [],
+  "Mexico|Bossa Nova": [],
+  "Mexico|Disco": [
+    {
+      "name": "Monsieur Van Pratt",
+      "deezerName": "Monsieur Van Pratt",
+      "fans": 143,
+      "genreTagged": true
+    },
+    {
+      "name": "Disco Feelings",
+      "deezerName": "Disco Feelings",
+      "fans": 13,
+      "genreTagged": true
+    },
+    {
+      "name": "Marbeya Sound",
+      "deezerName": "Marbeya Sound",
+      "fans": 312,
+      "genreTagged": false
+    },
+    {
+      "name": "Eddie Bunker",
+      "deezerName": "Eddie Bunker",
+      "fans": 37,
+      "genreTagged": false
+    },
+    {
+      "name": "Djeko & K'you",
+      "deezerName": "Djeko & K'you",
+      "fans": 11,
+      "genreTagged": false
+    },
+    {
+      "name": "Saint-Loup-en-Bray",
+      "deezerName": "Saint-Loup-en-Bray",
+      "fans": 4,
+      "genreTagged": false
+    }
+  ],
+  "Mexico|Reggae": [
+    {
+      "name": "Los Aguas Aguas",
+      "deezerName": "Los Aguas Aguas",
+      "fans": 4361,
+      "genreTagged": true
+    },
+    {
+      "name": "Rastrillos",
+      "deezerName": "Rastrillos",
+      "fans": 1954,
+      "genreTagged": true
+    },
+    {
+      "name": "Los Hijos del Santo",
+      "deezerName": "Los Hijos del Santo",
+      "fans": 259,
+      "genreTagged": true
+    },
+    {
+      "name": "Thalía",
+      "deezerName": "Thalia",
+      "fans": 1488092,
+      "genreTagged": false
+    },
+    {
+      "name": "C-Kan",
+      "deezerName": "C-kan",
+      "fans": 618797,
+      "genreTagged": false
+    },
+    {
+      "name": "Caloncho",
+      "deezerName": "Caloncho",
+      "fans": 95611,
+      "genreTagged": false
+    }
+  ],
+  "Nigeria|Classical": [
+    {
+      "name": "Fela Sowande",
+      "deezerName": "Fela Sowande",
+      "fans": 58,
+      "genreTagged": true
+    },
+    {
+      "name": "Fifty",
+      "deezerName": "Fifty",
+      "fans": 140,
+      "genreTagged": false
+    }
+  ],
+  "Nigeria|Reggae": [
+    {
+      "name": "Wizkid",
+      "deezerName": "Wizkid",
+      "fans": 990276,
+      "genreTagged": true
+    },
+    {
+      "name": "Davido",
+      "deezerName": "DaVido",
+      "fans": 896555,
+      "genreTagged": true
+    },
+    {
+      "name": "Dr. Alban",
+      "deezerName": "Dr. Alban",
+      "fans": 85371,
+      "genreTagged": true
+    },
+    {
+      "name": "Burna Boy",
+      "deezerName": "Burna Boy",
+      "fans": 1058017,
+      "genreTagged": false
+    },
+    {
+      "name": "Nneka",
+      "deezerName": "Nneka",
+      "fans": 143674,
+      "genreTagged": false
+    },
+    {
+      "name": "Tony Allen",
+      "deezerName": "Tony Allen",
+      "fans": 67067,
+      "genreTagged": false
+    }
+  ],
+  "Norway|Disco": [
+    {
+      "name": "Dagny",
+      "deezerName": "Dagny",
+      "fans": 9027,
+      "genreTagged": true
+    },
+    {
+      "name": "Prins Thomas",
+      "deezerName": "Prins Thomas",
+      "fans": 3160,
+      "genreTagged": true
+    },
+    {
+      "name": "Mari Persen",
+      "deezerName": "Mari Persen",
+      "fans": 19,
+      "genreTagged": true
+    },
+    {
+      "name": "Avalanche",
+      "deezerName": "Avalanche",
+      "fans": 6,
+      "genreTagged": true
+    },
+    {
+      "name": "Christine Meyer",
+      "deezerName": "Christine Meyer",
+      "fans": 3,
+      "genreTagged": true
+    },
+    {
+      "name": "Alex Naumik",
+      "deezerName": "Alex Naumik",
+      "fans": 0,
+      "genreTagged": true
+    }
+  ],
+  "Norway|Punk": [
+    {
+      "name": "Kvelertak",
+      "deezerName": "Kvelertak",
+      "fans": 23954,
+      "genreTagged": true
+    },
+    {
+      "name": "Datarock",
+      "deezerName": "Datarock",
+      "fans": 10101,
+      "genreTagged": true
+    },
+    {
+      "name": "Ida Maria",
+      "deezerName": "Ida Maria",
+      "fans": 8329,
+      "genreTagged": true
+    },
+    {
+      "name": "Glittertind",
+      "deezerName": "Glittertind",
+      "fans": 954,
+      "genreTagged": true
+    },
+    {
+      "name": "JOWST",
+      "deezerName": "Jowst",
+      "fans": 385,
+      "genreTagged": false
+    },
+    {
+      "name": "Hans-Erik Dyvik Husby",
+      "deezerName": "Hans-Erik Dyvik Husby",
+      "fans": 69,
+      "genreTagged": false
+    }
+  ],
+  "Norway|Reggae": [
+    {
+      "name": "Admiral P",
+      "deezerName": "Admiral P",
+      "fans": 3904,
+      "genreTagged": true
+    },
+    {
+      "name": "Stig van Eijk",
+      "deezerName": "Stig Van Eijk",
+      "fans": 4,
+      "genreTagged": true
+    },
+    {
+      "name": "Madcon",
+      "deezerName": "Madcon",
+      "fans": 203873,
+      "genreTagged": false
+    },
+    {
+      "name": "Cashmere Cat",
+      "deezerName": "Cashmere Cat",
+      "fans": 30551,
+      "genreTagged": false
+    },
+    {
+      "name": "Hkeem",
+      "deezerName": "Hkeem",
+      "fans": 788,
+      "genreTagged": false
+    },
+    {
+      "name": "Don Martin",
+      "deezerName": "Don Martin",
+      "fans": 37,
+      "genreTagged": false
+    }
+  ],
+  "Pakistan|Bossa Nova": [],
+  "Pakistan|Reggae": [],
+  "Poland|Bossa Nova": [
+    {
+      "name": "Anna Rejda",
+      "deezerName": "Anna Rejda",
+      "fans": 103,
+      "genreTagged": true
+    },
+    {
+      "name": "Bemibek",
+      "deezerName": "Bemibek",
+      "fans": 20,
+      "genreTagged": false
+    }
+  ],
+  "Poland|Disco": [
+    {
+      "name": "Krzysztof Krawczyk",
+      "deezerName": "Krzysztof Krawczyk",
+      "fans": 5712,
+      "genreTagged": true
+    },
+    {
+      "name": "Anna Jantar",
+      "deezerName": "Anna Jantar",
+      "fans": 5611,
+      "genreTagged": true
+    },
+    {
+      "name": "Atlantis",
+      "deezerName": "Atlantis",
+      "fans": 2271,
+      "genreTagged": true
+    },
+    {
+      "name": "Big Dance",
+      "deezerName": "Big Dance",
+      "fans": 164,
+      "genreTagged": true
+    },
+    {
+      "name": "Alex Naumik",
+      "deezerName": "Alex Naumik",
+      "fans": 0,
+      "genreTagged": true
+    },
+    {
+      "name": "Dj Laurel",
+      "deezerName": "Dj Laurel",
+      "fans": 9,
+      "genreTagged": false
+    }
+  ],
+  "Poland|Punk": [
+    {
+      "name": "Kult",
+      "deezerName": "Kult",
+      "fans": 42826,
+      "genreTagged": true
+    },
+    {
+      "name": "Pidżama Porno",
+      "deezerName": "Pidżama Porno",
+      "fans": 17467,
+      "genreTagged": true
+    },
+    {
+      "name": "Farben Lehre",
+      "deezerName": "Farben Lehre",
+      "fans": 10388,
+      "genreTagged": true
+    },
+    {
+      "name": "Siekiera",
+      "deezerName": "Siekiera",
+      "fans": 2946,
+      "genreTagged": true
+    },
+    {
+      "name": "Dead Infection",
+      "deezerName": "Dead Infection",
+      "fans": 1576,
+      "genreTagged": true
+    },
+    {
+      "name": "Paweł Kukiz",
+      "deezerName": "Paweł Kukiz",
+      "fans": 27,
+      "genreTagged": true
+    }
+  ],
+  "Portugal|Classical": [
+    {
+      "name": "José Vianna da Motta",
+      "deezerName": "José Vianna da Motta",
+      "fans": 100,
+      "genreTagged": true
+    },
+    {
+      "name": "Pedro de Freitas Branco",
+      "deezerName": "Pedro De Freitas Branco",
+      "fans": 53,
+      "genreTagged": true
+    },
+    {
+      "name": "Emmanuel Nunes",
+      "deezerName": "Emmanuel Nunes",
+      "fans": 94,
+      "genreTagged": false
+    },
+    {
+      "name": "Joly Braga Santos",
+      "deezerName": "Joly Braga Santos",
+      "fans": 61,
+      "genreTagged": false
+    },
+    {
+      "name": "Guilhermina Suggia",
+      "deezerName": "Guilhermina Suggia",
+      "fans": 29,
+      "genreTagged": false
+    },
+    {
+      "name": "António Chagas Rosa",
+      "deezerName": "António Chagas Rosa",
+      "fans": 2,
+      "genreTagged": false
+    }
+  ],
+  "Portugal|Disco": [
+    {
+      "name": "RAC",
+      "deezerName": "RAC",
+      "fans": 17498,
+      "genreTagged": true
+    }
+  ],
+  "Portugal|Punk": [
+    {
+      "name": "GNR",
+      "deezerName": "GNR",
+      "fans": 10736,
+      "genreTagged": true
+    },
+    {
+      "name": "Aenima",
+      "deezerName": "Aenima",
+      "fans": 386,
+      "genreTagged": true
+    },
+    {
+      "name": "Noctivagus",
+      "deezerName": "Noctivagus",
+      "fans": 196,
+      "genreTagged": true
+    },
+    {
+      "name": "Sétima Legião",
+      "deezerName": "Sétima Legião",
+      "fans": 1812,
+      "genreTagged": false
+    },
+    {
+      "name": "Holocausto Canibal",
+      "deezerName": "Holocausto Canibal",
+      "fans": 1532,
+      "genreTagged": false
+    },
+    {
+      "name": "Fonzie",
+      "deezerName": "Fonzie",
+      "fans": 3,
+      "genreTagged": false
+    }
+  ],
+  "Portugal|Reggae": [
+    {
+      "name": "Mercado Negro",
+      "deezerName": "Mercado Negro",
+      "fans": 3374,
+      "genreTagged": true
+    },
+    {
+      "name": "Kussondulola",
+      "deezerName": "Kussondulola",
+      "fans": 1543,
+      "genreTagged": true
+    },
+    {
+      "name": "Souls of Fire",
+      "deezerName": "Souls Of Fire",
+      "fans": 1274,
+      "genreTagged": true
+    },
+    {
+      "name": "Aurea",
+      "deezerName": "Aurea",
+      "fans": 26718,
+      "genreTagged": false
+    },
+    {
+      "name": "Primitive Reason",
+      "deezerName": "Primitive Reason",
+      "fans": 1394,
+      "genreTagged": false
+    },
+    {
+      "name": "Kara Konchar",
+      "deezerName": "Kara Konchar",
+      "fans": 3,
+      "genreTagged": false
+    }
+  ],
+  "South Africa|Classical": [
+    {
+      "name": "Pretty Yende",
+      "deezerName": "Pretty Yende",
+      "fans": 21995,
+      "genreTagged": true
+    },
+    {
+      "name": "Sibongile Khumalo",
+      "deezerName": "Sibongile Khumalo",
+      "fans": 2433,
+      "genreTagged": true
+    },
+    {
+      "name": "Mira Calix",
+      "deezerName": "Mira Calix",
+      "fans": 1443,
+      "genreTagged": true
+    },
+    {
+      "name": "Kevin Volans",
+      "deezerName": "Kevin Volans",
+      "fans": 105,
+      "genreTagged": true
+    },
+    {
+      "name": "Mimi Coertse",
+      "deezerName": "Mimi Coertse",
+      "fans": 51,
+      "genreTagged": true
+    },
+    {
+      "name": "Hendrik Hofmeyr",
+      "deezerName": "Hendrik Hofmeyr",
+      "fans": 1,
+      "genreTagged": false
+    }
+  ],
+  "South Africa|Reggae": [
+    {
+      "name": "O'Yaba",
+      "deezerName": "O'Yaba",
+      "fans": 331,
+      "genreTagged": true
+    },
+    {
+      "name": "Johnny Clegg",
+      "deezerName": "Johnny Clegg",
+      "fans": 42245,
+      "genreTagged": false
+    },
+    {
+      "name": "Mandisa Dlanga",
+      "deezerName": "Mandisa Dlanga",
+      "fans": 16,
+      "genreTagged": false
+    },
+    {
+      "name": "Aura Lewis",
+      "deezerName": "Aura Lewis",
+      "fans": 1,
+      "genreTagged": false
+    },
+    {
+      "name": "Conquering Lions",
+      "deezerName": "Conquering Lions",
+      "fans": 1,
+      "genreTagged": false
+    }
+  ],
+  "South Korea|Ambient": [
+    {
+      "name": "aespa",
+      "deezerName": "aespa",
+      "fans": 449217,
+      "genreTagged": true
+    },
+    {
+      "name": "RAINBOW99",
+      "deezerName": "Rainbow99",
+      "fans": 61,
+      "genreTagged": true
+    }
+  ],
+  "South Korea|Bossa Nova": [],
+  "South Korea|Reggae": [
+    {
+      "name": "Rude Paper",
+      "deezerName": "Rude Paper",
+      "fans": 152,
+      "genreTagged": true
+    },
+    {
+      "name": "Blackswan",
+      "deezerName": "Blackswan",
+      "fans": 4042,
+      "genreTagged": false
+    },
+    {
+      "name": "SKULL",
+      "deezerName": "Skull",
+      "fans": 1002,
+      "genreTagged": false
+    },
+    {
+      "name": "Stony Skunk",
+      "deezerName": "Stony Skunk",
+      "fans": 26,
+      "genreTagged": false
+    },
+    {
+      "name": "Haha",
+      "deezerName": "HAHA",
+      "fans": 15,
+      "genreTagged": false
+    },
+    {
+      "name": "Kim Ban-jang",
+      "deezerName": "Kim Ban Jang",
+      "fans": 1,
+      "genreTagged": false
+    }
+  ],
+  "Spain|Bossa Nova": [
+    {
+      "name": "Giulia y los Tellarini",
+      "deezerName": "Giulia y Los Tellarini",
+      "fans": 3022,
+      "genreTagged": true
+    },
+    {
+      "name": "Gecko Turner",
+      "deezerName": "Gecko Turner",
+      "fans": 1517,
+      "genreTagged": true
+    },
+    {
+      "name": "Xavier Dotras",
+      "deezerName": "Xavier Dotras",
+      "fans": 0,
+      "genreTagged": true
+    },
+    {
+      "name": "La Shica",
+      "deezerName": "La Shica",
+      "fans": 575,
+      "genreTagged": false
+    },
+    {
+      "name": "Fous de la Mer",
+      "deezerName": "Fous De La Mer",
+      "fans": 521,
+      "genreTagged": false
+    }
+  ],
+  "Spain|Disco": [
+    {
+      "name": "Baccara",
+      "deezerName": "Baccara",
+      "fans": 11456,
+      "genreTagged": true
+    },
+    {
+      "name": "David Lyme",
+      "deezerName": "David Lyme",
+      "fans": 521,
+      "genreTagged": true
+    },
+    {
+      "name": "Pascal Kleiman",
+      "deezerName": "Pascal Kleiman",
+      "fans": 122,
+      "genreTagged": true
+    },
+    {
+      "name": "Vicio Latino",
+      "deezerName": "Vicio Latino",
+      "fans": 0,
+      "genreTagged": true
+    },
+    {
+      "name": "An Der Beat",
+      "deezerName": "An Der Beat",
+      "fans": 151,
+      "genreTagged": false
+    },
+    {
+      "name": "Disco Bambinos",
+      "deezerName": "Disco Bambinos",
+      "fans": 63,
+      "genreTagged": false
+    }
+  ],
+  "Sweden|Bossa Nova": [
+    {
+      "name": "Sylvia Vrethammar",
+      "deezerName": "Sylvia Vrethammar",
+      "fans": 119,
+      "genreTagged": true
+    },
+    {
+      "name": "Moonlight Jazz Trio",
+      "deezerName": "Moonlight Jazz Trio",
+      "fans": 34,
+      "genreTagged": true
+    },
+    {
+      "name": "Johan Christher Schütz",
+      "deezerName": "Johan Christher Schütz",
+      "fans": 4,
+      "genreTagged": true
+    },
+    {
+      "name": "IFA Wartburg",
+      "deezerName": "Ifa Wartburg",
+      "fans": 489,
+      "genreTagged": false
+    }
+  ],
+  "Sweden|Classical": [
+    {
+      "name": "Barbara Hendricks",
+      "deezerName": "Barbara Hendricks",
+      "fans": 8663,
+      "genreTagged": true
+    },
+    {
+      "name": "Malena Ernman",
+      "deezerName": "Malena Ernman",
+      "fans": 4365,
+      "genreTagged": true
+    },
+    {
+      "name": "Birgit Nilsson",
+      "deezerName": "Birgit Nilsson",
+      "fans": 3027,
+      "genreTagged": true
+    },
+    {
+      "name": "Zarah Leander",
+      "deezerName": "Zarah Leander",
+      "fans": 1725,
+      "genreTagged": true
+    },
+    {
+      "name": "Franz Berwald",
+      "deezerName": "Franz Berwald",
+      "fans": 107,
+      "genreTagged": true
+    },
+    {
+      "name": "Linda Lampenius",
+      "deezerName": "Linda Lampenius",
+      "fans": 297,
+      "genreTagged": false
+    }
+  ],
+  "Sweden|Disco": [
+    {
+      "name": "ABBA",
+      "deezerName": "ABBA",
+      "fans": 3159213,
+      "genreTagged": true
+    },
+    {
+      "name": "AronChupa",
+      "deezerName": "AronChupa",
+      "fans": 266009,
+      "genreTagged": true
+    },
+    {
+      "name": "Secret Service",
+      "deezerName": "Secret Service",
+      "fans": 15758,
+      "genreTagged": true
+    },
+    {
+      "name": "Agnetha Fältskog",
+      "deezerName": "Agnetha Fältskog",
+      "fans": 15608,
+      "genreTagged": true
+    },
+    {
+      "name": "Petra Marklund",
+      "deezerName": "Petra Marklund",
+      "fans": 6032,
+      "genreTagged": true
+    },
+    {
+      "name": "Charlotte Perrelli",
+      "deezerName": "Charlotte Perrelli",
+      "fans": 2026,
+      "genreTagged": true
+    }
+  ],
+  "Sweden|Reggae": [
+    {
+      "name": "Jaqee",
+      "deezerName": "Jaqee",
+      "fans": 8359,
+      "genreTagged": true
+    },
+    {
+      "name": "Promoe",
+      "deezerName": "Promoe",
+      "fans": 7587,
+      "genreTagged": true
+    },
+    {
+      "name": "Svenska Akademien",
+      "deezerName": "Svenska Akademien",
+      "fans": 570,
+      "genreTagged": true
+    },
+    {
+      "name": "Papa Dee",
+      "deezerName": "Papa Dee",
+      "fans": 181,
+      "genreTagged": true
+    },
+    {
+      "name": "Mohombi",
+      "deezerName": "Mohombi",
+      "fans": 172501,
+      "genreTagged": false
+    },
+    {
+      "name": "Timbuktu",
+      "deezerName": "Timbuktu",
+      "fans": 10022,
+      "genreTagged": false
+    }
+  ],
+  "Turkey|Bossa Nova": [],
+  "Turkey|Reggae": [
+    {
+      "name": "Baba Zula",
+      "deezerName": "Baba Zula",
+      "fans": 23635,
+      "genreTagged": false
+    },
+    {
+      "name": "Peyk",
+      "deezerName": "Peyk",
+      "fans": 4005,
+      "genreTagged": false
+    },
+    {
+      "name": "Ben Büdü",
+      "deezerName": "Ben Büdü",
+      "fans": 2988,
+      "genreTagged": false
+    },
+    {
+      "name": "Seyithan Sevinç",
+      "deezerName": "Seyithan Sevinç",
+      "fans": 18,
+      "genreTagged": false
+    }
+  ],
+  "United States|Bossa Nova": [
+    {
+      "name": "Quincy Jones",
+      "deezerName": "Quincy Jones",
+      "fans": 289499,
+      "genreTagged": true
+    },
+    {
+      "name": "Lalo Schifrin",
+      "deezerName": "Lalo Schifrin",
+      "fans": 34482,
+      "genreTagged": true
+    },
+    {
+      "name": "Herbie Mann",
+      "deezerName": "Herbie Mann",
+      "fans": 13100,
+      "genreTagged": true
+    },
+    {
+      "name": "Vince Guaraldi",
+      "deezerName": "Vince Guaraldi",
+      "fans": 2506,
+      "genreTagged": true
+    },
+    {
+      "name": "N.E.R.D.",
+      "deezerName": "N.E.R.D",
+      "fans": 100499,
+      "genreTagged": false
+    },
+    {
+      "name": "Bebel Gilberto",
+      "deezerName": "Bebel Gilberto",
+      "fans": 42813,
+      "genreTagged": false
+    }
+  ],
+  "United States|Cumbia": [
+    {
+      "name": "Intocable",
+      "deezerName": "Intocable",
+      "fans": 640340,
+      "genreTagged": true
+    },
+    {
+      "name": "Aniceto Molina",
+      "deezerName": "Aniceto Molina",
+      "fans": 77438,
+      "genreTagged": true
+    },
+    {
+      "name": "Kumbia Kings",
+      "deezerName": "Kumbia Kings",
+      "fans": 31797,
+      "genreTagged": true
+    },
+    {
+      "name": "DJ Kane",
+      "deezerName": "DJ Kane",
+      "fans": 3551,
+      "genreTagged": true
+    },
+    {
+      "name": "Selena",
+      "deezerName": "Selena",
+      "fans": 603948,
+      "genreTagged": false
+    },
+    {
+      "name": "Los Lobos",
+      "deezerName": "Los Lobos",
+      "fans": 25487,
+      "genreTagged": false
+    }
+  ]
+}
