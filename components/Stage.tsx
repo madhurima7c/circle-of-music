@@ -20,8 +20,8 @@ const DEFAULT_CAMERA = {
 const DEFAULT_TUNING: WheelTuning = {
   /* layout */
   radius:        4.0,
-  cardSize:      1.0,
-  cardThickness: 0.05,
+  cardSize:      1.25,
+  cardThickness: 0.07,
   /* rotation */
   spineAngleDeg: 17,
   xTiltDeg:      -80,
@@ -29,8 +29,8 @@ const DEFAULT_TUNING: WheelTuning = {
   tangentAmount: 0.50,
   flipSpine:     false,
   /* active card emphasis */
-  popZ:     1.70,
-  popScale: 1.40,
+  popZ:     1.10,
+  popScale: 1.60,
   recedeZ:  -0.20,
   /* angular padding around active */
   paddingAmount: 0.32,
@@ -113,12 +113,12 @@ export default function Stage() {
   // Lighting dials — realistic card shading is mostly a key/fill balance.
   // Values also drive mobile (panel hidden, defaults still apply).
   const light = useControls('Lighting', {
-    ambient: { value: 0.45, min: 0, max: 2,   step: 0.05 },
-    sky:     { value: 0.5,  min: 0, max: 2,   step: 0.05, label: 'hemisphere' },
-    key:     { value: 0.85, min: 0, max: 3,   step: 0.05 },
-    fill:    { value: 0.3,  min: 0, max: 2,   step: 0.05 },
-    keyX:    { value: 4,    min: -10, max: 10, step: 0.5,  label: 'key X' },
-    keyY:    { value: 6,    min: -10, max: 10, step: 0.5,  label: 'key Y' },
+    ambient: { value: 0.35, min: 0, max: 2,   step: 0.05 },
+    sky:     { value: 1.10, min: 0, max: 2,   step: 0.05, label: 'hemisphere' },
+    key:     { value: 0.95, min: 0, max: 3,   step: 0.05 },
+    fill:    { value: 1.15, min: 0, max: 2,   step: 0.05 },
+    keyX:    { value: 6.5,  min: -10, max: 10, step: 0.5,  label: 'key X' },
+    keyY:    { value: 3.5,  min: -10, max: 10, step: 0.5,  label: 'key Y' },
   });
 
   // Mobile overrides beat the leva dials; desktop keeps them tunable.
