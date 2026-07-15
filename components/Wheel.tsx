@@ -94,14 +94,16 @@ function Card({
   if (cover) {
     return (
       // Box face order: +x, −x, +y, −y (spine edges), +z (front), −z (back).
+      // Lit PBR materials so each card shades realistically as the wheel
+      // tilts it: matte printed edges/back, a laminated sleeve on the front.
       <mesh>
         <boxGeometry args={[cardSize, cardSize, cardThickness]} />
-        <meshBasicMaterial attach="material-0" map={cover.spine} toneMapped={false} />
-        <meshBasicMaterial attach="material-1" map={cover.spine} toneMapped={false} />
-        <meshBasicMaterial attach="material-2" map={cover.spine} toneMapped={false} />
-        <meshBasicMaterial attach="material-3" map={cover.spine} toneMapped={false} />
-        <meshBasicMaterial attach="material-4" map={cover.front} toneMapped={false} />
-        <meshBasicMaterial attach="material-5" color={cover.backColor} toneMapped={false} />
+        <meshStandardMaterial attach="material-0" map={cover.spine} roughness={0.82} metalness={0.04} toneMapped={false} />
+        <meshStandardMaterial attach="material-1" map={cover.spine} roughness={0.82} metalness={0.04} toneMapped={false} />
+        <meshStandardMaterial attach="material-2" map={cover.spine} roughness={0.82} metalness={0.04} toneMapped={false} />
+        <meshStandardMaterial attach="material-3" map={cover.spine} roughness={0.82} metalness={0.04} toneMapped={false} />
+        <meshPhysicalMaterial attach="material-4" map={cover.front} roughness={0.5} metalness={0} clearcoat={0.4} clearcoatRoughness={0.3} toneMapped={false} />
+        <meshStandardMaterial attach="material-5" color={cover.backColor} roughness={0.82} metalness={0.04} toneMapped={false} />
       </mesh>
     );
   }
@@ -111,12 +113,12 @@ function Card({
       {/* card body — a proper box so the spine has visible thickness */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[cardSize, cardSize, cardThickness]} />
-        <meshBasicMaterial color="#212222" toneMapped={false} />
+        <meshStandardMaterial color="#212222" roughness={0.8} metalness={0.05} />
       </mesh>
       {/* front face — vinyl cover, sits just in front of the box */}
       <mesh position={[0, 0, cardThickness / 2 + 0.001]}>
         <planeGeometry args={[cardSize, cardSize]} />
-        <meshBasicMaterial map={fallback} toneMapped={false} />
+        <meshStandardMaterial map={fallback} roughness={0.55} metalness={0} toneMapped={false} />
       </mesh>
     </group>
   );

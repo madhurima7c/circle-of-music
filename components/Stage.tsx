@@ -110,6 +110,17 @@ export default function Stage() {
     }),
   }));
 
+  // Lighting dials — realistic card shading is mostly a key/fill balance.
+  // Values also drive mobile (panel hidden, defaults still apply).
+  const light = useControls('Lighting', {
+    ambient: { value: 0.45, min: 0, max: 2,   step: 0.05 },
+    sky:     { value: 0.5,  min: 0, max: 2,   step: 0.05, label: 'hemisphere' },
+    key:     { value: 0.85, min: 0, max: 3,   step: 0.05 },
+    fill:    { value: 0.3,  min: 0, max: 2,   step: 0.05 },
+    keyX:    { value: 4,    min: -10, max: 10, step: 0.5,  label: 'key X' },
+    keyY:    { value: 6,    min: -10, max: 10, step: 0.5,  label: 'key Y' },
+  });
+
   // Mobile overrides beat the leva dials; desktop keeps them tunable.
   const cam = isMobile ? MOBILE_CAMERA : camera;
   const tun = isMobile ? MOBILE_TUNING : tuning;
@@ -124,8 +135,14 @@ export default function Stage() {
         gl={{ alpha: true, antialias: true }}
         style={{ background: 'transparent', touchAction: 'none' }}
       >
-        <ambientLight intensity={1.0} />
-        <directionalLight position={[3, 4, 5]} intensity={0.4} />
+        {/* Warm key + soft fill so tilted cards catch light like real
+            record sleeves; hemisphere gives a natural sky/ground gradient,
+            the camera point light a laminate catch-highlight. */}
+        <ambientLight intensity={light.ambient} />
+        <hemisphereLight args={['#fff7ea', '#8a8478', light.sky]} />
+        <directionalLight position={[light.keyX, light.keyY, 5]} intensity={light.key} />
+        <directionalLight position={[-6, 2, 4]} intensity={light.fill} />
+        <pointLight position={[0, 1, 6]} intensity={0.35} />
 
         <Suspense fallback={null}>
           {/* left circle — countries */}

@@ -64,7 +64,7 @@ export default function CirclePage() {
   }, [status, countryIdx, genreIdx, countryName]);
 
   return (
-    <main className="frame frame--dark">
+    <main className="frame">
       <Title />
       <Library />
 

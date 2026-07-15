@@ -100,32 +100,6 @@ html, body {
   isolation: isolate;
 }
 
-/* ---- Circle in dark mode: the same backdrop as World of Music ---- */
-body:has(.frame--dark) { background: #08080f; }
-.frame--dark {
-  background: radial-gradient(ellipse at 50% 40%, #14162a 0%, #08080f 70%);
-}
-/* Letter ladders + wheel locks: light strokes on the dark stage. */
-.frame--dark .letter-ladder { --dial-stroke: rgba(210, 216, 255, 0.55); }
-.frame--dark .letter-ladder__chip { background: rgba(20, 23, 44, 0.6); }
-.frame--dark .wheel-lock {
-  background: rgba(20, 23, 44, 0.6);
-  border-color: rgba(210, 216, 255, 0.5);
-  color: rgba(226, 230, 255, 0.9);
-}
-.frame--dark .wheel-lock:hover { box-shadow: 0 0 0 2px rgba(205, 211, 255, 0.22); }
-/* Top/bottom fade strips: dark frost instead of white. */
-.frame--dark .glass.top {
-  background: linear-gradient(180deg,
-    rgba(8,8,15,0.62) 0%, rgba(8,8,15,0.42) 35%, rgba(8,8,15,0.18) 70%, rgba(8,8,15,0) 100%);
-}
-.frame--dark .glass.bottom {
-  background: linear-gradient(0deg,
-    rgba(8,8,15,0.62) 0%, rgba(8,8,15,0.42) 35%, rgba(8,8,15,0.18) 70%, rgba(8,8,15,0) 100%);
-}
-/* Instrument toggle link: legible on dark. */
-.frame--dark .circle-to-world-link { color: rgba(210, 216, 255, 0.72); }
-
 /* Title */
 .title {
   font-family: var(--font-display);
