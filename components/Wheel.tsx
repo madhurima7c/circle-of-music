@@ -74,15 +74,16 @@ function Card({
     fallback.anisotropy = 4;
   }, [fallback]);
 
-  // Real cover artwork: front + back are the cover, spine is a gradient
-  // of the cover's own colors. Null until loaded (or if the file is absent).
+  // Real cover artwork: front = cover image, the four edges = the dedicated
+  // spine strip, back = a solid fill of the spine's dominant color. Null
+  // until loaded (or if the cover file is absent → procedural fallback).
   const [cover, setCover] = useState<CoverTextures | null>(null);
   useEffect(() => {
     let cancelled = false;
     const kind = side === 'left' ? 'countries' : 'genres';
     loadCoverTextures(kind, name).then((tex) => {
       if (cancelled) {
-        if (tex) { tex.front.dispose(); tex.back.dispose(); tex.spine.dispose(); }
+        if (tex) { tex.front.dispose(); tex.spine.dispose(); }
         return;
       }
       if (tex) setCover(tex);
@@ -92,7 +93,7 @@ function Card({
 
   if (cover) {
     return (
-      // Box face order: +x, −x, +y, −y, +z (front), −z (back).
+      // Box face order: +x, −x, +y, −y (spine edges), +z (front), −z (back).
       <mesh>
         <boxGeometry args={[cardSize, cardSize, cardThickness]} />
         <meshBasicMaterial attach="material-0" map={cover.spine} toneMapped={false} />
@@ -100,7 +101,7 @@ function Card({
         <meshBasicMaterial attach="material-2" map={cover.spine} toneMapped={false} />
         <meshBasicMaterial attach="material-3" map={cover.spine} toneMapped={false} />
         <meshBasicMaterial attach="material-4" map={cover.front} toneMapped={false} />
-        <meshBasicMaterial attach="material-5" map={cover.back}  toneMapped={false} />
+        <meshBasicMaterial attach="material-5" color={cover.backColor} toneMapped={false} />
       </mesh>
     );
   }

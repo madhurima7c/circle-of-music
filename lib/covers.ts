@@ -1,16 +1,28 @@
 import * as THREE from 'three';
+import spineColors from './spine-colors.json';
 
 /**
  * Cover art for wheel cards — real artwork from `public/covers/`.
  *
- * Files are normalized at import time (see covers/ originals → 1024×1024
- * JPEG): `public/covers/<kind>/<slug>.jpg`, where slug is the seed name
- * lowercased with spaces dashed ("South Africa" → `south-africa.jpg`).
+ * Each card is a thin box with three distinct surfaces:
+ *   - FRONT: the cover image      `public/covers/<kind>/<slug>.jpg`
+ *            (country_… / genre_… designs)
+ *   - SPINE: the dedicated spine  `public/covers/<spine-dir>/<slug>.jpg`
+ *            (countryspine_… / genrespine_… strips), on all four thin edges
+ *   - BACK:  a solid fill of the spine's dominant color (spine-colors.json)
  *
- * Cards whose cover is missing fall back to the procedural vinyl art in
- * `lib/art.ts`, so the wheel renders even with an incomplete cover set.
+ * Slugs are the seed name lowercased with spaces dashed ("South Africa" →
+ * `south-africa`). Cards whose cover is missing fall back to the procedural
+ * vinyl art in `lib/art.ts`, so the wheel still renders with an incomplete set.
  */
 export type CoverKind = 'countries' | 'genres';
+
+const SPINE_DIR: Record<CoverKind, string> = {
+  countries: 'country-spines',
+  genres: 'genre-spines',
+};
+
+const SPINE_COLORS = spineColors as Record<CoverKind, Record<string, string>>;
 
 export function coverSlug(name: string): string {
   return name.toLowerCase().replace(/\s+/g, '-');
@@ -20,91 +32,65 @@ export function coverUrl(kind: CoverKind, name: string): string {
   return `/covers/${kind}/${coverSlug(name)}.jpg`;
 }
 
+export function spineUrl(kind: CoverKind, name: string): string {
+  return `/covers/${SPINE_DIR[kind]}/${coverSlug(name)}.jpg`;
+}
+
+/** The card's back color — the spine's dominant color; neutral when unknown. */
+export function backColor(kind: CoverKind, name: string): string {
+  return SPINE_COLORS[kind]?.[coverSlug(name)] ?? '#1a1a1a';
+}
+
 export type CoverTextures = {
   front: THREE.Texture;   // the cover
-  back:  THREE.Texture;   // same cover, mirror-corrected for the −z face
-  spine: THREE.Texture;   // vertical gradient of the cover's own colors
+  spine: THREE.Texture;   // the dedicated spine strip (four thin edges)
+  backColor: string;      // solid fill for the −z face (matches the spine)
 };
 
-/** Average RGB of a horizontal band of pixel data. */
-function bandAverage(
-  data: Uint8ClampedArray,
-  width: number,
-  rowStart: number,
-  rowEnd: number,
-): string {
-  let r = 0, g = 0, b = 0, n = 0;
-  for (let y = rowStart; y < rowEnd; y++) {
-    for (let x = 0; x < width; x++) {
-      const o = (y * width + x) * 4;
-      r += data[o]; g += data[o + 1]; b += data[o + 2]; n++;
-    }
-  }
-  return `rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`;
-}
-
-/**
- * Spine texture: a vertical gradient through the average colors of the
- * cover's top, middle, and bottom thirds — so every spine is "a gradient
- * of the colors on the cover" with no extra assets.
- */
-function makeSpineGradient(image: CanvasImageSource): THREE.CanvasTexture {
-  const S = 24; // sample resolution — averages don't need more
-  const sample = document.createElement('canvas');
-  sample.width = S;
-  sample.height = S;
-  const sctx = sample.getContext('2d')!;
-  sctx.drawImage(image, 0, 0, S, S);
-  const { data } = sctx.getImageData(0, 0, S, S);
-
-  const top = bandAverage(data, S, 0, S / 3);
-  const mid = bandAverage(data, S, S / 3, (2 * S) / 3);
-  const bot = bandAverage(data, S, (2 * S) / 3, S);
-
-  const out = document.createElement('canvas');
-  out.width = 8;
-  out.height = 128;
-  const ctx = out.getContext('2d')!;
-  const grad = ctx.createLinearGradient(0, 0, 0, out.height);
-  grad.addColorStop(0, top);
-  grad.addColorStop(0.5, mid);
-  grad.addColorStop(1, bot);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, out.width, out.height);
-
-  const tex = new THREE.CanvasTexture(out);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-/**
- * Load a card's cover and derive its three textures.
- * Resolves null when the cover image doesn't exist (procedural fallback).
- */
-export function loadCoverTextures(
-  kind: CoverKind,
-  name: string,
-): Promise<CoverTextures | null> {
+function loadTexture(url: string): Promise<THREE.Texture | null> {
   return new Promise((resolve) => {
     new THREE.TextureLoader().load(
-      coverUrl(kind, name),
-      (front) => {
-        front.colorSpace = THREE.SRGBColorSpace;
-        front.anisotropy = 4;
-
-        // Wheel cards tip over the X axis (xTilt), so a card's back is seen
-        // top-over-bottom — which reads the −z face rotated 180°. Rotate the
-        // back texture by π so backs appear upright from that viewpoint.
-        const back = front.clone();
-        back.center.set(0.5, 0.5);
-        back.rotation = Math.PI;
-        back.needsUpdate = true;
-
-        const spine = makeSpineGradient(front.image as CanvasImageSource);
-        resolve({ front, back, spine });
+      url,
+      (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 4;
+        resolve(t);
       },
       undefined,
       () => resolve(null),
     );
   });
+}
+
+/**
+ * A flat 8×128 texture of a single color — fallback spine when a card's
+ * spine image is absent, so the edges still read as the card's own color.
+ */
+function solidTexture(color: string): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 8;
+  c.height = 128;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, c.width, c.height);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * Load a card's front + spine textures and resolve its back color.
+ * Resolves null when the cover image doesn't exist (procedural fallback).
+ */
+export async function loadCoverTextures(
+  kind: CoverKind,
+  name: string,
+): Promise<CoverTextures | null> {
+  const front = await loadTexture(coverUrl(kind, name));
+  if (!front) return null;
+
+  const back = backColor(kind, name);
+  const spine = (await loadTexture(spineUrl(kind, name))) ?? solidTexture(back);
+
+  return { front, spine, backColor: back };
 }
