@@ -49,6 +49,7 @@ next-env.d.ts
 
 # raw cover exports (huge originals — normalized copies live in public/covers)
 /covers/
+/covers new/
 /.agents/
 
 # generated audit output
