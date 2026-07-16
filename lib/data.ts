@@ -33,6 +33,15 @@ export type Track = {
   artistId: number;
   album: string;
   releaseDate: string | null;
+  duration: number | null;   // full-track length in seconds (Deezer)
   image: string;             // album cover (xl → big → small fallback)
   preview: string | null;    // ~30s MP3
 };
+
+/** Seconds → "m:ss" for queue rows and the progress readout. */
+export function formatDuration(s: number | null | undefined): string {
+  if (s == null || !isFinite(s) || s <= 0) return '–:––';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}

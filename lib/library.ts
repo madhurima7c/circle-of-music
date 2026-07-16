@@ -25,6 +25,15 @@ export type Find = {
   genre: string;
   savedAt: number;      // epoch ms
   releaseDate?: string | null; // optional — older saved finds predate it
+  duration?: number | null;    // optional — full-track seconds
+};
+
+/** A named, ordered collection of saved finds (Spotify-style playlist). */
+export type Playlist = {
+  id: string;
+  name: string;
+  trackIds: number[];   // references into the finds list
+  createdAt: number;
 };
 
 const KEY = 'finds';
@@ -56,8 +65,11 @@ function write(next: Find[]) {
 
 function subscribe(cb: () => void) {
   listeners.add(cb);
-  // Keep multiple tabs in sync.
-  const onStorage = (e: StorageEvent) => { if (e.key === KEY) { cache = null; cb(); } };
+  // Keep multiple tabs in sync (finds + playlists share the listener set).
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === KEY) { cache = null; cb(); }
+    if (e.key === PL_KEY) { plCache = null; cb(); }
+  };
   window.addEventListener('storage', onStorage);
   return () => { listeners.delete(cb); window.removeEventListener('storage', onStorage); };
 }
@@ -103,8 +115,67 @@ export function importFinds(json: string): number {
 export function findToTrack(f: Find): Track {
   return {
     id: f.id, title: f.title, artist: f.artist, artistId: 0,
-    album: f.album, releaseDate: f.releaseDate ?? null, image: f.image, preview: f.preview,
+    album: f.album, releaseDate: f.releaseDate ?? null,
+    duration: f.duration ?? null, image: f.image, preview: f.preview,
   };
+}
+
+/* ---------- playlists (same localStorage store pattern) ---------- */
+
+const PL_KEY = 'playlists';
+const EMPTY_PL: Playlist[] = [];
+let plCache: Playlist[] | null = null;
+
+function readPlaylists(): Playlist[] {
+  if (plCache) return plCache;
+  if (typeof window === 'undefined') return EMPTY_PL;
+  try {
+    const raw = window.localStorage.getItem(PL_KEY);
+    plCache = raw ? (JSON.parse(raw) as Playlist[]) : [];
+  } catch {
+    plCache = [];
+  }
+  return plCache!;
+}
+
+function writePlaylists(next: Playlist[]) {
+  plCache = next;
+  try { window.localStorage.setItem(PL_KEY, JSON.stringify(next)); } catch { /* quota */ }
+  listeners.forEach(l => l());
+}
+
+export function createPlaylist(name: string): Playlist {
+  const pl: Playlist = {
+    id: `pl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+    name: name.trim() || 'New playlist',
+    trackIds: [],
+    createdAt: Date.now(),
+  };
+  writePlaylists([...readPlaylists(), pl]);
+  return pl;
+}
+
+export function deletePlaylist(id: string) {
+  writePlaylists(readPlaylists().filter(p => p.id !== id));
+}
+
+export function renamePlaylist(id: string, name: string) {
+  writePlaylists(readPlaylists().map(p => (p.id === id ? { ...p, name: name.trim() || p.name } : p)));
+}
+
+/** Add a saved find to a playlist (dedupes; drag-and-drop calls this). */
+export function addToPlaylist(playlistId: string, trackId: number) {
+  writePlaylists(readPlaylists().map(p =>
+    p.id === playlistId && !p.trackIds.includes(trackId)
+      ? { ...p, trackIds: [...p.trackIds, trackId] }
+      : p,
+  ));
+}
+
+export function removeFromPlaylist(playlistId: string, trackId: number) {
+  writePlaylists(readPlaylists().map(p =>
+    p.id === playlistId ? { ...p, trackIds: p.trackIds.filter(t => t !== trackId) } : p,
+  ));
 }
 
 /* ---------- React hooks ---------- */
@@ -116,6 +187,12 @@ const serverFalse = () => false;
 
 export function useFinds(): Find[] {
   return useSyncExternalStore(subscribe, read, serverFinds);
+}
+
+const serverPlaylists = (): Playlist[] => EMPTY_PL;
+
+export function usePlaylists(): Playlist[] {
+  return useSyncExternalStore(subscribe, readPlaylists, serverPlaylists);
 }
 
 export function useIsFind(id: number | undefined): boolean {

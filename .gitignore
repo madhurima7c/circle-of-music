@@ -54,3 +54,4 @@ next-env.d.ts
 
 # generated audit output
 audit-report.md
+/menu icons/

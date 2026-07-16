@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { STR } from '@/lib/strings';
 import { useStore } from '@/lib/store';
-import { CenterStack, HandTracking, GestureToast } from '@/components/Overlay';
+import { CenterStack, Dock, HandTracking, GestureToast } from '@/components/Overlay';
+import { ExperienceNav } from '@/components/ExperienceNav';
 
 // react-globe.gl needs WebGL + window — client-only, split out.
 const WorldGlobe = dynamic(() => import('@/components/WorldGlobe'), {
@@ -16,10 +17,9 @@ export default function WorldPage() {
   const { handMode } = useStore();
   return (
     <main className="world-frame">
-      <Link href="/" className="title world-title" title={STR.world.backName}>
-        {STR.world.title}
-      </Link>
       <WorldGlobe />
+
+      <ExperienceNav />
 
       {/* The playlist panel — same card as the Circle, docked right; it may
           overlap the globe (by design: the globe zooms past the frame). */}
@@ -30,8 +30,12 @@ export default function WorldPage() {
         ◐ {STR.world.toCircleLink}
       </Link>
 
+      {/* Shared dock — shuffle routes to the globe's own random-country
+          spin (it owns the fly-to camera), via a window event. */}
+      <Dock onSurprise={() => window.dispatchEvent(new Event('world:shuffle'))} />
+
       {/* Hand tracking is the same opt-in VR-cursor system as the Circle —
-          the fab in WorldGlobe toggles it; pinch-drag rotates the globe. */}
+          toggled from the dock menu; pinch-drag rotates the globe. */}
       {handMode && <HandTracking />}
       <GestureToast />
     </main>

@@ -2,15 +2,18 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useStore } from '@/lib/store';
-import { COUNTRIES, GENRES } from '@/lib/data';
+import { COUNTRIES, GENRES, formatDuration } from '@/lib/data';
 import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
-import { toggleFind, useIsFind } from '@/lib/library';
+import { toggleFind, useIsFind, useFinds } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
+import { audioBus } from '@/lib/audio-bus';
+import { LikedSongs } from '@/components/Library';
 import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
@@ -125,15 +128,107 @@ export function ConnectorTags() {
  *  re-orders the queue around the current track, and when the last
  *  preview ends the pool reshuffles and replays from the top.
  * ================================================================ */
+/** Progress readout — polls the shared <audio> directly (see audio-bus). */
+function ProgressBar({ trackDuration }: { trackDuration: number | null }) {
+  const [pos, setPos] = useState(0);
+  const [dur, setDur] = useState(0);
+  useEffect(() => {
+    const tick = () => {
+      const el = audioBus.el;
+      if (el && isFinite(el.duration) && el.duration > 0) {
+        setPos(el.currentTime);
+        setDur(el.duration);
+      } else {
+        setPos(0);
+        setDur(0);
+      }
+    };
+    tick();
+    const t = setInterval(tick, 500);
+    return () => clearInterval(t);
+  }, []);
+
+  const total = dur || trackDuration || 0;
+  const pct = total > 0 ? Math.min(100, (pos / total) * 100) : 0;
+
+  return (
+    <div className="center__progress">
+      <span className="center__time tabular">{formatDuration(pos)}</span>
+      <div
+        className="center__bar"
+        onClick={(e) => {
+          const el = audioBus.el;
+          if (!el || !dur) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          el.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur;
+        }}
+        role="slider"
+        aria-label="Seek"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(total)}
+        aria-valuenow={Math.round(pos)}
+      >
+        <div className="center__bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="center__time tabular">{formatDuration(total)}</span>
+    </div>
+  );
+}
+
+/* Compact brand marks for the "listen in" menu. */
+function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'deezer' }) {
+  if (kind === 'spotify') {
+    return (
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+        <circle cx="12" cy="12" r="11" fill="#1DB954" />
+        <path d="M6.5 9.6c3.6-1.1 7.6-.7 10.6 1" stroke="#fff" strokeWidth="1.7" fill="none" strokeLinecap="round" />
+        <path d="M7.2 12.6c3-.9 6.2-.5 8.7.9" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        <path d="M7.9 15.4c2.3-.7 4.8-.4 6.8.7" stroke="#fff" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (kind === 'apple') {
+    return (
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+        <rect x="1" y="1" width="22" height="22" rx="5.5" fill="#FA2D48" />
+        <path d="M16.6 5.8 9.8 7.2v7.1a2.3 2.3 0 1 0 1.4 2.1V9.6l4-.85v4.15a2.3 2.3 0 1 0 1.4 2.1z" fill="#fff" />
+      </svg>
+    );
+  }
+  if (kind === 'youtube') {
+    return (
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+        <rect x="1" y="4.5" width="22" height="15" rx="4" fill="#FF0000" />
+        <path d="M10 9v6l5.4-3z" fill="#fff" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+      <g fill="#A238FF">
+        <rect x="2" y="15" width="4.4" height="3" rx="0.6" />
+        <rect x="7.4" y="11.5" width="4.4" height="6.5" rx="0.6" />
+        <rect x="12.8" y="8" width="4.4" height="10" rx="0.6" />
+        <rect x="18.2" y="4.5" width="4.4" height="13.5" rx="0.6" />
+      </g>
+    </svg>
+  );
+}
+
 export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } = {}) {
   const {
     tracks, trackIdx, status, isPlaying, countryName, genreIdx,
     togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
+    setTrackIdx, setIsPlaying,
   } = useStore();
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
   const country = countryName || '';
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
+
+  // Card flip (front = player, back = song/artist info) + share popover.
+  const [flipped, setFlipped] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Audio itself lives in <GlobalPlayer> (root layout) so playback survives
   // navigation — this card is pure UI over the same store.
@@ -153,14 +248,17 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
   const pairingKey = `${country}|${genre}`;
   const lastPairing = useRef(pairingKey);
 
-  // Playlist entrance: when a fresh pairing becomes ready, the transport,
-  // now-playing row, and queue rise and stagger in together.
+  // Fresh pairing → face forward with the share menu closed.
+  useEffect(() => { setFlipped(false); setShareOpen(false); }, [pairingKey]);
+  useEffect(() => { setShareOpen(false); }, [track?.id]);
+
+  // Playlist entrance: when a fresh pairing becomes ready, the now-playing
+  // row, transport, and queue rise and stagger in together.
   useGSAP(() => {
     if (!hasTrack || !canAnimate()) return;
     gsap.timeline({ defaults: { ease: 'power2.out' } })
-      .from('.center__controls', { autoAlpha: 0, y: 6, duration: 0.35 })
-      .from('.center__now',      { autoAlpha: 0, y: 8, duration: 0.40 }, '-=0.22')
-      .from('.center__links',    { autoAlpha: 0, y: 4, duration: 0.30 }, '-=0.26')
+      .from('.center__now',      { autoAlpha: 0, y: 8, duration: 0.40 })
+      .from('.center__controls', { autoAlpha: 0, y: 6, duration: 0.35 }, '-=0.22')
       .from('.center__queue-item', { autoAlpha: 0, y: 6, stagger: 0.045, duration: 0.30 }, '-=0.18');
   }, { scope: stackRef, dependencies: [pairingKey, hasTrack] });
 
@@ -197,11 +295,6 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
               ['--ill-genre'   as string]: gradient.genre,
             } as React.CSSProperties}
           >
-            <header className="center__chips" hidden={pending}>
-              <span className="chip--country-mini">{country.toUpperCase()}</span>
-              <span className="chip--genre-mini">{genre.toUpperCase()}</span>
-            </header>
-
             {/* Populating / no-results: only this block */}
             <div
               className="center__card-pane"
@@ -218,119 +311,186 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
               </p>
             </div>
 
-            <div className="center__track" hidden={!hasTrack}>
-              <div className="center__controls">
-                <button className="ctrl" onClick={prevTrack} title={STR.card.prev} aria-label={STR.card.prev}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 6v12" />
-                    <path d="M19 6L9 12l10 6V6z" />
-                  </svg>
-                </button>
-                <button className="ctrl ctrl--lg" onClick={togglePlay} title={STR.card.playPause} aria-label={STR.card.playPause}>
-                  <svg className="ctrl__play" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>
-                  <svg className="ctrl__pause" viewBox="0 0 24 24" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
-                </button>
-                <button className="ctrl" onClick={nextTrack} title={STR.card.next} aria-label={STR.card.next}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 6l10 6-10 6V6z" />
-                    <path d="M19 6v12" />
-                  </svg>
-                </button>
-                <button className="ctrl" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
-                  {/* Lucide "shuffle" (MIT), optimized for 16×16 glyph in 32px button */}
-                  <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <polyline points="16 3 21 3 21 8" />
-                    <line x1="4" y1="20" x2="21" y2="3" />
-                    <polyline points="21 16 21 21 16 21" />
-                    <line x1="15" y1="15" x2="21" y2="21" />
-                    <line x1="4" y1="4" x2="9" y2="9" />
-                  </svg>
-                </button>
-              </div>
+            {/* Player card: front = playback, back = about-this-song.
+                Clicking anywhere non-interactive flips it. */}
+            <div
+              className="center__flipper"
+              data-flipped={flipped ? 'true' : 'false'}
+              hidden={!hasTrack}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('button, a, input, .center__queue, .center__bar')) return;
+                setFlipped(f => !f);
+                setShareOpen(false);
+              }}
+              title={flipped ? STR.card.flipBack : STR.card.flipHint}
+            >
+              <div className="center__face center__face--front">
+                <div className="center__track">
+                  <div className="center__now">
+                    <div className="center__cover-wrap">
+                      {track?.image
+                        ? <img className="center__cover" src={track.image} alt="" />
+                        : <div className="center__cover" />}
+                    </div>
+                    <div className="center__meta">
+                      <h2 className="center__title">{track?.title}</h2>
+                      <p className="center__album">
+                        {track ? `${track.album} — ${track.artist}` : ''}
+                      </p>
+                      {/* Origin line: curated story when we have one, otherwise a
+                          grounded facts fallback (genre · country · year). */}
+                      {track && (
+                        <p className="center__about">
+                          {storyFor(track.artist, country, genre)
+                            ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))}
+                        </p>
+                      )}
+                    </div>
+                    {track && (
+                      <button
+                        className="center__heart"
+                        data-saved={saved ? 'true' : 'false'}
+                        onClick={() => toggleFind({
+                          id: track.id, title: track.title, artist: track.artist,
+                          album: track.album, image: track.image, preview: track.preview,
+                          country, genre, savedAt: Date.now(),
+                          releaseDate: track.releaseDate ?? null,
+                          duration: track.duration ?? null,
+                        })}
+                        title={saved ? STR.card.unsave : STR.card.save}
+                        aria-label={saved ? STR.card.unsave : STR.card.save}
+                        aria-pressed={saved}
+                      >
+                        <svg viewBox="0 0 24 24" width="17" height="17"
+                          fill={saved ? 'currentColor' : 'none'}
+                          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
 
-              {/* Continue this find in the listener's own app. */}
-              {links && (
-                <div className="center__links">
-                  <span className="center__links-label">{STR.card.openIn}</span>
-                  <a href={links.spotify}    target="_blank" rel="noreferrer">Spotify</a>
-                  <a href={links.appleMusic} target="_blank" rel="noreferrer">Apple</a>
-                  <a href={links.youtube}    target="_blank" rel="noreferrer">YouTube</a>
-                  <a href={links.deezer}     target="_blank" rel="noreferrer">Deezer</a>
-                  {spotifyEnabled && (
-                    <button
-                      className="center__spotify-connect"
-                      data-connected={spotifyOn ? 'true' : 'false'}
-                      onClick={() => (spotifyOn ? disconnectSpotify() : connectSpotify())}
-                      title={spotifyOn ? STR.spotify.disconnect : STR.spotify.connect}
-                    >
-                      {spotifyOn ? STR.spotify.connected : STR.spotify.connect}
+                  <ProgressBar trackDuration={track?.duration ?? null} />
+
+                  <div className="center__controls">
+                    <button className="ctrl" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
+                      {/* Lucide "shuffle" (MIT) */}
+                      <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <polyline points="16 3 21 3 21 8" />
+                        <line x1="4" y1="20" x2="21" y2="3" />
+                        <polyline points="21 16 21 21 16 21" />
+                        <line x1="15" y1="15" x2="21" y2="21" />
+                        <line x1="4" y1="4" x2="9" y2="9" />
+                      </svg>
                     </button>
-                  )}
-                </div>
-              )}
+                    <button className="ctrl" onClick={prevTrack} title={STR.card.prev} aria-label={STR.card.prev}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 6v12" />
+                        <path d="M19 6L9 12l10 6V6z" />
+                      </svg>
+                    </button>
+                    <button className="ctrl ctrl--lg" onClick={togglePlay} title={STR.card.playPause} aria-label={STR.card.playPause}>
+                      <svg className="ctrl__play" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>
+                      <svg className="ctrl__pause" viewBox="0 0 24 24" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
+                    </button>
+                    <button className="ctrl" onClick={nextTrack} title={STR.card.next} aria-label={STR.card.next}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 6l10 6-10 6V6z" />
+                        <path d="M19 6v12" />
+                      </svg>
+                    </button>
+                    <button
+                      className="ctrl"
+                      onClick={() => setShareOpen(o => !o)}
+                      title={STR.card.share}
+                      aria-label={STR.card.share}
+                      aria-expanded={shareOpen}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 15V4" />
+                        <path d="M8 8l4-4 4 4" />
+                        <path d="M5 13v6h14v-6" />
+                      </svg>
+                    </button>
 
-              <div className="center__now">
-                <div className="center__cover-wrap">
-                  {track?.image
-                    ? <img className="center__cover" src={track.image} alt="" />
-                    : <div className="center__cover" />}
+                    {shareOpen && links && (
+                      <div className="listen-menu" role="menu" aria-label={STR.card.listenIn}>
+                        <div className="listen-menu__head">{STR.card.listenIn.toUpperCase()}</div>
+                        <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer"><BrandIcon kind="spotify" />Spotify</a>
+                        <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
+                        <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
+                        <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
+                        {spotifyEnabled && (
+                          <button
+                            className="listen-menu__connect"
+                            data-connected={spotifyOn ? 'true' : 'false'}
+                            onClick={() => (spotifyOn ? disconnectSpotify() : connectSpotify())}
+                          >
+                            {spotifyOn ? STR.spotify.connected : STR.spotify.connect}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="center__up-next">
+                    <h3 className="center__up-next-title">{STR.card.upNext}</h3>
+                    <ul className="center__queue" aria-label="Queued tracks">
+                      {tracks.length <= 1 ? (
+                        <li className="center__queue-empty">
+                          {tracks.length === 0 ? STR.card.noTracks : STR.card.noOtherTracks}
+                        </li>
+                      ) : (
+                        Array.from({ length: tracks.length - 1 }, (_, step) => {
+                          const j = (trackIdx + 1 + step) % tracks.length;
+                          const t = tracks[j];
+                          return (
+                            <li
+                              key={t.id}
+                              className="center__queue-item"
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => { setTrackIdx(j); setIsPlaying(true); }}
+                              onKeyDown={(e) => { if (e.key === 'Enter') { setTrackIdx(j); setIsPlaying(true); } }}
+                            >
+                              {t.image
+                                ? <img className="qrow__img" src={t.image} alt="" loading="lazy" />
+                                : <span className="qrow__img" />}
+                              <span className="qrow__main">
+                                <span className="qrow__title">{t.title}</span>
+                                <span className="qrow__artist">{t.artist}</span>
+                              </span>
+                              <span className="qrow__album">{t.album}</span>
+                              <span className="qrow__dur tabular">{formatDuration(t.duration)}</span>
+                            </li>
+                          );
+                        })
+                      )}
+                    </ul>
+                  </div>
                 </div>
-                <div className="center__meta">
-                  <h2 className="center__title">{track?.title}</h2>
-                  <p className="center__album">
-                    {track ? `${track.album} — ${track.artist}${releaseYear(track.releaseDate) ? ` · ${releaseYear(track.releaseDate)}` : ''}` : ''}
-                  </p>
-                  {/* Origin line: curated story when we have one, otherwise a
-                      grounded facts fallback (genre · country · year). */}
-                  {track && (
-                    <p className="center__about">
-                      {storyFor(track.artist, country, genre)
-                        ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))}
-                    </p>
-                  )}
-                </div>
-                {track && (
-                  <button
-                    className="center__heart"
-                    data-saved={saved ? 'true' : 'false'}
-                    onClick={() => toggleFind({
-                      id: track.id, title: track.title, artist: track.artist,
-                      album: track.album, image: track.image, preview: track.preview,
-                      country, genre, savedAt: Date.now(),
-                      releaseDate: track.releaseDate ?? null,
-                    })}
-                    title={saved ? STR.card.unsave : STR.card.save}
-                    aria-label={saved ? STR.card.unsave : STR.card.save}
-                    aria-pressed={saved}
-                  >
-                    <svg viewBox="0 0 24 24" width="17" height="17"
-                      fill={saved ? 'currentColor' : 'none'}
-                      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-                    </svg>
-                  </button>
-                )}
               </div>
 
-              <div className="center__up-next">
-                <h3 className="center__up-next-title">{STR.card.upNext}</h3>
-                <ul className="center__queue" aria-label="Queued tracks">
-                  {tracks.length <= 1 ? (
-                    <li className="center__queue-empty">
-                      {tracks.length === 0 ? STR.card.noTracks : STR.card.noOtherTracks}
-                    </li>
-                  ) : (
-                    Array.from({ length: tracks.length - 1 }, (_, step) => {
-                      const j = (trackIdx + 1 + step) % tracks.length;
-                      const t = tracks[j];
-                      return (
-                        <li key={t.id} className="center__queue-item">
-                          {t.artist ? `${t.title} — ${t.artist}` : t.title}
-                        </li>
-                      );
-                    })
-                  )}
-                </ul>
+              {/* Back face — the song & artist story. */}
+              <div className="center__face center__face--back">
+                <div className="center__backpane">
+                  <div className="center__back-kicker">{STR.card.aboutTitle.toUpperCase()}</div>
+                  <h2 className="center__back-song">{track?.title}</h2>
+                  <p className="center__back-artist">{track?.artist}</p>
+                  <p className="center__back-story">
+                    {track
+                      ? storyFor(track.artist, country, genre)
+                        ?? STR.card.aboutFallback(genre, country, releaseYear(track?.releaseDate))
+                      : ''}
+                  </p>
+                  <dl className="center__back-facts">
+                    <div><dt>{STR.card.factAlbum}</dt><dd>{track?.album || '—'}</dd></div>
+                    <div><dt>{STR.card.factReleased}</dt><dd>{releaseYear(track?.releaseDate) ?? '—'}</dd></div>
+                    <div><dt>{STR.card.factFound}</dt><dd>{country} × {genre}</dd></div>
+                    <div><dt>{STR.card.factLength}</dt><dd className="tabular">{formatDuration(track?.duration)}</dd></div>
+                  </dl>
+                  <span className="center__back-hint">{STR.card.flipBack}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1001,113 +1161,262 @@ export function GestureToast() {
   );
 }
 
-/** Bottom-center icon dock — surprise + hand-mode toggle + info + recommend. */
-export function Dock() {
+/**
+ * Bottom-center dock — the three verbs of the app:
+ *   shuffle (surprise) · liked songs (popup with playlists) · more (menu).
+ * The more menu holds Language, Hand tracking (On/Off), the World's dot
+ * filter when on /world, Contact us, and About us.
+ */
+export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
   const { handMode, toggleHandMode, surprise, lockedLeft, lockedRight } = useStore();
-  // Hand tracking makes no sense on touch-primary devices — hide the toggle.
+  const pathname = usePathname();
+  const finds = useFinds();
+
+  const [likedOpen, setLikedOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [submenu, setSubmenu] = useState<null | 'lang' | 'hand' | 'dots'>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [lang, setLang] = useState('en');
+  const [dots, setDots] = useState<'artists' | 'songs'>('artists');
+
+  // Hand tracking makes no sense on touch-primary devices — hide the row.
   const [coarse, setCoarse] = useState(false);
   useEffect(() => {
     setCoarse(window.matchMedia('(pointer: coarse)').matches);
+    const l = window.localStorage.getItem('lang');
+    if (l) setLang(l);
+    const d = window.localStorage.getItem('worldDots');
+    if (d === 'songs' || d === 'artists') setDots(d);
   }, []);
+
+  const closeMenu = () => { setMenuOpen(false); setSubmenu(null); };
+
+  const pickLang = (code: string) => {
+    setLang(code);
+    window.localStorage.setItem('lang', code);
+  };
+
+  const pickDots = (mode: 'artists' | 'songs') => {
+    setDots(mode);
+    window.localStorage.setItem('worldDots', mode);
+    window.dispatchEvent(new CustomEvent('world:dots', { detail: mode }));
+    closeMenu();
+  };
+
   return (
-    <div
-      className="absolute z-20 flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5"
-      style={{
-        left: '50%',
-        bottom: 36,
-        transform: 'translateX(-50%)',
-        boxShadow:
-          '0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)',
-      }}
-    >
-      {/* Surprise me — random new pairing (guided by locks). The primary
-          discovery verb, so it's first and accent-styled. */}
-      <button
-        onClick={surprise}
-        className="flex size-10 items-center justify-center rounded-full bg-[var(--accent)] text-white transition-transform duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:brightness-110 active:scale-[0.94]"
-        title={
-          lockedLeft && lockedRight ? STR.dock.surpriseBothLocked
-          : lockedLeft  ? STR.dock.surpriseGenreOnly
-          : lockedRight ? STR.dock.surpriseCountryOnly
-          : STR.dock.surprise
-        }
-        aria-label={STR.dock.surprise}
-      >
-        {/* shuffle / dice */}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M16 3h5v5" />
-          <path d="M4 20 21 3" />
-          <path d="M21 16v5h-5" />
-          <path d="m15 15 6 6" />
-          <path d="M4 4l5 5" />
-        </svg>
-      </button>
-      {!coarse && (
+    <>
+      <div className="dock">
+        {/* Shuffle — the primary discovery verb, accent-styled. */}
         <button
-          onClick={toggleHandMode}
-          className="flex size-10 items-center justify-center rounded-full transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]"
-          style={{
-            background: handMode ? 'var(--accent)' : 'transparent',
-            color:      handMode ? '#fff' : '#262626',
-          }}
-          title={handMode ? STR.dock.handTitleOff : STR.dock.handTitleOn}
-          aria-label={handMode ? STR.dock.handOff : STR.dock.handOn}
-          aria-pressed={handMode}
+          onClick={onSurprise ?? surprise}
+          className="dock__btn dock__btn--primary"
+          title={
+            lockedLeft && lockedRight ? STR.dock.surpriseBothLocked
+            : lockedLeft  ? STR.dock.surpriseGenreOnly
+            : lockedRight ? STR.dock.surpriseCountryOnly
+            : STR.dock.surprise
+          }
+          aria-label={STR.dock.surprise}
         >
-          {/* hand outline */}
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 11V6a2 2 0 0 0-4 0v5" />
-            <path d="M14 10V4a2 2 0 0 0-4 0v6" />
-            <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
-            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 3h5v5" />
+            <path d="M4 20 21 3" />
+            <path d="M21 16v5h-5" />
+            <path d="m15 15 6 6" />
+            <path d="M4 4l5 5" />
           </svg>
         </button>
+
+        {/* Liked songs — opens the playlist popup. */}
+        <button
+          onClick={() => { setLikedOpen(o => !o); closeMenu(); }}
+          className="dock__btn"
+          title={STR.playlists.title}
+          aria-label={STR.playlists.title}
+          aria-expanded={likedOpen}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={finds.length ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+          </svg>
+          {finds.length > 0 && <span className="dock__count tabular">{finds.length}</span>}
+        </button>
+
+        {/* More — language, hand tracking, contact, about. */}
+        <button
+          onClick={() => { setMenuOpen(o => !o); setSubmenu(null); setLikedOpen(false); }}
+          className="dock__btn"
+          title={STR.menu.more}
+          aria-label={STR.menu.more}
+          aria-expanded={menuOpen}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" />
+          </svg>
+        </button>
+
+        {menuOpen && (
+          <>
+            <div className="dock-scrim" onClick={closeMenu} />
+            <div className="dock-menu" role="menu">
+              {/* Language */}
+              <button
+                role="menuitem"
+                className="dock-menu__row"
+                aria-expanded={submenu === 'lang'}
+                onClick={() => setSubmenu(s => (s === 'lang' ? null : 'lang'))}
+              >
+                {/* translate glyph — 文/A */}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 5h8" /><path d="M8 3v2" /><path d="M6 5c0 4 2.5 7 6 8.5" />
+                  <path d="M10 5c0 4-2.5 7-6 8.5" />
+                  <path d="m13 21 4.5-10L22 21" /><path d="M14.6 17.5h5.8" />
+                </svg>
+                {STR.menu.language}
+                <span className="dock-menu__chev">▸</span>
+              </button>
+
+              {/* Hand tracking */}
+              {!coarse && (
+                <button
+                  role="menuitem"
+                  className="dock-menu__row"
+                  aria-expanded={submenu === 'hand'}
+                  onClick={() => setSubmenu(s => (s === 'hand' ? null : 'hand'))}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 11V6a2 2 0 0 0-4 0v5" />
+                    <path d="M14 10V4a2 2 0 0 0-4 0v6" />
+                    <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+                    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+                  </svg>
+                  {STR.menu.handTracking}
+                  <span className="dock-menu__chev">▸</span>
+                </button>
+              )}
+
+              {/* World-only: what the globe dots represent */}
+              {pathname === '/world' && (
+                <button
+                  role="menuitem"
+                  className="dock-menu__row"
+                  aria-expanded={submenu === 'dots'}
+                  onClick={() => setSubmenu(s => (s === 'dots' ? null : 'dots'))}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="6" cy="12" r="2" /><circle cx="13" cy="7" r="2" /><circle cx="17" cy="15" r="2" />
+                  </svg>
+                  {STR.world.dotsLabel}
+                  <span className="dock-menu__chev">▸</span>
+                </button>
+              )}
+
+              {/* Contact us */}
+              <button
+                role="menuitem"
+                className="dock-menu__row"
+                onClick={() => {
+                  window.location.href = `mailto:?subject=${encodeURIComponent(STR.menu.mailSubject)}`;
+                  closeMenu();
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 5h18v12H7l-4 4z" />
+                </svg>
+                {STR.menu.contact}
+              </button>
+
+              {/* About us */}
+              <button
+                role="menuitem"
+                className="dock-menu__row"
+                onClick={() => { setAboutOpen(true); closeMenu(); }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8h.01" />
+                  <path d="M11 12h1v5h1" />
+                </svg>
+                {STR.menu.about}
+              </button>
+
+              {/* Submenus */}
+              {submenu === 'lang' && (
+                <div className="dock-submenu dock-submenu--lang" role="menu" aria-label={STR.menu.language}>
+                  {STR.languages.map(l => (
+                    <button
+                      key={l.code}
+                      role="menuitemradio"
+                      aria-checked={lang === l.code}
+                      data-ready={l.ready ? 'true' : 'false'}
+                      className="dock-menu__row dock-menu__row--sub"
+                      onClick={() => { if (l.ready) { pickLang(l.code); closeMenu(); } }}
+                      title={l.ready ? l.label : `${l.label} — ${STR.menu.translationsSoon}`}
+                    >
+                      <span className="dock-menu__check">{lang === l.code ? '✓' : ''}</span>
+                      {l.label}
+                      {!l.ready && <span className="dock-menu__soon">{STR.menu.translationsSoon}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {submenu === 'hand' && (
+                <div className="dock-submenu" role="menu" aria-label={STR.menu.handTracking}>
+                  <button
+                    role="menuitemradio"
+                    aria-checked={handMode}
+                    className="dock-menu__row dock-menu__row--sub"
+                    onClick={() => { if (!handMode) toggleHandMode(); closeMenu(); }}
+                  >
+                    <span className="dock-menu__check">{handMode ? '✓' : ''}</span>{STR.menu.on}
+                  </button>
+                  <button
+                    role="menuitemradio"
+                    aria-checked={!handMode}
+                    className="dock-menu__row dock-menu__row--sub"
+                    onClick={() => { if (handMode) toggleHandMode(); closeMenu(); }}
+                  >
+                    <span className="dock-menu__check">{!handMode ? '✓' : ''}</span>{STR.menu.off}
+                  </button>
+                </div>
+              )}
+              {submenu === 'dots' && (
+                <div className="dock-submenu" role="menu" aria-label={STR.world.dotsLabel}>
+                  <button
+                    role="menuitemradio"
+                    aria-checked={dots === 'artists'}
+                    className="dock-menu__row dock-menu__row--sub"
+                    onClick={() => pickDots('artists')}
+                  >
+                    <span className="dock-menu__check">{dots === 'artists' ? '✓' : ''}</span>{STR.world.dotsArtists}
+                  </button>
+                  <button
+                    role="menuitemradio"
+                    aria-checked={dots === 'songs'}
+                    className="dock-menu__row dock-menu__row--sub"
+                    onClick={() => pickDots('songs')}
+                  >
+                    <span className="dock-menu__check">{dots === 'songs' ? '✓' : ''}</span>{STR.world.dotsSongs}
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      <LikedSongs open={likedOpen} onClose={() => setLikedOpen(false)} />
+
+      {aboutOpen && (
+        <>
+          <div className="dock-scrim dock-scrim--dim" onClick={() => setAboutOpen(false)} />
+          <div className="about-card" role="dialog" aria-label={STR.menu.about}>
+            <h2>{STR.menu.aboutTitle}</h2>
+            <p>{STR.menu.aboutBody}</p>
+            <button onClick={() => setAboutOpen(false)}>{STR.library.close}</button>
+          </div>
+        </>
       )}
-      <button
-        className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)] hover:bg-neutral-100 active:scale-[0.96]"
-        aria-label={STR.dock.info}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 8h.01" />
-          <path d="M11 12h1v5h1" />
-        </svg>
-      </button>
-      <button
-        onClick={() => {
-          const subject = encodeURIComponent(STR.dock.mailSubject);
-          window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(STR.dock.mailBody)}`;
-        }}
-        className="flex size-10 items-center justify-center rounded-full text-neutral-800 transition-[background-color,transform] duration-150 hover:bg-neutral-100 active:scale-[0.96]"
-        aria-label={STR.dock.recommend}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 5h18v12H7l-4 4z" />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-export function Hint() {
-  const { handMode } = useStore();
-  return (
-    <div
-      className="hint absolute z-[25] text-[10.5px] tracking-[0.04em] text-black/55"
-      style={{ left: 28, bottom: 12 }}
-    >
-      {handMode ? STR.hints.hand : STR.hints.mouse}
-    </div>
-  );
-}
-
-export function MenuMark() {
-  return (
-    <div className="absolute right-7 top-7 z-30 flex w-[22px] cursor-pointer flex-col gap-1">
-      <span className="block h-0.5 self-end bg-neutral-800" style={{ width: '60%' }} />
-      <span className="block h-0.5 bg-neutral-800" />
-      <span className="block h-0.5 self-end bg-neutral-800" style={{ width: '80%' }} />
-    </div>
+    </>
   );
 }
 

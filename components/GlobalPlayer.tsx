@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { STR } from '@/lib/strings';
+import { audioBus } from '@/lib/audio-bus';
 import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected, handleSpotifyCallback,
   ensurePlayer, findTrackUri, playUri, sdkPause, sdkResume,
@@ -190,7 +191,7 @@ export function GlobalPlayer() {
   return (
     <>
       <audio
-        ref={audioRef}
+        ref={(el) => { audioRef.current = el; audioBus.el = el; }}
         preload="auto"
         playsInline
         onPlay={() => { setIsPlaying(true); setAutoplayBlocked(false); }}

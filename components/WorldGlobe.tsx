@@ -47,7 +47,7 @@ const esc = (s: string) =>
 
 export default function WorldGlobe() {
   const {
-    genreIdx, status, tracks, trackIdx, countryName, handMode, toggleHandMode,
+    genreIdx, status, tracks, trackIdx, countryName,
     playPlace, playPlaceNamed, setGenre, setTrackIdx, setIsPlaying,
   } = useStore();
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
@@ -71,14 +71,18 @@ export default function WorldGlobe() {
       .catch(() => {});
   }, []);
 
+  // Dot mode lives in the shared dock's More menu now — read the saved
+  // choice on mount and follow menu changes via a window event.
   useEffect(() => {
     const saved = window.localStorage.getItem('worldDots');
     if (saved === 'songs' || saved === 'artists') setDotMode(saved);
+    const onDots = (e: Event) => {
+      const mode = (e as CustomEvent).detail;
+      if (mode === 'songs' || mode === 'artists') setDotMode(mode);
+    };
+    window.addEventListener('world:dots', onDots);
+    return () => window.removeEventListener('world:dots', onDots);
   }, []);
-  const setDotModePersist = (mode: DotMode) => {
-    setDotMode(mode);
-    window.localStorage.setItem('worldDots', mode);
-  };
 
   /* ---------- load country polygons ---------- */
   useEffect(() => {
@@ -182,11 +186,19 @@ export default function WorldGlobe() {
   };
 
   // Spin to a random curated country and play it (the radio.garden moment).
+  // Triggered from the shared dock's shuffle button via a window event.
   const shuffle = () => {
     const playable = features.filter(f => PLAYABLE_GEO_NAMES.has(f.properties.NAME));
     if (!playable.length) return;
     onClick(playable[Math.floor(Math.random() * playable.length)]);
   };
+  const shuffleRef = useRef(shuffle);
+  shuffleRef.current = shuffle;
+  useEffect(() => {
+    const onShuffle = () => shuffleRef.current();
+    window.addEventListener('world:shuffle', onShuffle);
+    return () => window.removeEventListener('world:shuffle', onShuffle);
+  }, []);
 
   const capColor = (feat: object) => {
     const name = (feat as Feature).properties.NAME;
@@ -385,57 +397,6 @@ export default function WorldGlobe() {
       {status === 'empty' && (
         <div className="world-hint">{STR.world.tapHint}</div>
       )}
-
-      {/* Bottom dock, centered: hand toggle · artists|songs segmented toggle · shuffle. */}
-      <div className="world-dock">
-        <button
-          className="world-fab world-fab--hand"
-          data-active={handMode ? 'true' : 'false'}
-          onClick={toggleHandMode}
-          title={STR.world.handToggle}
-          aria-label={STR.world.handToggle}
-          aria-pressed={handMode}
-        >
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 11V6a2 2 0 0 0-4 0v5" /><path d="M14 10V4a2 2 0 0 0-4 0v2" />
-            <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
-            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
-          </svg>
-        </button>
-
-        <div className="world-seg" role="radiogroup" aria-label={STR.world.dotsLabel}>
-          <button
-            role="radio"
-            aria-checked={dotMode === 'artists'}
-            data-active={dotMode === 'artists' ? 'true' : 'false'}
-            title={STR.world.dotsArtists}
-            aria-label={STR.world.dotsArtists}
-            onClick={() => setDotModePersist('artists')}
-          >
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
-            </svg>
-          </button>
-          <button
-            role="radio"
-            aria-checked={dotMode === 'songs'}
-            data-active={dotMode === 'songs' ? 'true' : 'false'}
-            title={STR.world.dotsSongs}
-            aria-label={STR.world.dotsSongs}
-            onClick={() => setDotModePersist('songs')}
-          >
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-            </svg>
-          </button>
-        </div>
-
-        <button className="world-fab world-fab--shuffle" onClick={shuffle} title={STR.world.surprise} aria-label={STR.world.surprise}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 3h5v5" /><path d="M4 20 21 3" /><path d="M21 16v5h-5" /><path d="m15 15 6 6" /><path d="M4 4l5 5" />
-          </svg>
-        </button>
-      </div>
     </div>
   );
 }

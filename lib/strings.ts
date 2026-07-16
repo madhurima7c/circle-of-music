@@ -60,6 +60,69 @@ export const STR = {
     toWorldLink: 'Go to World of Music',
   },
 
+  /* Top-center experience switcher. */
+  nav: {
+    circle: 'Circle',
+    world: 'World',
+    shades: 'Shades',
+    shadesSoon: 'Shades — a color-first way into music. Coming soon.',
+  },
+
+  /* Dock "more" menu. */
+  menu: {
+    more: 'More options',
+    language: 'Language',
+    handTracking: 'Hand tracking',
+    on: 'On',
+    off: 'Off',
+    contact: 'Contact us',
+    about: 'About us',
+    aboutTitle: 'Music Exploration',
+    aboutBody:
+      'Wander, don’t search. The world’s music, browsable by place and genre — no algorithm, no login, no destination required. 30-second tastings via Deezer; open every find in your own music app.',
+    translationsSoon: 'coming soon',
+    mailSubject: 'Music Exploration — hello',
+  },
+
+  /* Language menu — the interaction is offered in all of these; English is
+   * the shipped locale, the rest activate as translations land. */
+  languages: [
+    { code: 'en', label: 'English', ready: true },
+    { code: 'es', label: 'Español', ready: false },
+    { code: 'fr', label: 'Français', ready: false },
+    { code: 'de', label: 'Deutsch', ready: false },
+    { code: 'pt', label: 'Português', ready: false },
+    { code: 'it', label: 'Italiano', ready: false },
+    { code: 'tr', label: 'Türkçe', ready: false },
+    { code: 'pl', label: 'Polski', ready: false },
+    { code: 'sv', label: 'Svenska', ready: false },
+    { code: 'no', label: 'Norsk', ready: false },
+    { code: 'ru', label: 'Русский', ready: false },
+    { code: 'ar', label: 'العربية', ready: false },
+    { code: 'fa', label: 'فارسی', ready: false },
+    { code: 'hi', label: 'हिन्दी', ready: false },
+    { code: 'ur', label: 'اردو', ready: false },
+    { code: 'ja', label: '日本語', ready: false },
+    { code: 'ko', label: '한국어', ready: false },
+    { code: 'zh', label: '中文', ready: false },
+    { code: 'sw', label: 'Kiswahili', ready: false },
+  ] as ReadonlyArray<{ code: string; label: string; ready: boolean }>,
+
+  /* Liked-songs popup with playlists (Spotify-style IA). */
+  playlists: {
+    title: 'Liked songs',
+    all: 'All liked',
+    yourPlaylists: 'Playlists',
+    newPlaylist: 'New playlist',
+    namePlaceholder: 'Name your playlist',
+    create: 'Create',
+    deletePlaylist: 'Delete playlist',
+    emptyAll: 'No liked songs yet. Tap the ♥ on a track you love to keep it here.',
+    emptyPlaylist: 'Drag songs from All liked into this playlist.',
+    dragHint: 'Drag a song onto a playlist to add it',
+    removeFromPlaylist: 'Remove from this playlist',
+  },
+
   spotify: {
     connect: 'Connect Spotify',
     connected: 'Spotify ✓ full songs',
@@ -81,6 +144,15 @@ export const STR = {
     unsave: 'Remove from your finds',
     aboutFallback: (genre: string, country: string, year: string | null) =>
       `A ${genre} find from ${country}${year ? `, released ${year}` : ''}.`,
+    listenIn: 'Listen to full song in',
+    share: 'Listen in your own app',
+    flipHint: 'Tap the card for song info',
+    aboutTitle: 'About this song',
+    flipBack: 'Tap to flip back',
+    factAlbum: 'Album',
+    factReleased: 'Released',
+    factFound: 'Found in',
+    factLength: 'Length',
   },
 
   library: {

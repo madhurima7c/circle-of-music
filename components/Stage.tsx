@@ -2,22 +2,22 @@
 
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useState } from 'react';
-import { button, folder, useControls, Leva } from 'leva';
 import Wheel, { type WheelTuning } from './Wheel';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 
 /* ------------------------------------------------------------------
- * Default dial values — these produce two wheels that are perfect
- * mirror images of each other across the canvas vertical center.
+ * Final dial values — locked in from the (removed) leva tuning panel.
+ * These produce two wheels that are perfect mirror images of each
+ * other across the canvas vertical center.
  * ------------------------------------------------------------------ */
-const DEFAULT_CAMERA = {
+const DESKTOP_CAMERA = {
   cameraZ: 9,
   fov: 46,
   wheelOffsetX: 7.5,
 };
 
-const DEFAULT_TUNING: WheelTuning = {
+const DESKTOP_TUNING: WheelTuning = {
   /* layout */
   radius:        4.0,
   cardSize:      1.25,
@@ -29,12 +29,23 @@ const DEFAULT_TUNING: WheelTuning = {
   tangentAmount: 0.50,
   flipSpine:     false,
   /* active card emphasis */
-  popZ:     1.10,
-  popScale: 1.60,
+  popZ:     1.35,
+  popScale: 1.55,
   recedeZ:  -0.20,
   /* angular padding around active */
-  paddingAmount: 0.32,
-  paddingDecay:  0.6,
+  paddingAmount: 0.38,
+  paddingDecay:  0.2,
+};
+
+/* Locked lighting rig (from the removed Lighting dials): warm key + soft
+ * fill so tilted cards catch light like real record sleeves. */
+const LIGHTS = {
+  ambient: 0.35,
+  sky:     1.10,
+  key:     0.95,
+  fill:    1.15,
+  keyX:    6.5,
+  keyY:    3.5,
 };
 
 /* Portrait phones: same composition, scaled to fit — the wheels become
@@ -46,7 +57,7 @@ const MOBILE_CAMERA = {
 };
 
 const MOBILE_TUNING: WheelTuning = {
-  ...DEFAULT_TUNING,
+  ...DESKTOP_TUNING,
   radius:        2.4,
   cardSize:      0.62,
   popZ:          1.25,
@@ -57,14 +68,13 @@ const MOBILE_TUNING: WheelTuning = {
 /**
  * The 3D stage: two large card circles, mostly clipped off-canvas.
  * Wheel rotates so the selected card lands at the fixed active position
- * (3 o'clock left, 9 o'clock right). All visual params are live-tunable
- * via the leva panel; mirror symmetry is enforced inside Wheel.tsx.
+ * (3 o'clock left, 9 o'clock right). Visual params are locked constants
+ * (desktop vs mobile); mirror symmetry is enforced inside Wheel.tsx.
  */
 export default function Stage() {
   const { countryIdx, genreIdx, spinLeft, spinRight, setCountry, setGenre } = useStore();
 
-  // Portrait/phone breakpoint — swaps in the mobile camera + wheel tuning
-  // (and hides the leva dev panel, which would cover a phone screen).
+  // Portrait/phone breakpoint — swaps in the mobile camera + wheel tuning.
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -74,60 +84,11 @@ export default function Stage() {
     return () => mq.removeEventListener('change', apply);
   }, []);
 
-  // Camera dials — function form so we get a `set` for the reset button.
-  const [camera, setCamera] = useControls('Camera', () => ({
-    cameraZ:      { value: DEFAULT_CAMERA.cameraZ,      min: 4, max: 16, step: 0.1 },
-    fov:          { value: DEFAULT_CAMERA.fov,          min: 20, max: 80, step: 1   },
-    wheelOffsetX: { value: DEFAULT_CAMERA.wheelOffsetX, min: 3,  max: 12, step: 0.1, label: 'wheel center X' },
-  }));
-
-  // Wheel tuning dials + reset-all button.
-  const [tuning, setTuning] = useControls('Wheel', () => ({
-    Layout: folder({
-      radius:        { value: DEFAULT_TUNING.radius,        min: 2,    max: 8,    step: 0.1  },
-      cardSize:      { value: DEFAULT_TUNING.cardSize,      min: 0.2,  max: 1.5,  step: 0.05 },
-      cardThickness: { value: DEFAULT_TUNING.cardThickness, min: 0.01, max: 0.30, step: 0.01 },
-    }),
-    Rotation: folder({
-      spineAngleDeg: { value: DEFAULT_TUNING.spineAngleDeg, min: -90, max: 90, step: 1,    label: 'Y · spine (°)' },
-      xTiltDeg:      { value: DEFAULT_TUNING.xTiltDeg,      min: -90, max: 90, step: 1,    label: 'X · tilt (°)'  },
-      extraZDeg:     { value: DEFAULT_TUNING.extraZDeg,     min: -90, max: 90, step: 1,    label: 'Z · extra (°)' },
-      tangentAmount: { value: DEFAULT_TUNING.tangentAmount, min: 0,   max: 2,  step: 0.05, label: 'tangent align' },
-      flipSpine:     { value: DEFAULT_TUNING.flipSpine,                                    label: 'flip spine side' },
-    }),
-    'Active card': folder({
-      popZ:     { value: DEFAULT_TUNING.popZ,     min: 0,  max: 3,    step: 0.05 },
-      popScale: { value: DEFAULT_TUNING.popScale, min: 0,  max: 2,    step: 0.05 },
-      recedeZ:  { value: DEFAULT_TUNING.recedeZ,  min: -1, max: 0.5,  step: 0.05 },
-    }),
-    Padding: folder({
-      paddingAmount: { value: DEFAULT_TUNING.paddingAmount, min: 0,   max: 0.5, step: 0.005, label: 'gap size (rad)' },
-      paddingDecay:  { value: DEFAULT_TUNING.paddingDecay,  min: 0.2, max: 5,   step: 0.1,   label: 'gap falloff'    },
-    }),
-    'Reset to defaults': button(() => {
-      setTuning({ ...DEFAULT_TUNING });
-      setCamera({ ...DEFAULT_CAMERA });
-    }),
-  }));
-
-  // Lighting dials — realistic card shading is mostly a key/fill balance.
-  // Values also drive mobile (panel hidden, defaults still apply).
-  const light = useControls('Lighting', {
-    ambient: { value: 0.35, min: 0, max: 2,   step: 0.05 },
-    sky:     { value: 1.10, min: 0, max: 2,   step: 0.05, label: 'hemisphere' },
-    key:     { value: 0.95, min: 0, max: 3,   step: 0.05 },
-    fill:    { value: 1.15, min: 0, max: 2,   step: 0.05 },
-    keyX:    { value: 6.5,  min: -10, max: 10, step: 0.5,  label: 'key X' },
-    keyY:    { value: 3.5,  min: -10, max: 10, step: 0.5,  label: 'key Y' },
-  });
-
-  // Mobile overrides beat the leva dials; desktop keeps them tunable.
-  const cam = isMobile ? MOBILE_CAMERA : camera;
-  const tun = isMobile ? MOBILE_TUNING : tuning;
+  const cam = isMobile ? MOBILE_CAMERA : DESKTOP_CAMERA;
+  const tun = isMobile ? MOBILE_TUNING : DESKTOP_TUNING;
 
   return (
     <div className="absolute inset-0 z-[2]">
-      <Leva hidden={isMobile} />
       <Canvas
         key={isMobile ? 'mobile' : 'desktop'}
         camera={{ position: [0, 0, cam.cameraZ], fov: cam.fov, near: 0.1, far: 100 }}
@@ -138,10 +99,10 @@ export default function Stage() {
         {/* Warm key + soft fill so tilted cards catch light like real
             record sleeves; hemisphere gives a natural sky/ground gradient,
             the camera point light a laminate catch-highlight. */}
-        <ambientLight intensity={light.ambient} />
-        <hemisphereLight args={['#fff7ea', '#8a8478', light.sky]} />
-        <directionalLight position={[light.keyX, light.keyY, 5]} intensity={light.key} />
-        <directionalLight position={[-6, 2, 4]} intensity={light.fill} />
+        <ambientLight intensity={LIGHTS.ambient} />
+        <hemisphereLight args={['#fff7ea', '#8a8478', LIGHTS.sky]} />
+        <directionalLight position={[LIGHTS.keyX, LIGHTS.keyY, 5]} intensity={LIGHTS.key} />
+        <directionalLight position={[-6, 2, 4]} intensity={LIGHTS.fill} />
         <pointLight position={[0, 1, 6]} intensity={0.35} />
 
         <Suspense fallback={null}>

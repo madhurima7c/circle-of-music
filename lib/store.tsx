@@ -107,6 +107,7 @@ function toTrack(d: DeezerTrack): Track {
     artistId: d.artist?.id ?? 0,
     album: d.album?.title ?? '',
     releaseDate: d.release_date ?? null,
+    duration: d.duration ?? null,
     image:
       d.album?.cover_xl ||
       d.album?.cover_big ||

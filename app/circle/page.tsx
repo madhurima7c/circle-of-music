@@ -8,7 +8,6 @@ import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
 import { coverSlug } from '@/lib/covers';
 import {
-  Title,
   Heart,
   PopulatingText,
   ConnectorTags,
@@ -16,11 +15,10 @@ import {
   Dial,
   WheelLock,
   Dock,
-  Hint,
   HandTracking,
   GestureToast,
 } from '@/components/Overlay';
-import { Library } from '@/components/Library';
+import { ExperienceNav } from '@/components/ExperienceNav';
 
 // 3D stage is client-only and bundle-heavy — split it.
 const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
@@ -65,10 +63,18 @@ export default function CirclePage() {
 
   return (
     <main className="frame">
-      <Title />
-      <Library />
-
       <Stage />
+
+      {/* Progressive blur bands: cards fade + blur as they leave the top
+          and bottom of the stage — motion reads without an overlay layer. */}
+      <div className="edge-blur edge-blur--top" aria-hidden>
+        <span /><span /><span /><span />
+      </div>
+      <div className="edge-blur edge-blur--bottom" aria-hidden>
+        <span /><span /><span /><span />
+      </div>
+
+      <ExperienceNav />
 
       <Heart />
       <PopulatingText />
@@ -80,9 +86,6 @@ export default function CirclePage() {
       <WheelLock side="left" />
       <WheelLock side="right" />
 
-      <div className="glass top"    style={{ top: 0,    height: 130 }} />
-      <div className="glass bottom" style={{ bottom: 0, height: 160 }} />
-
       {/* Instrument toggle: mirror of the World's right-edge link. */}
       <Link href="/world" className="circle-to-world-link">
         ◍ {STR.circle.toWorldLink}
@@ -90,10 +93,9 @@ export default function CirclePage() {
 
       <Dock />
       {/* Hand tracking is opt-in: camera + MediaPipe only spin up when the
-          user flips the dock toggle. Unmounting releases the webcam. */}
+          user flips the menu toggle. Unmounting releases the webcam. */}
       {handMode && <HandTracking />}
       <GestureToast />
-      <Hint />
     </main>
   );
 }
