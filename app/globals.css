@@ -208,11 +208,12 @@ html, body {
   transform: translateX(-50%);
   z-index: 30;
   display: flex;
-  gap: 22px;
+  gap: 10px;
   /* Light stage (Circle): ink labels, soft blue-tinted halo. */
   --nav-ink: rgba(10, 10, 10, 0.6);
   --nav-ink-strong: #0a0a0a;
   --nav-accent: var(--accent);
+  --circle-ink: #1d2bdf; /* the card ring — darker on the light stage */
   --nav-glow: drop-shadow(0 0 8px rgba(31, 43, 214, 0.22)) drop-shadow(0 2px 6px rgba(10, 10, 10, 0.16));
   --nav-label-glow: 0 0 6px rgba(31, 43, 214, 0.18);
 }
@@ -221,6 +222,7 @@ html, body {
   --nav-ink: rgba(228, 233, 255, 0.78);
   --nav-ink-strong: #ffffff;
   --nav-accent: #9daaff;
+  --circle-ink: #767dec; /* lighter periwinkle so the cards read on dark */
   --nav-glow: drop-shadow(0 0 10px rgba(150, 165, 255, 0.5)) drop-shadow(0 0 22px rgba(90, 110, 255, 0.28));
   --nav-label-glow: 0 0 8px rgba(150, 165, 255, 0.45);
 }
@@ -228,8 +230,8 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  width: 96px;
+  gap: 5px;
+  width: 64px;
   padding: 4px 2px;
   border: none;
   background: transparent;
@@ -248,24 +250,22 @@ html, body {
 .xnav__iconwrap {
   display: grid;
   place-items: center;
-  perspective: 300px; /* depth for the globe's rotateY spin */
   transition: transform 340ms cubic-bezier(0.34, 1.56, 0.64, 1); /* spring pop */
 }
 .xnav__icon {
-  width: 56px; height: 56px;
+  width: 28px; height: 28px;
   display: block;
-  filter: var(--icon-adjust, brightness(1)) var(--nav-glow);
+  filter: var(--nav-glow);
   transition: filter 200ms ease;
 }
-/* The globe render is dense/dark — lift it so it reads on both stages. */
-.xnav__icon--world { --icon-adjust: brightness(1.45) saturate(1.12); }
+.xnav__icon--circle { color: var(--circle-ink); transition: color 200ms ease, filter 200ms ease; }
 .xnav__label {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--nav-ink);
   text-shadow: var(--nav-label-glow);
@@ -289,23 +289,21 @@ html, body {
   .xnav__item[data-active="true"]:hover .xnav__label { color: var(--nav-accent); }
   /* Circle: the ring of cards turns like the wheels do. */
   .xnav__item:hover .xnav__icon--circle { animation: xnav-turn 3.2s linear infinite; }
-  /* World: the globe spins about its vertical axis, like the page's idle spin. */
-  .xnav__item:hover .xnav__icon--world { animation: xnav-axis 1.8s linear infinite; }
+  /* World spin is real 3D — driven by NavGlobe (three.js) on hover. */
   /* Shades: the gradient wanders through hues. */
   .xnav__item:hover .xnav__icon--shades { animation: xnav-hue 2.4s linear infinite; }
 }
 @keyframes xnav-turn { to { transform: rotate(360deg); } }
-@keyframes xnav-axis { to { transform: rotateY(360deg); } }
 @keyframes xnav-hue {
-  from { filter: var(--icon-adjust, brightness(1)) var(--nav-glow) hue-rotate(0deg); }
-  to   { filter: var(--icon-adjust, brightness(1)) var(--nav-glow) hue-rotate(360deg); }
+  from { filter: var(--nav-glow) hue-rotate(0deg); }
+  to   { filter: var(--nav-glow) hue-rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .xnav__item { animation: none; }
   .xnav__iconwrap { transition: none; }
-  .xnav__item:hover .xnav__icon--circle,
-  .xnav__item:hover .xnav__icon--world { animation: none; }
-  /* hue drift is a color change, not motion — it may stay */
+  .xnav__item:hover .xnav__icon--circle { animation: none; }
+  /* hue drift is a color change, not motion — it may stay;
+     NavGlobe checks prefers-reduced-motion itself. */
 }
 
 /* =====================================================================
