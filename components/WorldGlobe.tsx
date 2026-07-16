@@ -89,6 +89,8 @@ export default function WorldGlobe() {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [hovered, setHovered] = useState<string | null>(null);
   const [selectedGeo, setSelectedGeo] = useState<string | null>(null);
+  const selectedGeoRef = useRef(selectedGeo);
+  selectedGeoRef.current = selectedGeo;
 
   // Up to MAX_GENRES selected at once — none by default. Selection order
   // assigns each its color.
@@ -432,6 +434,15 @@ export default function WorldGlobe() {
       clearGenres: () => setSelectedGenres([]),
       dots: () => dotsRef.current,
       playDot: (i: number) => { const d = dotsRef.current[i]; if (d) void playDotRef.current(d); },
+      selectedGeo: () => selectedGeoRef.current,
+      screenXY: (i: number) => {
+        const d = dotsRef.current[i];
+        if (!d) return null;
+        const g = globeRef.current as unknown as {
+          getScreenCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number };
+        };
+        return g?.getScreenCoords?.(d.lat, d.lng, 0.015) ?? null;
+      },
       tapCountry: (name: string) => {
         const f = features.find(x => x.properties.NAME === name);
         if (f) onClick(f);
@@ -530,8 +541,10 @@ export default function WorldGlobe() {
           polygonCapColor={capColor}
           polygonSideColor={() => COL.side}
           polygonStrokeColor={() => COL.stroke}
-          polygonAltitude={(f: object) =>
-            (f as Feature).properties.NAME === hovered ? 0.03 : 0.012}
+          /* CONSTANT altitude — the old hover extrusion (0.03) lifted the
+             country cap ABOVE the song dots, so the polygon swallowed
+             every dot click. Dots must always sit on top. */
+          polygonAltitude={0.01}
           polygonLabel={label}
           onPolygonHover={(f: object | null) =>
             setHovered(f ? (f as Feature).properties.NAME : null)}
@@ -542,7 +555,7 @@ export default function WorldGlobe() {
           pointLat={(d: object) => (d as SongDot).lat}
           pointLng={(d: object) => (d as SongDot).lng}
           pointColor={(d: object) => colorFor((d as SongDot).genreIdx)}
-          pointAltitude={0.006}
+          pointAltitude={0.015}
           pointRadius={0.32}
           pointsMerge={false}
           pointLabel={(d: object) => {
