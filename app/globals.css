@@ -1418,9 +1418,12 @@ html, body {
 .world-genre-chip:last-child { border-bottom: none; }
 .world-genre-chip:hover { color: #fff; background: rgba(205, 211, 255, 0.07); }
 .world-genre-chip:active { color: #fff; }
+/* Active chips take their assigned dot color (multi-select, max five);
+ * dark ink so the light placeholder colors stay readable. */
 .world-genre-chip[data-active="true"] {
-  background: linear-gradient(100deg, var(--accent) 0%, #4a5cff 100%);
-  color: #fff;
+  background: var(--chip-c, var(--accent));
+  color: #0e0f1a;
+  font-weight: 500;
 }
 
 

@@ -118,6 +118,12 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Playing dot = single html avatar marker + sonar ring (dot for the current track; artist origin lookup for country queues).
 - Dev hooks: `__world.pickGenre(i|null)`, `__world.dots()`, `__world.playDot(i)`, `__world.select(name, gi|null)`.
 
+## ✅ World v7 — multi-genre colors, dot-first IA, world-songs dataset (2026-07-16, pushed)
+- **Multi-genre select (max 5)**: `selectedGenres: number[]` in WorldGlobe; placeholder colors by SELECTION ORDER `['#3ce080','#ffd166','#ff6b9d','#4cc9f0','#c77dff']` (user may supply a real palette later); active rail chips take their color; 6th click ignored w/ tooltip (`STR.world.maxGenres`).
+- **Dot-first IA**: clicking a song dot plays it AND highlights its country (`setSelectedGeo(dot.geoKey)`); clicking country space (not a dot) highlights + SHUFFLES within that country (random in-country dot across selected genres); with no genres selected country taps use the pipeline queue (genre-less = country's best). Chain rule: nearest unplayed dot IN THE SAME COUNTRY first (any selected genre), then global nearest.
+- **World-songs dataset**: `npm run world-songs` (`scripts/build-world-songs.ts`, resumable via `__done` per genre file) mines MusicBrainz (country×genre tag, score-ordered, 1.1s serialized) ∪ seeds ∪ world-seeds → Deezer top tracks (preview-verified, ≤2/artist, 8 songs/country/genre ≈ 1,400+/genre × 175 nations) → `public/world-songs/<genre>.json` `{country: [{i,t,a,la,ln}], __done}`. Client fetches per-genre files lazily; dataset dots carry real titles + track ids (click = 1 `/track/{id}` jsonp → play); countries not yet built fall back to artist dots. FULL RUN TAKES ~10-12h — left running in background (log: /tmp/world-songs-run.log); re-run `npm run world-songs` anytime to continue. Flags: `--genres`, `--countries`, `--limit`.
+- Globe blues legend (for reference): bright accent = 20 wheel countries; faint blue = world-seeds-covered nations; near-grey = no data yet (MusicBrainz tier on tap); light periwinkle = selected; grey = hover.
+
 ## ⏳ Waiting on user (blocks next steps)
 - [ ] **Shades** experience design (nav slot exists, marked coming soon).
 - [ ] **Translations** for the 19 listed languages (only `en` is `ready` in `lib/strings.ts`); countries/genres too.
