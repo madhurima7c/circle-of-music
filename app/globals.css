@@ -28,7 +28,7 @@
 html, body {
   width: 100%; height: 100%;
   margin: 0;
-  background: var(--bg-frame);
+  background: var(--bg-stage);
   color: var(--ink);
   font-family: var(--font-mono), ui-monospace, monospace;
   -webkit-font-smoothing: antialiased;
@@ -108,10 +108,9 @@ html, body {
 
 /* Frame */
 .frame {
-  position: fixed; inset: 28px;
+  position: fixed; inset: 0;
   background: var(--bg-stage);
   overflow: hidden;
-  border-radius: 4px;
   isolation: isolate;
 }
 
@@ -1555,7 +1554,7 @@ html, body {
 .center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
 @media (max-width: 640px) {
-  .frame { inset: 10px; }
+  .frame { inset: 0; }
 
   .title { font-size: 24px !important; top: 20px !important; }
 
