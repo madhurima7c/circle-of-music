@@ -110,6 +110,14 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Player + Up Next rejoined into ONE card (hairline partition; controls end near the divider); the flipper turns alone. Back face = **About the artist**: Deezer portrait (`getArtistPicture`), origin "city, country" (`originForLive`), clamped writeup + "see more" → larger dialog (`.artist-modal`, portaled) w/ full bio + album/year/pairing/length facts.
 - Dock hover = circle highlight (blue-tinted) + accent stroke (stroke-only was too subtle).
 
+## ✅ World v6 — genre dots + dot chain + single card (2026-07-16, pushed)
+- **Default = no genre** (`genreSel: number|null`, local to WorldGlobe; store untouched). Picking a genre lights up song dots WORLDWIDE: one per artist in that genre from world-seeds (175 nations) + wheel seeds — Jazz ≈ 250 dots/98 countries, Pop ≈ 900. Coords from origins.json, else country label point + deterministic jitter. Rendered as WebGL `pointsData` (green), NOT html elements — cheap at 1000 dots. Clicking the active genre chip clears it.
+- **Dot chain playback**: click any dot → that artist's top genre-matched song fetches + plays (`searchArtistTracksStrict` + module cache). Auto-advance = geographically NEAREST unplayed dot (haversine), via rolling prefetch: next song is fetched + `appendTracks`ed before the current ends so GlobalPlayer's normal advance lands on it. Dead dots (no preview) skipped. Verified: Piazzolla → Aznar → Barbieri → Schifrin (all Buenos Aires-ish).
+- **Genre-less country taps**: `playPlace/playPlaceNamed(ci, null)` → `anyGenreRef` → `buildPlaylist(genre: null)` = country's notable artists across all buckets (world-seeds `top` / seeds all-genre interleave). MB/LLM/override tiers skipped when genre null.
+- **One now-playing card** (`components/WorldNowPlaying.tsx`, bottom-right, reference-styled): cover/title/album—artist/story-or-origin line (uses `originFor(artist).country` — the store pairing country is wrong for roaming chains), progress (reused ProgressBar; `order:0` override), controls, heart, "Listen to full song" toggle → brand links row. CenterStack side panel + dock="right" prop removed; artists/songs filter removed from dock ⋮ (dots are always songs).
+- Playing dot = single html avatar marker + sonar ring (dot for the current track; artist origin lookup for country queues).
+- Dev hooks: `__world.pickGenre(i|null)`, `__world.dots()`, `__world.playDot(i)`, `__world.select(name, gi|null)`.
+
 ## ⏳ Waiting on user (blocks next steps)
 - [ ] **Shades** experience design (nav slot exists, marked coming soon).
 - [ ] **Translations** for the 19 listed languages (only `en` is `ready` in `lib/strings.ts`); countries/genres too.

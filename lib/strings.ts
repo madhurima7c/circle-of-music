@@ -24,7 +24,12 @@ export const STR = {
     backName: 'Back to the hub',
     backDesc: 'The front door.',
     backCta: 'Home →',
-    tapHint: 'Tap any country to hear its music · drag to spin, pinch to zoom',
+    tapHint: 'Pick a genre to light up its songs around the world · tap any country to hear its music',
+    learnMore: 'Listen to full song',
+    fromLine: (place: string | null, year: string | null) =>
+      place && year ? `From ${place} · ${year}`
+      : place ? `From ${place}`
+      : year ? `Released ${year}` : '',
     surprise: 'Spin to a random country',
     toCircle: 'Open in Circle',
     exploreSuffix: ' · tap to explore',

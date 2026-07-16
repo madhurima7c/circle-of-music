@@ -84,13 +84,17 @@ type StoreShape = {
   surprise: () => void;
   /** Play an arbitrary queue (used by the finds library) from startIdx. */
   loadQueue: (queue: Track[], startIdx: number) => void;
+  /** Append tracks to the current queue without resetting playback — the
+   *  World's dot-chain feeds the next nearest song in as a rolling window. */
+  appendTracks: (extra: Track[]) => void;
   /** Set a pairing and fetch it immediately (no settle debounce) — the World
    *  globe wants instant audio on a country tap. genreIdx optional (keeps
-   *  the current genre when omitted). */
-  playPlace: (countryIdx: number, genreIdx?: number) => void;
+   *  the current genre when omitted); null = NO genre (the World's default
+   *  state) → the pipeline plays the country's notable songs across genres. */
+  playPlace: (countryIdx: number, genreIdx?: number | null) => void;
   /** Like playPlace but for a country OUTSIDE the seed wheel (any globe
    *  nation). Playlist comes from the MusicBrainz/LLM tiers only. */
-  playPlaceNamed: (countryName: string, genreIdx?: number) => void;
+  playPlaceNamed: (countryName: string, genreIdx?: number | null) => void;
   /** Display name of the active country — a custom globe country when one
    *  is playing, else COUNTRIES[countryIdx]. */
   countryName: string;
@@ -99,7 +103,7 @@ type StoreShape = {
 const Store = createContext<StoreShape | null>(null);
 
 /* ---------- Deezer → app Track shape ---------- */
-function toTrack(d: DeezerTrack): Track {
+export function toTrack(d: DeezerTrack): Track {
   return {
     id: d.id,
     title: d.title,
@@ -168,6 +172,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [customCountry, setCustomCountry] = useState<string | null>(null);
   const customCountryRef = useRef<string | null>(null);
 
+  // The World's genre-less state: a country tapped with NO genre selected
+  // plays its notable songs across genres. Cleared by any wheel/genre action.
+  const anyGenreRef = useRef(false);
+
   const commit = useCallback(async () => {
     const gen = ++populateGen.current;
     setStatus('populating');
@@ -176,7 +184,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIsPlaying(false);
 
     const country = customCountryRef.current ?? COUNTRIES[countryIdxRef.current];
-    const genre   = GENRES[genreIdxRef.current];
+    const genre   = anyGenreRef.current ? null : GENRES[genreIdxRef.current];
 
     try {
       let raw = await buildPlaylist({ country, genre, seeds: SEEDS });
@@ -224,6 +232,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (lockedRightRef.current) return;      // locked genre wheel ignores input
     const next = (genreIdxRef.current + dir + GENRES.length) % GENRES.length;
     genreIdxRef.current = next;
+    anyGenreRef.current = false;
     setGenreIdx(next);
     setStatus('empty');
     scheduleAutoCommit();
@@ -243,6 +252,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (lockedRightRef.current) return;
     const next = ((i % GENRES.length) + GENRES.length) % GENRES.length;
     genreIdxRef.current = next;
+    anyGenreRef.current = false;
     setGenreIdx(next);
     setStatus('empty');
     scheduleAutoCommit();
@@ -341,30 +351,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIsPlaying(true);
   }, []);
 
-  const playPlace = useCallback((ci: number, gi?: number) => {
+  const appendTracks = useCallback((extra: Track[]) => {
+    if (!extra.length) return;
+    setTracks(prev => [...prev, ...extra]);
+  }, []);
+
+  /** gi: number = play in that genre; null = NO genre (country's notable
+   *  songs across genres); undefined = keep the current genre. */
+  const applyGenreChoice = (gi: number | null | undefined) => {
+    if (gi === null) {
+      anyGenreRef.current = true;
+    } else if (gi !== undefined) {
+      anyGenreRef.current = false;
+      const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
+      genreIdxRef.current = g;
+      setGenreIdx(g);
+    }
+  };
+
+  const playPlace = useCallback((ci: number, gi?: number | null) => {
     const c = ((ci % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length;
     countryIdxRef.current = c;
     setCountryIdx(c);
     clearCustomCountry();
-    if (gi != null) {
-      const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
-      genreIdxRef.current = g;
-      setGenreIdx(g);
-    }
+    applyGenreChoice(gi);
     if (settleTimer.current) clearTimeout(settleTimer.current);  // skip the debounce
     commit();  // reads the refs just set — fetches this pairing right away
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commit, clearCustomCountry]);
 
-  const playPlaceNamed = useCallback((countryName: string, gi?: number) => {
+  const playPlaceNamed = useCallback((countryName: string, gi?: number | null) => {
     customCountryRef.current = countryName;
     setCustomCountry(countryName);
-    if (gi != null) {
-      const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
-      genreIdxRef.current = g;
-      setGenreIdx(g);
-    }
+    applyGenreChoice(gi);
     if (settleTimer.current) clearTimeout(settleTimer.current);
     commit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commit]);
 
   /* ---------- transient toast for gesture confirmation ---------- */
@@ -392,7 +414,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
-    surprise, loadQueue, playPlace, playPlaceNamed,
+    surprise, loadQueue, appendTracks, playPlace, playPlaceNamed,
     countryName: customCountry ?? COUNTRIES[countryIdx],
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
@@ -401,7 +423,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
        toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
-       playPlace, playPlaceNamed]);
+       appendTracks, playPlace, playPlaceNamed]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }

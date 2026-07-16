@@ -283,11 +283,27 @@ async function searchLoose(query: string, limit = 25): Promise<DeezerTrack[]> {
   return withPreview(data?.data || []);
 }
 
-function orderedSeedArtists(country: string, genre: string, seeds: Seeds): string[] {
+function orderedSeedArtists(country: string, genre: string | null, seeds: Seeds): string[] {
   const bucket = seeds?.artists?.[country as keyof typeof seeds.artists] as
     | Record<string, string[]>
     | undefined;
   if (!bucket || typeof bucket !== 'object') return [];
+
+  // No genre (the World's default state): the country's whole roster,
+  // interleaved across genres so no single style dominates the front.
+  if (genre === null) {
+    const lists = Object.values(bucket).filter(Array.isArray) as string[][];
+    const out: string[] = [];
+    const seen = new Set<string>();
+    const maxLen = Math.max(0, ...lists.map((l) => l.length));
+    for (let i = 0; i < maxLen; i++) {
+      for (const list of lists) {
+        const name = String(list[i] ?? '').trim();
+        if (name && !seen.has(name)) { seen.add(name); out.push(name); }
+      }
+    }
+    return out;
+  }
 
   const primary = Array.isArray(bucket[genre]) ? [...bucket[genre]] : [];
   const seen = new Set(primary.map((a) => a.trim()));
@@ -426,10 +442,12 @@ async function worldEntry(country: string): Promise<WorldEntry | null> {
 }
 
 /** Genre-bucketed world artists (+ related-genre borrows), like
- *  orderedSeedArtists but for countries outside the wheel. */
-async function worldSeedArtists(country: string, genre: string): Promise<string[]> {
+ *  orderedSeedArtists but for countries outside the wheel. Genre null =
+ *  the country's most notable artists across every genre. */
+async function worldSeedArtists(country: string, genre: string | null): Promise<string[]> {
   const entry = await worldEntry(country);
   if (!entry) return [];
+  if (genre === null) return [...entry.top];
   const out = [...(entry.genres[genre] ?? [])];
   const seen = new Set(out);
   for (const g of RELATED_GENRES[genre] ?? []) {
@@ -486,7 +504,7 @@ const ENOUGH      = 100;  // stop batching once this many candidates are in
 /** Resolve artists → track lists in rate-limit-friendly batches, stopping
  *  early once we have plenty. A full-parallel burst tripped Deezer's quota
  *  and silently starved the queue down to a handful of artists. */
-async function fetchArtistTrackLists(names: string[], genre: string): Promise<DeezerTrack[][]> {
+async function fetchArtistTrackLists(names: string[], genre: string | null): Promise<DeezerTrack[][]> {
   const lists: DeezerTrack[][] = [];
   for (let i = 0; i < names.length; i += BATCH_SIZE) {
     if (i > 0) await new Promise((r) => setTimeout(r, BATCH_PAUSE));
@@ -508,15 +526,17 @@ export async function buildPlaylist({
   seeds,
 }: {
   country: string;
-  genre: string;
+  /** null = no genre selected (the World's default): the country's notable
+   *  songs across genres. */
+  genre: string | null;
   seeds: Seeds;
 }): Promise<DeezerTrack[]> {
   const queue: DeezerTrack[] = [];
   const seen = new Set<number>();
   const seenKeys = new Set<string>();
 
-  /* Tier 0: hand-curated track overrides go first. */
-  const overrides = await fetchOverrideTracks(country, genre);
+  /* Tier 0: hand-curated track overrides go first (genre-keyed). */
+  const overrides = genre ? await fetchOverrideTracks(country, genre) : [];
   for (const t of overrides) {
     const key = trackKey(t);
     if (!seen.has(t.id) && !seenKeys.has(key)) {
@@ -530,7 +550,7 @@ export async function buildPlaylist({
    * wheel have no seeds.json bucket — world-seeds.json (all nations,
    * Wikidata-sourced + Deezer-verified) takes its place. */
   const [mbArtists, seedArtists] = await Promise.all([
-    findArtistsViaMusicBrainz(country, genre),
+    genre ? findArtistsViaMusicBrainz(country, genre) : Promise.resolve([] as string[]),
     Promise.resolve(orderedSeedArtists(country, genre, seeds)),
   ]);
   const worldArtists = seedArtists.length ? [] : await worldSeedArtists(country, genre);
@@ -558,8 +578,8 @@ export async function buildPlaylist({
     }
   }
 
-  /* Tier 3: LLM fallback if all the above failed. */
-  if (queue.length === 0) {
+  /* Tier 3: LLM fallback if all the above failed (needs a genre). */
+  if (queue.length === 0 && genre) {
     const llmArtists = await curateRuntime(country, genre);
     if (llmArtists.length) {
       const perArtist = await Promise.all(

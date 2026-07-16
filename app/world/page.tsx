@@ -2,8 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { useStore } from '@/lib/store';
-import { CenterStack, Dock, HandTracking, GestureToast } from '@/components/Overlay';
+import { Dock, HandTracking, GestureToast } from '@/components/Overlay';
 import { ExperienceNav } from '@/components/ExperienceNav';
+import { WorldNowPlaying } from '@/components/WorldNowPlaying';
 
 // react-globe.gl needs WebGL + window — client-only, split out.
 const WorldGlobe = dynamic(() => import('@/components/WorldGlobe'), {
@@ -19,9 +20,8 @@ export default function WorldPage() {
 
       <ExperienceNav />
 
-      {/* The playlist panel — same card as the Circle, docked right; it may
-          overlap the globe (by design: the globe zooms past the frame). */}
-      <CenterStack dock="right" />
+      {/* One compact now-playing card — the globe itself is the queue. */}
+      <WorldNowPlaying />
 
       {/* Shared dock — shuffle routes to the globe's own random-country
           spin (it owns the fly-to camera), via a window event. */}

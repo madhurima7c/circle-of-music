@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Globe, { type GlobeMethods } from 'react-globe.gl';
 import * as THREE from 'three';
-import { useStore } from '@/lib/store';
-import { GENRES } from '@/lib/data';
-import { GEO_URL, PLAYABLE_GEO_NAMES, seedCountryIdx } from '@/lib/geo';
+import { useStore, toTrack } from '@/lib/store';
+import { GENRES, SEEDS, type Track } from '@/lib/data';
+import { GEO_URL, PLAYABLE_GEO_NAMES, geoName, seedCountry, seedCountryIdx } from '@/lib/geo';
+import { searchArtistTracksStrict } from '@/lib/deezer';
 import { originFor, type ArtistOrigin } from '@/lib/origins';
 import { originForLive } from '@/lib/origins-live';
-import { storyFor, releaseYear, normKey } from '@/lib/stories';
+import { normKey } from '@/lib/stories';
 import { STR } from '@/lib/strings';
 
 type Feature = {
@@ -16,19 +17,17 @@ type Feature = {
   [k: string]: unknown;
 };
 
-/** What the flat map markers represent — toggled by the filter button. */
-type DotMode = 'artists' | 'songs';
-
-/** One flat marker on the globe (artist or song, depending on mode). */
-type Marker = {
+/** One song dot on the globe: an artist in the selected genre, placed at
+ *  their origin (curated coords) or near their country's label point. */
+type SongDot = {
+  id: string;
+  artist: string;
+  country: string;
   lat: number;
   lng: number;
-  id: string;
-  playing: boolean;
-  img: string;          // avatar (artist mode) — '' renders a plain dot
-  firstIdx: number;     // queue index a click jumps to
-  popupHtml: string;    // prebuilt, escaped hover popup content
 };
+
+type WorldEntry = { top: string[]; featured: string[]; genres: Record<string, string[]> };
 
 // Stylized, non-satellite palette (matches the app's ink/accent).
 const COL = {
@@ -40,49 +39,58 @@ const COL = {
   dimHover:      'rgba(205, 208, 220, 0.22)',
   side:          'rgba(20, 20, 30, 0.45)',
   stroke:        'rgba(255, 255, 255, 0.18)',
+  dot:           'rgba(60, 224, 128, 0.9)',    // song dots — radio.garden green
 };
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/** Deterministic small hash for jittering dots that only have a country. */
+function hashCode(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/** Great-circle distance (km) — drives the "nearest dot" auto-advance. */
+function haversine(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLng = (b.lng - a.lng) * rad;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(s));
+}
+
 export default function WorldGlobe() {
   const {
-    genreIdx, status, tracks, trackIdx, countryName,
-    playPlace, playPlaceNamed, setGenre, setTrackIdx, setIsPlaying,
+    status, tracks, trackIdx,
+    playPlace, playPlaceNamed, loadQueue, appendTracks,
   } = useStore();
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const genresRef = useRef<HTMLDivElement | null>(null);
 
   const [features, setFeatures] = useState<Feature[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [hovered, setHovered] = useState<string | null>(null);
   const [selectedGeo, setSelectedGeo] = useState<string | null>(null);
-  const [dotMode, setDotMode] = useState<DotMode>('artists');
+  // The World's own genre selection — null by default (nothing lit up).
+  const [genreSel, setGenreSel] = useState<number | null>(null);
+  const genreSelRef = useRef(genreSel);
+  genreSelRef.current = genreSel;
   // Countries the world-seeds pipeline has verified artists for.
-  const [worldCovered, setWorldCovered] = useState<Set<string>>(new Set());
+  const [worldSeeds, setWorldSeeds] = useState<Record<string, WorldEntry> | null>(null);
 
   useEffect(() => {
     import('@/lib/world-seeds.json')
-      .then((m) => {
-        const data = (m.default ?? m) as unknown as Record<string, { top: string[] }>;
-        setWorldCovered(new Set(Object.keys(data).filter((k) => data[k].top.length > 0)));
-      })
+      .then((m) => setWorldSeeds((m.default ?? m) as unknown as Record<string, WorldEntry>))
       .catch(() => {});
   }, []);
-
-  // Dot mode lives in the shared dock's More menu now — read the saved
-  // choice on mount and follow menu changes via a window event.
-  useEffect(() => {
-    const saved = window.localStorage.getItem('worldDots');
-    if (saved === 'songs' || saved === 'artists') setDotMode(saved);
-    const onDots = (e: Event) => {
-      const mode = (e as CustomEvent).detail;
-      if (mode === 'songs' || mode === 'artists') setDotMode(mode);
-    };
-    window.addEventListener('world:dots', onDots);
-    return () => window.removeEventListener('world:dots', onDots);
-  }, []);
+  const worldCovered = useMemo(
+    () => new Set(worldSeeds ? Object.keys(worldSeeds).filter((k) => worldSeeds[k].top.length > 0) : []),
+    [worldSeeds],
+  );
 
   /* ---------- load country polygons ---------- */
   useEffect(() => {
@@ -140,29 +148,156 @@ export default function WorldGlobe() {
     g.controls().autoRotate = status === 'empty';
   }, [status, size.w]);
 
-  /* ---------- keep the active genre visible in the rail ---------- */
-  useEffect(() => {
-    genresRef.current
-      ?.querySelector('[data-active="true"]')
-      ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [genreIdx]);
+  /* =====================================================================
+   *  Song dots — pick a genre and its songs light up around the world.
+   *  One dot per artist in that genre (world-seeds for every nation +
+   *  the hand-curated wheel seeds). Precise coords where the origins
+   *  pipeline knows them; otherwise near the country's label point with
+   *  a deterministic jitter so dots don't stack.
+   * ===================================================================== */
+  const labelPoints = useMemo(() => {
+    const map = new Map<string, { lat: number; lng: number }>();
+    features.forEach(f =>
+      map.set(f.properties.NAME, { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X }));
+    return map;
+  }, [features]);
 
-  /* Dev-only: the headless preview can't raycast canvas clicks (no rAF in
-   * hidden tabs), so expose the tap actions for scripted verification. */
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production') return;
-    (window as unknown as Record<string, unknown>).__world = {
-      select: (name: string, gi?: number) => {
-        setSelectedGeo(name);
-        const idx = seedCountryIdx(name);
-        if (idx >= 0) playPlace(idx, gi);
-        else playPlaceNamed(name, gi);
-      },
+  const dots = useMemo<SongDot[]>(() => {
+    if (genreSel == null || !worldSeeds || !labelPoints.size) return [];
+    const genreName = GENRES[genreSel];
+    const out: SongDot[] = [];
+    const seen = new Set<string>();
+
+    const push = (artist: string, geoNameKey: string) => {
+      const k = normKey(artist);
+      if (!k || seen.has(k)) return;
+      seen.add(k);
+      const o = originFor(artist);
+      let lat: number, lng: number;
+      if (o) {
+        lat = o.lat; lng = o.lng;
+      } else {
+        const lp = labelPoints.get(geoNameKey);
+        if (!lp) return;
+        const h = hashCode(k);
+        lat = lp.lat + ((h % 100) / 100 - 0.5) * 3.2;
+        lng = lp.lng + (((h >> 7) % 100) / 100 - 0.5) * 3.2;
+      }
+      out.push({
+        id: `${geoNameKey}|${k}`,
+        artist,
+        country: seedCountry(geoNameKey) ?? geoNameKey,
+        lat, lng,
+      });
     };
-  }, [playPlace, playPlaceNamed]);
 
-  // Country-level zoom: close enough that the country fills the view (the
-  // globe may overflow the frame — users zoom/rotate out freely).
+    // Hand-curated wheel seeds (precise origins for most).
+    const seedArtists = SEEDS.artists as Record<string, Record<string, string[]>>;
+    for (const country of Object.keys(seedArtists)) {
+      (seedArtists[country][genreName] ?? []).forEach(a => push(a, geoName(country)));
+    }
+    // Every nation's verified artists in this genre.
+    for (const [country, entry] of Object.entries(worldSeeds)) {
+      (entry.genres?.[genreName] ?? []).forEach(a => push(a, country));
+    }
+    return out;
+  }, [genreSel, worldSeeds, labelPoints]);
+  const dotsRef = useRef(dots);
+  dotsRef.current = dots;
+
+  /* =====================================================================
+   *  Dot playback chain — click a dot, its song plays; when a song ends
+   *  the chain advances to the geographically NEAREST unplayed dot.
+   *  Implemented as a rolling window: the next song is prefetched and
+   *  appended to the queue before the current one finishes, so the
+   *  player's normal advance lands on it seamlessly.
+   * ===================================================================== */
+  const chainActive = useRef(false);
+  const playedDots = useRef(new Set<string>());
+  const lastDot = useRef<SongDot | null>(null);
+  const dotByQueueIdx = useRef<(SongDot | null)[]>([]);
+  const prefetching = useRef(false);
+  const songCache = useRef(new Map<string, Track | null>());
+
+  const fetchSongForDot = async (dot: SongDot): Promise<Track | null> => {
+    const genreName = genreSelRef.current != null ? GENRES[genreSelRef.current] : null;
+    const key = `${genreName ?? 'any'}|${normKey(dot.artist)}`;
+    if (songCache.current.has(key)) return songCache.current.get(key) ?? null;
+    const raw = await searchArtistTracksStrict(dot.artist, genreName, 3).catch(() => []);
+    const first = raw.find(t => t.preview) ?? null;
+    const track = first ? toTrack(first) : null;
+    songCache.current.set(key, track);
+    return track;
+  };
+
+  const nearestUnplayed = (from: { lat: number; lng: number }): SongDot | null => {
+    let best: SongDot | null = null;
+    let bestD = Infinity;
+    for (const d of dotsRef.current) {
+      if (playedDots.current.has(d.id)) continue;
+      const dist = haversine(from, d);
+      if (dist < bestD) { bestD = dist; best = d; }
+    }
+    return best;
+  };
+
+  /** Prefetch the next-nearest dot's song and append it to the queue —
+   *  called right after a dot starts and again as playback reaches the
+   *  end of the known queue. Skips dots whose artist has no playable
+   *  preview and keeps hunting outward. */
+  const prefetchNext = async () => {
+    if (!chainActive.current || prefetching.current) return;
+    prefetching.current = true;
+    try {
+      for (;;) {
+        const from = lastDot.current;
+        if (!from) return;
+        const next = nearestUnplayed(from);
+        if (!next) return;
+        playedDots.current.add(next.id);
+        const t = await fetchSongForDot(next);
+        if (!chainActive.current) return;
+        if (t) {
+          lastDot.current = next;
+          dotByQueueIdx.current.push(next);
+          appendTracks([t]);
+          return;
+        }
+      }
+    } finally {
+      prefetching.current = false;
+    }
+  };
+  const prefetchNextRef = useRef(prefetchNext);
+  prefetchNextRef.current = prefetchNext;
+
+  // Rolling window: as playback reaches the last known track, top it up.
+  useEffect(() => {
+    if (!chainActive.current) return;
+    if (trackIdx >= tracks.length - 1) void prefetchNextRef.current();
+  }, [trackIdx, tracks.length]);
+
+  const playDot = async (dot: SongDot) => {
+    chainActive.current = true;
+    playedDots.current = new Set([dot.id]);
+    lastDot.current = dot;
+    setSelectedGeo(null);
+    const t = await fetchSongForDot(dot);
+    if (!chainActive.current) return;
+    if (!t) {
+      // Dead dot (no playable preview) — hop straight to its neighbor.
+      const next = nearestUnplayed(dot);
+      if (next) return playDot(next);
+      return;
+    }
+    dotByQueueIdx.current = [dot];
+    loadQueue([t], 0);
+    void prefetchNextRef.current();
+  };
+  const playDotRef = useRef(playDot);
+  playDotRef.current = playDot;
+
+  /* ---------- country taps: the country's songs start playing ---------- */
   const flyTo = (f: Feature) => {
     globeRef.current?.pointOfView(
       { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X, altitude: 0.7 },
@@ -170,8 +305,6 @@ export default function WorldGlobe() {
     );
   };
 
-  // Any nation plays: seeded countries use the curated pipeline, the rest
-  // go through the world-seeds/MusicBrainz tiers.
   const onClick = (feat: object) => {
     const f = feat as Feature;
     const name = f.properties.NAME;
@@ -179,10 +312,13 @@ export default function WorldGlobe() {
     // Re-clicking the loaded country (e.g. a double-click while zooming)
     // must not refetch — that emptied the queue and stripped the dots.
     if (name === selectedGeo && status !== 'error' && status !== 'empty') return;
+    chainActive.current = false;           // country queue replaces the dot chain
+    dotByQueueIdx.current = [];
     setSelectedGeo(name);
     const idx = seedCountryIdx(name);
-    if (idx >= 0) playPlace(idx, genreIdx);
-    else playPlaceNamed(name, genreIdx);
+    const gi = genreSelRef.current;        // null = no genre selected → country's best
+    if (idx >= 0) playPlace(idx, gi);
+    else playPlaceNamed(name, gi);
   };
 
   // Spin to a random curated country and play it (the radio.garden moment).
@@ -200,6 +336,24 @@ export default function WorldGlobe() {
     return () => window.removeEventListener('world:shuffle', onShuffle);
   }, []);
 
+  /* Dev-only: the headless preview can't raycast canvas clicks (no rAF in
+   * hidden tabs), so expose the tap actions for scripted verification. */
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    (window as unknown as Record<string, unknown>).__world = {
+      select: (name: string, gi?: number | null) => {
+        setSelectedGeo(name);
+        const idx = seedCountryIdx(name);
+        if (idx >= 0) playPlace(idx, gi);
+        else playPlaceNamed(name, gi);
+      },
+      pickGenre: (i: number | null) => setGenreSel(i),
+      dots: () => dotsRef.current,
+      playDot: (i: number) => { const d = dotsRef.current[i]; if (d) void playDotRef.current(d); },
+    };
+  }, [playPlace, playPlaceNamed]);
+
+  /* ---------- country paint ---------- */
   const capColor = (feat: object) => {
     const name = (feat as Feature).properties.NAME;
     const playable = PLAYABLE_GEO_NAMES.has(name);
@@ -215,115 +369,52 @@ export default function WorldGlobe() {
     return `<div class="globe-tip" data-playable="${hasMusic}">${esc(name)}${hasMusic ? '' : STR.world.exploreSuffix}</div>`;
   };
 
-  /* ---------- flat markers: artists (avatars) or songs (dots) ---------- */
-  const playingArtist = tracks[trackIdx]?.artist ?? null;
-  const genre = GENRES[genreIdx] ?? '';
-
-  // Origins for artists outside the build-time table (MusicBrainz finds on
-  // unseeded countries) resolve live against Wikidata and stream in.
-  const [liveOrigins, setLiveOrigins] = useState<Record<string, ArtistOrigin>>({});
+  /* ---------- the playing marker: avatar + sonar ring ---------- */
+  const track = tracks[trackIdx];
+  // Country-queue tracks have no dot — resolve the artist's origin live.
+  const [liveOrigin, setLiveOrigin] = useState<ArtistOrigin | null>(null);
   useEffect(() => {
-    if (!tracks.length) return;
+    const artist = track?.artist;
+    if (!artist || dotByQueueIdx.current[trackIdx]) { setLiveOrigin(null); return; }
     let alive = true;
-    [...new Set(tracks.map(t => t.artist).filter(Boolean))].forEach((a) => {
-      if (originFor(a)) return;
-      originForLive(a).then((o) => {
-        if (!alive || !o) return;
-        setLiveOrigins(prev =>
-          prev[normKey(a)] ? prev : { ...prev, [normKey(a)]: o });
-      });
-    });
-    return () => { alive = false; };
-  }, [tracks]);
-  const lookupOrigin = (artist: string): ArtistOrigin | null =>
-    originFor(artist) ?? liveOrigins[normKey(artist)] ?? null;
-
-  const markers = useMemo<Marker[]>(() => {
-    // Dots belong to the zoomed-country moment: nothing until a pick lands.
-    if (!selectedGeo || status !== 'ready' || !tracks.length) return [];
-
-    if (dotMode === 'artists') {
-      const seen = new Map<string, Marker>();
-      tracks.forEach((t, i) => {
-        if (!t.artist || seen.has(t.artist)) return;
-        const o = lookupOrigin(t.artist);
-        if (!o) return;
-        const where = o.place && o.place !== o.country ? `${o.place}, ${o.country}` : o.place || o.country;
-        const songs = tracks.filter(x => x.artist === t.artist).slice(0, 3).map(x => x.title);
-        const story = storyFor(t.artist, countryName, genre);
-        const playing = t.artist === playingArtist;
-        seen.set(t.artist, {
-          lat: o.lat, lng: o.lng, id: `a:${t.artist}`,
-          // Reference style: a field of small uniform dots; only the playing
-          // marker carries artwork (avatar + sonar ring).
-          img: playing ? t.image || '' : '',
-          playing, firstIdx: i,
-          popupHtml:
-            `<strong>${esc(t.artist)}</strong>` +
-            `<span class="origin-pop__where">${esc(where)}</span>` +
-            `<span class="origin-pop__songs">${esc(songs.join(' · '))}</span>` +
-            (story ? `<span class="origin-pop__story">${esc(story)}</span>` : '') +
-            `<span class="origin-pop__cta">${STR.world.dotCta}</span>`,
-        });
-      });
-      return [...seen.values()];
+    setLiveOrigin(originFor(artist));
+    if (!originFor(artist)) {
+      originForLive(artist).then((o) => { if (alive && o) setLiveOrigin(o); });
     }
+    return () => { alive = false; };
+  }, [track?.artist, trackIdx]);
 
-    // songs mode: one dot per track, fanned out around the artist's origin
-    // so same-city songs stay individually hoverable.
-    const perSpot = new Map<string, number>();
-    const out: Marker[] = [];
-    tracks.forEach((t, i) => {
-      if (!t.artist) return;
-      const o = lookupOrigin(t.artist);
-      if (!o) return;
-      const spotKey = `${o.lat}|${o.lng}`;
-      const n = perSpot.get(spotKey) ?? 0;
-      perSpot.set(spotKey, n + 1);
-      const jLat = n === 0 ? 0 : 0.55 * Math.cos(n * 2.4);
-      const jLng = n === 0 ? 0 : 0.55 * Math.sin(n * 2.4);
-      const where = o.place && o.place !== o.country ? `${o.place}, ${o.country}` : o.place || o.country;
-      const year = releaseYear(t.releaseDate);
-      const story = storyFor(t.artist, countryName, genre);
-      const playing = i === trackIdx;
-      out.push({
-        lat: o.lat + jLat, lng: o.lng + jLng, id: `s:${t.id}`,
-        img: playing ? t.image || '' : '',
-        playing, firstIdx: i,
-        popupHtml:
-          `<strong>${esc(t.title)}</strong>` +
-          `<span class="origin-pop__where">${esc(t.artist)}${year ? ` · ${year}` : ''}${t.album ? ` · ${esc(t.album)}` : ''}</span>` +
-          `<span class="origin-pop__songs">${esc(where)}</span>` +
-          (story ? `<span class="origin-pop__story">${esc(story)}</span>` : '') +
-          `<span class="origin-pop__cta">${STR.world.dotCta}</span>`,
-      });
-    });
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- lookupOrigin is stable per (tracks, liveOrigins)
-  }, [selectedGeo, status, tracks, dotMode, playingArtist, trackIdx, countryName, genre, liveOrigins]);
-
-  // Keep the sonar ring on the active spot — sound radiates from there.
-  const playingMarker = useMemo(() => markers.find(m => m.playing) ?? null, [markers]);
-  const rings = useMemo(() => (playingMarker ? [playingMarker] : []), [playingMarker]);
-
-  const jumpTo = useRef((idx: number) => { setTrackIdx(idx); setIsPlaying(true); });
-  jumpTo.current = (idx: number) => { setTrackIdx(idx); setIsPlaying(true); };
+  const playingMarker = useMemo(() => {
+    if (status !== 'ready' || !track) return null;
+    const dot = dotByQueueIdx.current[trackIdx];
+    const pos = dot ?? liveOrigin;
+    if (!pos) return null;
+    return {
+      lat: pos.lat,
+      lng: pos.lng,
+      img: track.image || '',
+      title: track.title,
+      artist: track.artist,
+      place: dot ? dot.country : (liveOrigin?.place || liveOrigin?.country || ''),
+    };
+  }, [status, track, trackIdx, liveOrigin]);
+  const htmlMarkers = useMemo(() => (playingMarker ? [playingMarker] : []), [playingMarker]);
 
   const makeMarkerEl = (d: object) => {
-    const m = d as Marker;
+    const m = d as NonNullable<typeof playingMarker>;
     const el = document.createElement('div');
     el.className = 'origin-marker';
-    el.dataset.playing = m.playing ? 'true' : 'false';
+    el.dataset.playing = 'true';
     el.dataset.kind = m.img ? 'avatar' : 'dot';
     el.innerHTML =
       (m.img
         ? `<img class="origin-marker__img" src="${esc(m.img)}" alt="" draggable="false"/>`
         : `<span class="origin-marker__dot"></span>`) +
-      `<div class="origin-pop">${m.popupHtml}</div>`;
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      jumpTo.current(m.firstIdx);
-    });
+      `<div class="origin-pop">` +
+        `<strong>${esc(m.title)}</strong>` +
+        `<span class="origin-pop__where">${esc(m.artist)}</span>` +
+        (m.place ? `<span class="origin-pop__songs">${esc(m.place)}</span>` : '') +
+      `</div>`;
     return el;
   };
 
@@ -350,18 +441,33 @@ export default function WorldGlobe() {
             setHovered(f ? (f as Feature).properties.NAME : null)}
           onPolygonClick={onClick}
           polygonsTransitionDuration={220}
-          htmlElementsData={markers}
-          htmlLat={(d: object) => (d as Marker).lat}
-          htmlLng={(d: object) => (d as Marker).lng}
-          htmlAltitude={0.015}
+          /* song dots — WebGL points, cheap even at 1000 dots */
+          pointsData={dots}
+          pointLat={(d: object) => (d as SongDot).lat}
+          pointLng={(d: object) => (d as SongDot).lng}
+          pointColor={() => COL.dot}
+          pointAltitude={0.016}
+          pointRadius={0.22}
+          pointsMerge={false}
+          pointLabel={(d: object) => {
+            const s = d as SongDot;
+            return `<div class="globe-tip" data-playable="true">${esc(s.artist)} · ${esc(s.country)}</div>`;
+          }}
+          onPointClick={(d: object) => { void playDotRef.current(d as SongDot); }}
+          pointsTransitionDuration={400}
+          /* the playing song — avatar + sonar ring */
+          htmlElementsData={htmlMarkers}
+          htmlLat={(d: object) => (d as { lat: number }).lat}
+          htmlLng={(d: object) => (d as { lng: number }).lng}
+          htmlAltitude={0.017}
           htmlElement={makeMarkerEl}
           htmlElementVisibilityModifier={(el: HTMLElement, visible: boolean) => {
             el.style.opacity = visible ? '1' : '0';
             el.style.pointerEvents = visible ? 'auto' : 'none';
           }}
-          ringsData={rings}
-          ringLat={(d: object) => (d as Marker).lat}
-          ringLng={(d: object) => (d as Marker).lng}
+          ringsData={htmlMarkers}
+          ringLat={(d: object) => (d as { lat: number }).lat}
+          ringLng={(d: object) => (d as { lng: number }).lng}
           ringAltitude={0.016}
           ringColor={() => (t: number) => `rgba(150, 160, 255, ${Math.max(0, 0.8 * (1 - t))})`}
           ringMaxRadius={2.2}
@@ -370,23 +476,24 @@ export default function WorldGlobe() {
         />
       )}
 
-      {/* Genre rail — vertical list, separator lines, gradient fill on the
-          active row; the genre used on a country tap. */}
-      <div className="world-genres" role="listbox" aria-label="Genre" ref={genresRef}>
+      {/* Genre rail — none selected by default; picking one lights up its
+          songs worldwide. Clicking the active genre clears the selection. */}
+      <div className="world-genres" role="listbox" aria-label="Genre">
         {GENRES.map((g, i) => (
           <button
             key={g}
             role="option"
-            aria-selected={i === genreIdx}
-            data-active={i === genreIdx ? 'true' : 'false'}
+            aria-selected={i === genreSel}
+            data-active={i === genreSel ? 'true' : 'false'}
             className="world-genre-chip"
             onClick={() => {
-              setGenre(i);
-              // if a country is already chosen, re-play it in the new genre
-              if (!selectedGeo) return;
+              const next = i === genreSel ? null : i;
+              setGenreSel(next);
+              // if a country is already chosen, re-play it under the new pick
+              if (!selectedGeo || next === null) return;
               const idx = seedCountryIdx(selectedGeo);
-              if (idx >= 0) playPlace(idx, i);
-              else playPlaceNamed(selectedGeo, i);
+              if (idx >= 0) playPlace(idx, next);
+              else playPlaceNamed(selectedGeo, next);
             }}
           >
             {g}

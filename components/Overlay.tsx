@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useStore } from '@/lib/store';
@@ -245,7 +244,7 @@ export function ConnectorTags() {
  *  preview ends the pool reshuffles and replays from the top.
  * ================================================================ */
 /** Progress readout — polls the shared <audio> directly (see audio-bus). */
-function ProgressBar({ trackDuration }: { trackDuration: number | null }) {
+export function ProgressBar({ trackDuration }: { trackDuration: number | null }) {
   const [pos, setPos] = useState(0);
   const [dur, setDur] = useState(0);
   useEffect(() => {
@@ -292,7 +291,7 @@ function ProgressBar({ trackDuration }: { trackDuration: number | null }) {
 }
 
 /* Compact brand marks for the "listen in" menu. */
-function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'deezer' }) {
+export function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'deezer' }) {
   if (kind === 'spotify') {
     return (
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
@@ -331,7 +330,7 @@ function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'deezer' 
   );
 }
 
-export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } = {}) {
+export function CenterStack() {
   const {
     tracks, trackIdx, status, isPlaying, countryName, genreIdx,
     togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
@@ -405,13 +404,7 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
   }, { scope: stackRef, dependencies: [track?.id] });
 
   return (
-    <div
-      className={
-        dock === 'right'
-          ? 'center--dock-right absolute right-7 top-1/2 z-[5] -translate-y-1/2'
-          : 'absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2'
-      }
-    >
+    <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
       {status !== 'empty' && (
         <div className="center__stack" ref={stackRef}>
           <div
@@ -1298,20 +1291,17 @@ export function GestureToast() {
 /**
  * Bottom-center dock — the three verbs of the app:
  *   shuffle (surprise) · liked songs (popup with playlists) · more (menu).
- * The more menu holds Language, Hand tracking (On/Off), the World's dot
- * filter when on /world, Contact us, and About us.
+ * The more menu holds Language, Hand tracking (On/Off), Contact us, About us.
  */
 export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
   const { handMode, toggleHandMode, surprise, lockedLeft, lockedRight } = useStore();
-  const pathname = usePathname();
   const finds = useFinds();
 
   const [likedOpen, setLikedOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [submenu, setSubmenu] = useState<null | 'lang' | 'hand' | 'dots'>(null);
+  const [submenu, setSubmenu] = useState<null | 'lang' | 'hand'>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [lang, setLang] = useState('en');
-  const [dots, setDots] = useState<'artists' | 'songs'>('artists');
 
   // Hand tracking makes no sense on touch-primary devices — hide the row.
   const [coarse, setCoarse] = useState(false);
@@ -1319,8 +1309,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
     setCoarse(window.matchMedia('(pointer: coarse)').matches);
     const l = window.localStorage.getItem('lang');
     if (l) setLang(l);
-    const d = window.localStorage.getItem('worldDots');
-    if (d === 'songs' || d === 'artists') setDots(d);
   }, []);
 
   const closeMenu = () => { setMenuOpen(false); setSubmenu(null); };
@@ -1328,13 +1316,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
   const pickLang = (code: string) => {
     setLang(code);
     window.localStorage.setItem('lang', code);
-  };
-
-  const pickDots = (mode: 'artists' | 'songs') => {
-    setDots(mode);
-    window.localStorage.setItem('worldDots', mode);
-    window.dispatchEvent(new CustomEvent('world:dots', { detail: mode }));
-    closeMenu();
   };
 
   return (
@@ -1431,22 +1412,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
                 </button>
               )}
 
-              {/* World-only: what the globe dots represent */}
-              {pathname === '/world' && (
-                <button
-                  role="menuitem"
-                  className="dock-menu__row"
-                  aria-expanded={submenu === 'dots'}
-                  onClick={() => setSubmenu(s => (s === 'dots' ? null : 'dots'))}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="6" cy="12" r="2" /><circle cx="13" cy="7" r="2" /><circle cx="17" cy="15" r="2" />
-                  </svg>
-                  {STR.world.dotsLabel}
-                  <span className="dock-menu__chev">▸</span>
-                </button>
-              )}
-
               {/* Contact us */}
               <button
                 role="menuitem"
@@ -1513,26 +1478,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
                     onClick={() => { if (handMode) toggleHandMode(); closeMenu(); }}
                   >
                     <span className="dock-menu__check">{!handMode ? '✓' : ''}</span>{STR.menu.off}
-                  </button>
-                </div>
-              )}
-              {submenu === 'dots' && (
-                <div className="dock-submenu" role="menu" aria-label={STR.world.dotsLabel}>
-                  <button
-                    role="menuitemradio"
-                    aria-checked={dots === 'artists'}
-                    className="dock-menu__row dock-menu__row--sub"
-                    onClick={() => pickDots('artists')}
-                  >
-                    <span className="dock-menu__check">{dots === 'artists' ? '✓' : ''}</span>{STR.world.dotsArtists}
-                  </button>
-                  <button
-                    role="menuitemradio"
-                    aria-checked={dots === 'songs'}
-                    className="dock-menu__row dock-menu__row--sub"
-                    onClick={() => pickDots('songs')}
-                  >
-                    <span className="dock-menu__check">{dots === 'songs' ? '✓' : ''}</span>{STR.world.dotsSongs}
                   </button>
                 </div>
               )}
