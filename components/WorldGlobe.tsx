@@ -57,6 +57,41 @@ const COL = {
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/* ---------- true 2D dot sprites ----------
+ * The built-in points layer extrudes cylinders — even hair-thin ones show
+ * side walls at glancing angles. Sprites are camera-facing billboards: a
+ * flat circle from every viewpoint, radio.garden style. One shared circle
+ * texture; one material per genre color. */
+let dotTexture: THREE.Texture | null = null;
+function getDotTexture(): THREE.Texture {
+  if (dotTexture) return dotTexture;
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(32, 32, 30, 0, Math.PI * 2);
+  ctx.fill();
+  dotTexture = new THREE.CanvasTexture(c);
+  return dotTexture;
+}
+const dotMaterials = new Map<string, THREE.SpriteMaterial>();
+function dotMaterial(color: string): THREE.SpriteMaterial {
+  let m = dotMaterials.get(color);
+  if (!m) {
+    m = new THREE.SpriteMaterial({
+      map: getDotTexture(),
+      color,
+      transparent: true,
+      depthWrite: false,
+    });
+    dotMaterials.set(color, m);
+  }
+  return m;
+}
+const DOT_SCALE = 0.6;       // world units (globe radius = 100) ≈ small flat dot
+const DOT_ALTITUDE = 0.012;  // a hair above the 0.01 country caps
+
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 /** Deterministic small hash for jittering dots that only have a country. */
@@ -453,7 +488,7 @@ export default function WorldGlobe() {
         const g = globeRef.current as unknown as {
           getScreenCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number };
         };
-        return g?.getScreenCoords?.(d.lat, d.lng, 0.015) ?? null;
+        return g?.getScreenCoords?.(d.lat, d.lng, DOT_ALTITUDE) ?? null;
       },
       tapCountry: (name: string) => {
         const f = features.find(x => x.properties.NAME === name);
@@ -562,24 +597,30 @@ export default function WorldGlobe() {
             setHovered(f ? (f as Feature).properties.NAME : null)}
           onPolygonClick={onClick}
           polygonsTransitionDuration={220}
-          /* song dots — WebGL points, colored by selected genre */
-          pointsData={dots}
-          pointLat={(d: object) => (d as SongDot).lat}
-          pointLng={(d: object) => (d as SongDot).lng}
-          /* Flat 2D discs, small enough not to overlap (was 3D pills).
-             Height sits a hair above the 0.01 country caps: still wins the
-             raycast, but only a disc-thin top face shows. */
-          pointColor={(d: object) => colorFor((d as SongDot).genreIdx)}
-          pointAltitude={0.0115}
-          pointRadius={0.11}
-          pointsMerge={false}
-          pointLabel={(d: object) => {
+          /* song dots — camera-facing sprites: genuinely 2D circles from
+             every angle (the built-in points layer extrudes cylinders). */
+          customLayerData={dots}
+          customThreeObject={(d: object) => {
+            const dot = d as SongDot;
+            const sprite = new THREE.Sprite(dotMaterial(colorFor(dot.genreIdx)));
+            sprite.scale.set(DOT_SCALE, DOT_SCALE, 1);
+            return sprite;
+          }}
+          customThreeObjectUpdate={(obj: object, d: object) => {
+            const dot = d as SongDot;
+            const g = globeRef.current as unknown as {
+              getCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number; z: number };
+            };
+            const pos = g?.getCoords?.(dot.lat, dot.lng, DOT_ALTITUDE);
+            if (pos) (obj as THREE.Sprite).position.set(pos.x, pos.y, pos.z);
+            (obj as THREE.Sprite).material = dotMaterial(colorFor(dot.genreIdx));
+          }}
+          customLayerLabel={(d: object) => {
             const s = d as SongDot;
             return `<div class="globe-tip" data-playable="true">${
               s.title ? `${esc(s.title)} — ` : ''}${esc(s.artist)} · ${esc(s.country)}</div>`;
           }}
-          onPointClick={(d: object) => { void playDotRef.current(d as SongDot); }}
-          pointsTransitionDuration={400}
+          onCustomLayerClick={(d: object) => { void playDotRef.current(d as SongDot); }}
           /* the playing song — avatar + sonar ring */
           htmlElementsData={htmlMarkers}
           htmlLat={(d: object) => (d as { lat: number }).lat}
