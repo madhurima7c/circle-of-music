@@ -15,21 +15,6 @@ export const STR = {
     tagline: 'Wander, don’t search — discover the world’s music by place and genre.',
   },
 
-  hub: {
-    title: 'Music Exploration',
-    thesis:
-      'Wander, don’t search. The world’s music, browsable by place and genre — no algorithm, no login, no destination required.',
-    circleName: 'Circle of Music',
-    circleDesc:
-      'The cultural compass. Spin a wheel of countries against a wheel of genres and listen to the intersection.',
-    circleCta: 'Start spinning →',
-    worldName: 'World of Music',
-    worldDesc:
-      'The globe. Music anchored to the places it comes from — layers, origins, and the reach a sound has had around the planet.',
-    worldCta: 'In the works — preview →',
-    foot: '30-second tastings via Deezer · open every find in your own music app',
-  },
-
   world: {
     title: 'World of Music',
     description: 'Music anchored to place, on a globe.',

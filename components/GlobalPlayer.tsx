@@ -186,7 +186,7 @@ export function GlobalPlayer() {
   // The mini pill shows wherever neither the Circle card nor the World's
   // docked playlist panel is the player UI.
   const showMini =
-    pathname !== '/circle' && pathname !== '/world' && status === 'ready' && !!track;
+    pathname !== '/' && pathname !== '/circle' && pathname !== '/world' && status === 'ready' && !!track;
 
   return (
     <>

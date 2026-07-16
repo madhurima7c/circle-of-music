@@ -51,15 +51,16 @@ function CircleIcon() {
 
 export function ExperienceNav() {
   const pathname = usePathname();
+  const isCircle = pathname === '/' || pathname === '/circle';
   const theme = pathname === '/world' ? 'dark' : 'light';
   const [worldSpin, setWorldSpin] = useState(false);
 
   return (
     <nav className="xnav" data-theme={theme} aria-label="Experiences">
       <Link
-        href="/circle"
+        href="/"
         className="xnav__item"
-        data-active={pathname === '/circle' ? 'true' : 'false'}
+        data-active={isCircle ? 'true' : 'false'}
       >
         <span className="xnav__iconwrap" aria-hidden>
           <CircleIcon />
