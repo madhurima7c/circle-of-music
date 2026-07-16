@@ -198,61 +198,115 @@ html, body {
 
 /* =====================================================================
  *  Experience nav — top-center switcher (Circle · World · Shades).
+ *  Frameless: icons float over the stage. position: fixed so it sits at
+ *  the exact same spot on every route (Circle's .frame is inset 28px,
+ *  World's isn't). Label ink + glow adapt per route via data-theme.
  * ===================================================================== */
 .xnav {
-  position: absolute;
-  left: 50%; top: 18px;
+  position: fixed;
+  left: 50%; top: 30px;
   transform: translateX(-50%);
   z-index: 30;
   display: flex;
-  gap: 6px;
-  padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+  gap: 22px;
+  /* Light stage (Circle): ink labels, soft blue-tinted halo. */
+  --nav-ink: rgba(10, 10, 10, 0.6);
+  --nav-ink-strong: #0a0a0a;
+  --nav-accent: var(--accent);
+  --nav-glow: drop-shadow(0 0 8px rgba(31, 43, 214, 0.22)) drop-shadow(0 2px 6px rgba(10, 10, 10, 0.16));
+  --nav-label-glow: 0 0 6px rgba(31, 43, 214, 0.18);
+}
+.xnav[data-theme="dark"] {
+  /* Dark stage (World): off-white labels, luminous halo. */
+  --nav-ink: rgba(228, 233, 255, 0.78);
+  --nav-ink-strong: #ffffff;
+  --nav-accent: #9daaff;
+  --nav-glow: drop-shadow(0 0 10px rgba(150, 165, 255, 0.5)) drop-shadow(0 0 22px rgba(90, 110, 255, 0.28));
+  --nav-label-glow: 0 0 8px rgba(150, 165, 255, 0.45);
 }
 .xnav__item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  width: 64px;
+  gap: 8px;
+  width: 96px;
   padding: 4px 2px;
   border: none;
   background: transparent;
-  color: #1a1a1a;
   text-decoration: none;
   cursor: pointer;
-  border-radius: 8px;
-  transition: background 140ms ease, transform 140ms ease;
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  animation: xnav-in 600ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
 }
-.xnav__item:hover { background: rgba(0, 0, 0, 0.05); }
-.xnav__item:active { transform: scale(0.97); }
+.xnav__item:nth-child(2) { animation-delay: 60ms; }
+.xnav__item:nth-child(3) { animation-delay: 120ms; }
+.xnav__item:active { transform: scale(0.95); }
 .xnav__item--soon { opacity: 0.85; cursor: default; }
-.xnav__icon {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  display: block;
-  object-fit: cover;
+@keyframes xnav-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.92); }
 }
+.xnav__iconwrap {
+  display: grid;
+  place-items: center;
+  perspective: 300px; /* depth for the globe's rotateY spin */
+  transition: transform 340ms cubic-bezier(0.34, 1.56, 0.64, 1); /* spring pop */
+}
+.xnav__icon {
+  width: 56px; height: 56px;
+  display: block;
+  filter: var(--icon-adjust, brightness(1)) var(--nav-glow);
+  transition: filter 200ms ease;
+}
+/* The globe render is dense/dark — lift it so it reads on both stages. */
+.xnav__icon--world { --icon-adjust: brightness(1.45) saturate(1.12); }
 .xnav__label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.09em;
+  font-size: 10px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--nav-ink);
+  text-shadow: var(--nav-label-glow);
+  transition: color 160ms ease;
 }
 .xnav__dot {
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--nav-accent);
   opacity: 0;
+  transition: opacity 160ms ease;
 }
-.xnav__item[data-active="true"] .xnav__label { color: var(--accent); }
+.xnav__item[data-active="true"] .xnav__label { color: var(--nav-accent); }
 .xnav__item[data-active="true"] .xnav__dot { opacity: 1; }
+
+/* Hover play — each icon previews its instrument's motion. Real pointers
+ * only: on touch, a tap should navigate, not preview. */
+@media (hover: hover) and (pointer: fine) {
+  .xnav__item:hover .xnav__iconwrap { transform: scale(1.14); }
+  .xnav__item:hover .xnav__label { color: var(--nav-ink-strong); }
+  .xnav__item[data-active="true"]:hover .xnav__label { color: var(--nav-accent); }
+  /* Circle: the ring of cards turns like the wheels do. */
+  .xnav__item:hover .xnav__icon--circle { animation: xnav-turn 3.2s linear infinite; }
+  /* World: the globe spins about its vertical axis, like the page's idle spin. */
+  .xnav__item:hover .xnav__icon--world { animation: xnav-axis 1.8s linear infinite; }
+  /* Shades: the gradient wanders through hues. */
+  .xnav__item:hover .xnav__icon--shades { animation: xnav-hue 2.4s linear infinite; }
+}
+@keyframes xnav-turn { to { transform: rotate(360deg); } }
+@keyframes xnav-axis { to { transform: rotateY(360deg); } }
+@keyframes xnav-hue {
+  from { filter: var(--icon-adjust, brightness(1)) var(--nav-glow) hue-rotate(0deg); }
+  to   { filter: var(--icon-adjust, brightness(1)) var(--nav-glow) hue-rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xnav__item { animation: none; }
+  .xnav__iconwrap { transition: none; }
+  .xnav__item:hover .xnav__icon--circle,
+  .xnav__item:hover .xnav__icon--world { animation: none; }
+  /* hue drift is a color change, not motion — it may stay */
+}
 
 /* =====================================================================
  *  Dock — bottom-center: shuffle · liked songs · more.
@@ -1394,27 +1448,6 @@ html, body {
   color: #cdd3ff;
   text-decoration: none;
 }
-/* Instrument toggles — plain underlined links, right edge on both routes. */
-.world-to-circle-link,
-.circle-to-world-link {
-  position: absolute;
-  right: 24px; top: 34px;
-  z-index: 20;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: 0.03em;
-  color: rgba(205, 211, 255, 0.75);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color 140ms ease;
-}
-.world-to-circle-link:hover { color: #fff; }
-.circle-to-world-link {
-  top: 72px; /* below the library button, same right edge */
-  color: rgba(20, 22, 40, 0.55);
-  z-index: 30;
-}
-.circle-to-world-link:hover { color: var(--accent); }
 .world-globe { position: absolute; inset: 0; }
 .world-loading {
   position: absolute; inset: 0;
@@ -1642,6 +1675,5 @@ html, body {
   /* World genre rail + dock: tighter on phones so the globe stays visible. */
   .world-genres { left: 8px; max-height: 54vh; width: 116px; }
   .world-genre-chip { font-size: 10px; padding: 6px 10px; }
-  .world-to-circle-link { top: 62px; }
   .center--dock-right .center__stack { height: 54vh; }
 }

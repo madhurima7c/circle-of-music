@@ -1,8 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { STR } from '@/lib/strings';
 import { useStore } from '@/lib/store';
 import { CenterStack, Dock, HandTracking, GestureToast } from '@/components/Overlay';
 import { ExperienceNav } from '@/components/ExperienceNav';
@@ -24,11 +22,6 @@ export default function WorldPage() {
       {/* The playlist panel — same card as the Circle, docked right; it may
           overlap the globe (by design: the globe zooms past the frame). */}
       <CenterStack dock="right" />
-
-      {/* Instrument toggle: underlined link on the right edge. */}
-      <Link href="/circle" className="world-to-circle-link">
-        ◐ {STR.world.toCircleLink}
-      </Link>
 
       {/* Shared dock — shuffle routes to the globe's own random-country
           spin (it owns the fly-to camera), via a window event. */}
