@@ -106,7 +106,9 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Queue-click bug fixed: queue keys now position-qualified (`${j}-${t.id}`), and the pipeline dedupes by normalized artist+title (normTitle strips parentheticals/remaster suffixes) — the same song as single+album cut was filling the queue with repeats and colliding keys.
 - Pipeline deepened: QUEUE_MAX 150 (was 22), MB proxy returns 30 artists (score ≥65, was 12@75), artists fetched in batches of 8 w/ 800ms pause (full-parallel burst tripped Deezer's ~50req/5s quota and starved queues), enrich only first 30 tracks. Verified UK×Soul = 90 tracks, 0 dupes.
 - Wheel cards: clicking the SELECTED card 3D-flips it to a curated note (`lib/wheel-notes.ts`: 20 country scenes + 20 genre blurbs, canvas-rendered onto the card back in its spine color; texture cached per card). Click again / spin flips back. Clicking selected no longer refetches.
-- Connector lines are alive: populating = line grows from wheel edge toward center (repeating); playing = pinned-string wave (3 sine harmonics, rAF, eased attack/release; synthesized — a WebAudio analyser on Deezer's CDN previews would taint the audio graph); paused = settles flat.
+- Connector lines are alive: populating = line grows from wheel edge toward center (repeating); playing = the string SPLITS into 11 nested strands (scaled copies of one waveform, pinned ends) in the platform blues (#1f2bd6→#cdd3ff), rAF, eased attack/release; paused = collapses to a single line. Synthesized — a WebAudio analyser on Deezer's CDN previews would taint the audio graph.
+- Player + Up Next rejoined into ONE card (hairline partition; controls end near the divider); the flipper turns alone. Back face = **About the artist**: Deezer portrait (`getArtistPicture`), origin "city, country" (`originForLive`), clamped writeup + "see more" → larger dialog (`.artist-modal`, portaled) w/ full bio + album/year/pairing/length facts.
+- Dock hover = circle highlight (blue-tinted) + accent stroke (stroke-only was too subtle).
 
 ## ⏳ Waiting on user (blocks next steps)
 - [ ] **Shades** experience design (nav slot exists, marked coming soon).

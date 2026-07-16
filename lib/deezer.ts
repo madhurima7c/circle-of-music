@@ -578,6 +578,17 @@ export async function buildPlaylist({
   return [...head, ...capped.slice(ENRICH_HEAD)];
 }
 
+/** Artist portrait for the "About the artist" card face. */
+export async function getArtistPicture(artistId: number): Promise<string | null> {
+  if (!artistId) return null;
+  try {
+    const a = await jsonp<DeezerArtist>(`${API}/artist/${artistId}`);
+    return a?.picture_xl || a?.picture_big || a?.picture_medium || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getArtistBlurb(artistId: number, artistName: string): Promise<string> {
   try {
     const a = await jsonp<{ nb_album?: number; nb_fan?: number }>(`${API}/artist/${artistId}`);

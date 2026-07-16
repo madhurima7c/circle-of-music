@@ -13,6 +13,8 @@ import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind, useFinds } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
+import { getArtistPicture } from '@/lib/deezer';
+import { originForLive } from '@/lib/origins-live';
 import { audioBus } from '@/lib/audio-bus';
 import { LikedSongs } from '@/components/Library';
 import {
@@ -99,13 +101,32 @@ export function PopulatingText() {
  * CDN previews would taint a WebAudio graph and kill playback).
  */
 const WAVE_W = 400;  // viewBox units; SVG stretches to the real span
-const WAVE_H = 44;
+/* The string splits into strands while music plays: every strand traces the
+ * SAME waveform scaled by k (−1…1), so they fan apart in the middle and
+ * rejoin at the pinned ends — the reference "split string" look. Colors are
+ * the platform's blues (accent → the World's periwinkles), darkest
+ * outermost; the k=0 center strand draws last (on top) and is the only one
+ * visible at rest. */
+const STRANDS: Array<{ k: number; color: string }> = [
+  { k: -1.0, color: '#1f2bd6' },
+  { k: -0.78, color: '#4a5cff' },
+  { k: -0.56, color: '#767dec' },
+  { k: -0.34, color: '#9daaff' },
+  { k: -0.15, color: '#cdd3ff' },
+  { k: 0.15, color: '#cdd3ff' },
+  { k: 0.34, color: '#9daaff' },
+  { k: 0.56, color: '#767dec' },
+  { k: 0.78, color: '#4a5cff' },
+  { k: 1.0, color: '#1f2bd6' },
+  { k: 0, color: '#1f2bd6' },   // center — always visible, drawn on top
+];
+const WAVE_H = 56;
 const WAVE_MID = WAVE_H / 2;
 
 export function ConnectorTags() {
   const { status, isPlaying } = useStore();
-  const leftPath  = useRef<SVGPathElement | null>(null);
-  const rightPath = useRef<SVGPathElement | null>(null);
+  const leftSvg  = useRef<SVGSVGElement | null>(null);
+  const rightSvg = useRef<SVGSVGElement | null>(null);
   const live = useRef({ playing: false });
   live.current.playing = status === 'ready' && isPlaying;
 
@@ -113,37 +134,56 @@ export function ConnectorTags() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     let raf = 0;
     let amp = 0;              // eased 0..1 — string energy
-    const flat = `M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`;
     let wasFlat = false;
+    const N = Math.floor(WAVE_W / 6);
+    const xs = Array.from({ length: N + 1 }, (_, i) => (i * WAVE_W) / N);
+    const flat = `M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       const target = live.current.playing ? 1 : 0;
-      amp += (target - amp) * 0.055;                    // attack + release
+      amp += (target - amp) * 0.05;                     // attack + release
+      const svgs: Array<[SVGSVGElement | null, number]> =
+        [[leftSvg.current, 0], [rightSvg.current, 2.1]];
+
       if (amp < 0.012) {
         amp = 0;
         if (!wasFlat) {
-          leftPath.current?.setAttribute('d', flat);
-          rightPath.current?.setAttribute('d', flat);
+          for (const [svg] of svgs) {
+            svg?.querySelectorAll('path').forEach((p, i) => {
+              p.setAttribute('d', flat);
+              p.style.strokeOpacity = STRANDS[i].k === 0 ? '1' : '0';
+            });
+          }
           wasFlat = true;
         }
         return;
       }
       wasFlat = false;
       const t = now / 1000;
-      for (const [el, phase] of [[leftPath.current, 0], [rightPath.current, 2.1]] as const) {
-        if (!el) continue;
-        let d = `M0,${WAVE_MID}`;
-        for (let x = 8; x <= WAVE_W; x += 8) {
+      const strandOpacity = String(Math.min(1, amp * 1.4) * 0.85);
+
+      for (const [svg, phase] of svgs) {
+        if (!svg) continue;
+        // One shared waveform per side; every strand is a scaled copy of it,
+        // so the fan stays nested (no strand crossings) like the reference.
+        const wave = xs.map((x) => {
           const env = Math.sin((x / WAVE_W) * Math.PI);  // pinned string ends
-          const y = WAVE_MID + env * amp * (
-            Math.sin(x * 0.045 + t * 3.4 + phase) * 3.4 +
-            Math.sin(x * 0.021 - t * 2.3 + phase) * 2.6 +
-            Math.sin(x * 0.084 + t * 5.1 + phase) * 1.5
+          return env * amp * (
+            Math.sin(x * 0.028 + t * 2.7 + phase) * 5.6 +
+            Math.sin(x * 0.013 - t * 1.8 + phase) * 4.2 +
+            Math.sin(x * 0.061 + t * 4.2 + phase) * 2.2
           );
-          d += ` L${x},${y.toFixed(2)}`;
-        }
-        el.setAttribute('d', d);
+        });
+        svg.querySelectorAll('path').forEach((p, i) => {
+          const { k } = STRANDS[i];
+          let d = `M0,${WAVE_MID}`;
+          for (let j = 1; j <= N; j++) {
+            d += ` L${xs[j].toFixed(1)},${(WAVE_MID + k * wave[j]).toFixed(2)}`;
+          }
+          p.setAttribute('d', d);
+          p.style.strokeOpacity = k === 0 ? '1' : strandOpacity;
+        });
       }
     };
     raf = requestAnimationFrame(tick);
@@ -154,25 +194,36 @@ export function ConnectorTags() {
     status === 'populating' ? 'loading' :
     status === 'ready'      ? 'ready'   : 'hidden';
 
+  const strandPaths = STRANDS.map(({ k, color }) => (
+    <path
+      key={k}
+      d={`M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`}
+      stroke={color}
+      style={{ strokeOpacity: k === 0 ? 1 : 0 }}
+    />
+  ));
+
   return (
     <>
       <svg
+        ref={leftSvg}
         className="connector connector--left"
         data-state={state}
         viewBox={`0 0 ${WAVE_W} ${WAVE_H}`}
         preserveAspectRatio="none"
         aria-hidden
       >
-        <path ref={leftPath} d={`M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`} />
+        {strandPaths}
       </svg>
       <svg
+        ref={rightSvg}
         className="connector connector--right"
         data-state={state}
         viewBox={`0 0 ${WAVE_W} ${WAVE_H}`}
         preserveAspectRatio="none"
         aria-hidden
       >
-        <path ref={rightPath} d={`M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`} />
+        {strandPaths}
       </svg>
     </>
   );
@@ -306,6 +357,30 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
     }
     setShareOpen(o => !o);
   };
+
+  // "About the artist" (the card's back face): portrait from Deezer, origin
+  // (city, country) from the origins pipeline. Fetched lazily on first flip
+  // per track; `see more` opens the larger dialog.
+  const [artistInfo, setArtistInfo] = useState<{ img: string | null; origin: string | null } | null>(null);
+  const [artistMore, setArtistMore] = useState(false);
+  useEffect(() => { setArtistInfo(null); setArtistMore(false); }, [track?.artistId]);
+  useEffect(() => {
+    if (!flipped || !track || artistInfo) return;
+    let alive = true;
+    Promise.all([getArtistPicture(track.artistId), originForLive(track.artist)])
+      .then(([img, o]) => {
+        if (!alive) return;
+        setArtistInfo({
+          img,
+          origin: o ? (o.place ? `${o.place}, ${o.country}` : o.country || null) : null,
+        });
+      });
+    return () => { alive = false; };
+  }, [flipped, track, artistInfo]);
+  const artistBio = track
+    ? storyFor(track.artist, country, genre)
+      ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))
+    : '';
 
   // Audio itself lives in <GlobalPlayer> (root layout) so playback survives
   // navigation — this card is pure UI over the same store.
@@ -498,34 +573,29 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                 </div>
               </div>
 
-              {/* Back face — the song & artist story. */}
+              {/* Back face — About the artist: portrait, name, origin,
+                  short writeup, and `see more` → the larger dialog. */}
               <div className="center__face center__face--back">
-                <div className="center__backpane">
-                  <div className="center__back-kicker">{STR.card.aboutTitle.toUpperCase()}</div>
-                  <h2 className="center__back-song">{track?.title}</h2>
-                  <p className="center__back-artist">{track?.artist}</p>
-                  <p className="center__back-story">
-                    {track
-                      ? storyFor(track.artist, country, genre)
-                        ?? STR.card.aboutFallback(genre, country, releaseYear(track?.releaseDate))
-                      : ''}
-                  </p>
-                  <dl className="center__back-facts">
-                    <div><dt>{STR.card.factAlbum}</dt><dd>{track?.album || '—'}</dd></div>
-                    <div><dt>{STR.card.factReleased}</dt><dd>{releaseYear(track?.releaseDate) ?? '—'}</dd></div>
-                    <div><dt>{STR.card.factFound}</dt><dd>{country} × {genre}</dd></div>
-                    <div><dt>{STR.card.factLength}</dt><dd className="tabular">{formatDuration(track?.duration)}</dd></div>
-                  </dl>
-                  <span className="center__back-hint">{STR.card.flipBack}</span>
+                <div className="artist-face">
+                  <div className="artist-face__imgwrap">
+                    {artistInfo?.img
+                      ? <img className="artist-face__img" src={artistInfo.img} alt="" />
+                      : <div className="artist-face__img artist-face__img--empty" />}
+                    <span className="artist-face__kicker">{STR.card.aboutArtist}</span>
+                  </div>
+                  <h2 className="artist-face__name">{track?.artist}</h2>
+                  {artistInfo?.origin && <p className="artist-face__origin">{artistInfo.origin}</p>}
+                  <p className="artist-face__bio">{artistBio}</p>
+                  <button className="artist-face__more" onClick={() => setArtistMore(true)}>
+                    {STR.card.seeMore}
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Up Next — its own card, disconnected from the player so the
-              player can flip alone. Scrolls; sized to show 9+ rows. */}
-          {hasTrack && (
-            <div className="center__card center__card--queue">
+            {/* Up Next — same card, hairline partition; the flipper above
+                turns alone. Scrolls; shows 9+ rows on tall screens. */}
+            <div className="center__up-next" hidden={!hasTrack}>
               <h3 className="center__up-next-title">{STR.card.upNext}</h3>
               <ul className="center__queue" aria-label="Queued tracks">
                 {tracks.length <= 1 ? (
@@ -564,8 +634,34 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                 )}
               </ul>
             </div>
-          )}
+          </div>
         </div>
+      )}
+
+      {/* "See more" — the larger About-the-artist dialog. */}
+      {artistMore && track && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="dock-scrim dock-scrim--dim" onClick={() => setArtistMore(false)} />
+          <div className="artist-modal" role="dialog" aria-label={STR.card.aboutArtist}>
+            {artistInfo?.img && <img className="artist-modal__img" src={artistInfo.img} alt="" />}
+            <div className="artist-modal__body">
+              <div className="artist-face__kicker artist-face__kicker--static">{STR.card.aboutArtist}</div>
+              <h2 className="artist-modal__name">{track.artist}</h2>
+              {artistInfo?.origin && <p className="artist-modal__origin">{artistInfo.origin}</p>}
+              <p className="artist-modal__bio">{artistBio}</p>
+              <dl className="center__back-facts">
+                <div><dt>{STR.card.factAlbum}</dt><dd>{track.album || '—'}</dd></div>
+                <div><dt>{STR.card.factReleased}</dt><dd>{releaseYear(track.releaseDate) ?? '—'}</dd></div>
+                <div><dt>{STR.card.factFound}</dt><dd>{country} × {genre}</dd></div>
+                <div><dt>{STR.card.factLength}</dt><dd className="tabular">{formatDuration(track.duration)}</dd></div>
+              </dl>
+              <button className="artist-modal__close" onClick={() => setArtistMore(false)}>
+                {STR.library.close}
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body,
       )}
 
       {/* Share ("listen to full song in") — body-level overlay so the card
