@@ -5,6 +5,22 @@ import { useFrame, useLoader, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeArt, paletteFor } from '@/lib/art';
 import { loadCoverTextures, type CoverTextures } from '@/lib/covers';
+import { drawNoteCanvas } from '@/lib/wheel-notes';
+
+/* Note textures (the card back's country/genre blurb) — built lazily on
+ * first flip and cached for the session; only flipped cards pay the cost. */
+const noteTexCache = new Map<string, THREE.CanvasTexture>();
+function noteTexture(side: 'left' | 'right', name: string, bg: string): THREE.CanvasTexture {
+  const key = `${side}|${name}`;
+  let tex = noteTexCache.get(key);
+  if (!tex) {
+    tex = new THREE.CanvasTexture(drawNoteCanvas(side, name, bg));
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    noteTexCache.set(key, tex);
+  }
+  return tex;
+}
 
 export type WheelTuning = {
   /* layout */
@@ -34,6 +50,8 @@ type WheelProps = WheelTuning & {
   facing?: 1 | -1;
   onSpin: (dir: number) => void;
   onPick?: (i: number) => void;
+  /** Selected card is flipped to its info side (see Stage's onPick). */
+  flipped?: boolean;
 };
 
 /* ---------- reusable math objects ---------- */
@@ -53,12 +71,15 @@ function Card({
   name,
   cardSize,
   cardThickness,
+  flipped,
 }: {
   idx: number;
   side: 'left' | 'right';
   name: string;
   cardSize: number;
   cardThickness: number;
+  /** This card is the selected one and is currently flipped to its note. */
+  flipped: boolean;
 }) {
   // Procedural vinyl art — fallback for items without a cover file.
   const palette = paletteFor(idx + (side === 'right' ? 2 : 0));
@@ -91,6 +112,13 @@ function Card({
     return () => { cancelled = true; };
   }, [side, name]);
 
+  // The note (info) texture appears on the back face while flipping. Kept
+  // once created so the flip-back animation still shows it mid-rotation.
+  const [noteTex, setNoteTex] = useState<THREE.CanvasTexture | null>(null);
+  useEffect(() => {
+    if (flipped) setNoteTex(noteTexture(side, name, cover?.backColor ?? '#26262a'));
+  }, [flipped, side, name, cover]);
+
   if (cover) {
     return (
       // Box face order: +x, −x, +y, −y (spine edges), +z (front), −z (back).
@@ -103,7 +131,12 @@ function Card({
         <meshStandardMaterial attach="material-2" map={cover.spine} roughness={0.82} metalness={0.04} toneMapped={false} />
         <meshStandardMaterial attach="material-3" map={cover.spine} roughness={0.82} metalness={0.04} toneMapped={false} />
         <meshPhysicalMaterial attach="material-4" map={cover.front} roughness={0.5} metalness={0} clearcoat={0.4} clearcoatRoughness={0.3} toneMapped={false} />
-        <meshStandardMaterial attach="material-5" color={cover.backColor} roughness={0.82} metalness={0.04} toneMapped={false} />
+        {noteTex ? (
+          // Unlit while showing text so the blurb reads evenly at any tilt.
+          <meshBasicMaterial attach="material-5" map={noteTex} toneMapped={false} />
+        ) : (
+          <meshStandardMaterial attach="material-5" color={cover.backColor} roughness={0.82} metalness={0.04} toneMapped={false} />
+        )}
       </mesh>
     );
   }
@@ -120,6 +153,13 @@ function Card({
         <planeGeometry args={[cardSize, cardSize]} />
         <meshStandardMaterial map={fallback} roughness={0.55} metalness={0} toneMapped={false} />
       </mesh>
+      {/* back face — the note, for cards without cover art */}
+      {noteTex && (
+        <mesh position={[0, 0, -cardThickness / 2 - 0.001]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[cardSize, cardSize]} />
+          <meshBasicMaterial map={noteTex} toneMapped={false} />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -136,6 +176,7 @@ export default function Wheel({
   facing = 1,
   onSpin,
   onPick,
+  flipped = false,
   /* tuning */
   radius,
   cardSize,
@@ -236,6 +277,8 @@ export default function Wheel({
         activeAngle={activeAngle}
         isLeft={isLeft}
         onPick={onPick}
+        selectedIdx={selectedIdx}
+        flipped={flipped}
         radius={radius}
         cardSize={cardSize}
         cardThickness={cardThickness}
@@ -267,6 +310,8 @@ function CircleRing({
   activeAngle,
   isLeft,
   onPick,
+  selectedIdx,
+  flipped,
   radius,
   cardSize,
   cardThickness,
@@ -288,10 +333,14 @@ function CircleRing({
   activeAngle: number;
   isLeft: boolean;
   onPick?: (i: number) => void;
+  selectedIdx: number;
+  flipped: boolean;
 } & WheelTuning) {
   const refs = useRef<(THREE.Group | null)[]>([]);
   // Flatness reach: only the card AT the active position is fully face-on.
   const FLATNESS_REACH = 1 / angleStep;
+  // Eased flip progress (0 = face, 1 = note side) for the selected card.
+  const flipAmt = useRef(0);
 
   useFrame(() => {
     const wheelRot      = wheelRotRef.current ?? 0;
@@ -306,6 +355,10 @@ function CircleRing({
     const sideSign      = isLeft ? 1 : -1;
     const ySign         = sideSign * (flipSpine ? -1 : 1);
     const sigma         = Math.max(1e-6, paddingDecay * angleStep);
+
+    // Ease the info-flip toward its target each frame (~0.5s settle).
+    flipAmt.current += ((flipped ? 1 : 0) - flipAmt.current) * 0.09;
+    if (flipAmt.current < 0.001) flipAmt.current = 0;
 
     for (let i = 0; i < total; i++) {
       const g = refs.current[i];
@@ -342,7 +395,10 @@ function CircleRing({
       // qResult = qZ · qY · qX  (X applied first in card frame, then Y, then Z in world frame)
       // X stays the same sign across wheels; Y and Z flip sign for mirror symmetry.
       const xAngle = xTiltRad      * (1 - flatness);
-      const yAngle = spineAngleRad * (1 - flatness) * ySign;
+      // The selected card can flip a half-turn about Y to show its info
+      // side; modulated by flatness so a mid-flip spin-away degrades softly.
+      const flipRot = (i === selectedIdx) ? Math.PI * flipAmt.current * flatness * ySign : 0;
+      const yAngle = spineAngleRad * (1 - flatness) * ySign + flipRot;
       // Tangent term must use the WRAPPED distance (dist + push), not the raw
       // (worldAngle - activeAngle): the raw difference grows by 2π per full
       // revolution, and ×tangentAmount(0.5) that flipped every card 180°
@@ -375,6 +431,7 @@ function CircleRing({
             name={item}
             cardSize={cardSize}
             cardThickness={cardThickness}
+            flipped={flipped && i === selectedIdx}
           />
         </group>
       ))}

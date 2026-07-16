@@ -105,6 +105,22 @@ function normName(s: string): string {
     .trim();
 }
 
+/** Title normalized for duplicate detection: parentheticals and remaster/
+ *  edit suffixes stripped, so the single and the album cut of one song —
+ *  which have DIFFERENT Deezer track ids — collapse to one key. */
+function normTitle(s: string): string {
+  return normName(
+    String(s || '')
+      .replace(/\s*[([][^)\]]*[)\]]/g, '')
+      .replace(/\s*-\s*(remaster(ed)?( \d{4})?|radio edit|single version|album version|live|edit)\b.*$/i, ''),
+  );
+}
+
+/** Artist + normalized title — the identity of a SONG (not a release). */
+function trackKey(t: DeezerTrack): string {
+  return `${normName(t.artist?.name ?? '')}|${normTitle(t.title)}`;
+}
+
 /* ---------- artist resolution ---------- */
 
 export async function searchArtists(name: string, limit = 12): Promise<DeezerArtist[]> {
@@ -323,18 +339,28 @@ async function enrichTracks(tracks: DeezerTrack[], concurrency = 6): Promise<Dee
   return out;
 }
 
-/** Merge unique tracks with round-robin across artist lists */
-function roundRobinMerge(lists: DeezerTrack[][], maxTracks: number, seen: Set<number>): DeezerTrack[] {
+/** Merge unique tracks with round-robin across artist lists. Uniqueness is
+ *  both by Deezer id AND by artist+title (`seenKeys`) — the same song often
+ *  exists as a single and an album cut with different ids, which was how
+ *  the queue filled up with repeats. */
+function roundRobinMerge(
+  lists: DeezerTrack[][],
+  maxTracks: number,
+  seen: Set<number>,
+  seenKeys: Set<string>,
+): DeezerTrack[] {
   const queue: DeezerTrack[] = [];
   const maxLen = Math.max(0, ...lists.map((p) => p.length));
   for (let i = 0; i < maxLen && queue.length < maxTracks; i++) {
     for (const list of lists) {
       const t = list[i];
-      if (t && !seen.has(t.id)) {
-        seen.add(t.id);
-        queue.push(t);
-        if (queue.length >= maxTracks) break;
-      }
+      if (!t || seen.has(t.id)) continue;
+      const key = trackKey(t);
+      if (seenKeys.has(key)) { seen.add(t.id); continue; }
+      seen.add(t.id);
+      seenKeys.add(key);
+      queue.push(t);
+      if (queue.length >= maxTracks) break;
     }
   }
   return queue;
@@ -445,6 +471,37 @@ function unionArtists(primary: string[], secondary: string[]): string[] {
  * If all four tiers come up empty, returns [] and the CenterStack shows its
  * error pane ("Could not find music from this pairing").
  */
+/** Queue sizing: pull a deep pool per pairing (the old cap was 22, which
+ *  felt thin and repetitive), but only pay full metadata enrichment for the
+ *  head of the queue — later tracks already carry cover art from the list
+ *  endpoints, and missing release dates degrade gracefully in the UI. */
+const QUEUE_MAX   = 150;
+const ARTIST_CAP  = 24;
+const PER_ARTIST  = 12;
+const ENRICH_HEAD = 30;
+const BATCH_SIZE  = 8;    // artists fetched concurrently — Deezer's anonymous
+const BATCH_PAUSE = 800;  // quota (~50 req/5s) drops most of a 24-wide burst
+const ENOUGH      = 100;  // stop batching once this many candidates are in
+
+/** Resolve artists → track lists in rate-limit-friendly batches, stopping
+ *  early once we have plenty. A full-parallel burst tripped Deezer's quota
+ *  and silently starved the queue down to a handful of artists. */
+async function fetchArtistTrackLists(names: string[], genre: string): Promise<DeezerTrack[][]> {
+  const lists: DeezerTrack[][] = [];
+  for (let i = 0; i < names.length; i += BATCH_SIZE) {
+    if (i > 0) await new Promise((r) => setTimeout(r, BATCH_PAUSE));
+    const batch = await Promise.all(
+      names.slice(i, i + BATCH_SIZE).map((a) =>
+        searchArtistTracksStrict(a, genre, PER_ARTIST).catch(() => [] as DeezerTrack[]),
+      ),
+    );
+    lists.push(...batch);
+    const total = lists.reduce((n, l) => n + l.length, 0);
+    if (total >= ENOUGH) break;
+  }
+  return lists;
+}
+
 export async function buildPlaylist({
   country,
   genre,
@@ -456,11 +513,17 @@ export async function buildPlaylist({
 }): Promise<DeezerTrack[]> {
   const queue: DeezerTrack[] = [];
   const seen = new Set<number>();
+  const seenKeys = new Set<string>();
 
   /* Tier 0: hand-curated track overrides go first. */
   const overrides = await fetchOverrideTracks(country, genre);
   for (const t of overrides) {
-    if (!seen.has(t.id)) { seen.add(t.id); queue.push(t); }
+    const key = trackKey(t);
+    if (!seen.has(t.id) && !seenKeys.has(key)) {
+      seen.add(t.id);
+      seenKeys.add(key);
+      queue.push(t);
+    }
   }
 
   /* Tiers 1+2: MusicBrainz ∪ seeds.json artists. Countries outside the
@@ -471,15 +534,14 @@ export async function buildPlaylist({
     Promise.resolve(orderedSeedArtists(country, genre, seeds)),
   ]);
   const worldArtists = seedArtists.length ? [] : await worldSeedArtists(country, genre);
-  const combined = unionArtists(unionArtists(worldArtists, seedArtists), mbArtists);
+  // Seeds first (hand-picked quality), then MusicBrainz discoveries in
+  // MB relevance-score order — the round-robin below interleaves them.
+  const combined = unionArtists(unionArtists(worldArtists, seedArtists), mbArtists)
+    .slice(0, ARTIST_CAP);
 
-  if (combined.length && queue.length < 22) {
-    const perArtist = await Promise.all(
-      combined.map((a) =>
-        searchArtistTracksStrict(a, genre, 11).catch(() => [] as DeezerTrack[]),
-      ),
-    );
-    queue.push(...roundRobinMerge(perArtist, 26 - queue.length, seen));
+  if (combined.length && queue.length < QUEUE_MAX) {
+    const perArtist = await fetchArtistTrackLists(combined, genre);
+    queue.push(...roundRobinMerge(perArtist, QUEUE_MAX - queue.length, seen, seenKeys));
   }
 
   /* Tier 2.5: still empty on a world country → the country's most notable
@@ -489,10 +551,10 @@ export async function buildPlaylist({
     if (entry?.top.length) {
       const perArtist = await Promise.all(
         entry.top.slice(0, 10).map((a) =>
-          searchArtistTracksStrict(a, genre, 11).catch(() => [] as DeezerTrack[]),
+          searchArtistTracksStrict(a, genre, PER_ARTIST).catch(() => [] as DeezerTrack[]),
         ),
       );
-      queue.push(...roundRobinMerge(perArtist, 26, seen));
+      queue.push(...roundRobinMerge(perArtist, QUEUE_MAX, seen, seenKeys));
     }
   }
 
@@ -502,16 +564,18 @@ export async function buildPlaylist({
     if (llmArtists.length) {
       const perArtist = await Promise.all(
         llmArtists.map((a) =>
-          searchArtistTracksStrict(a, genre, 11).catch(() => [] as DeezerTrack[]),
+          searchArtistTracksStrict(a, genre, PER_ARTIST).catch(() => [] as DeezerTrack[]),
         ),
       );
-      queue.push(...roundRobinMerge(perArtist, 26, seen));
+      queue.push(...roundRobinMerge(perArtist, QUEUE_MAX, seen, seenKeys));
     }
   }
 
-  /* Enrich (full metadata) and cap to the player's queue size. */
-  const tracks = await enrichTracks(queue.slice(0, 22));
-  return tracks;
+  /* Enrich the head with full metadata; the tail ships as-is (it has cover
+   * art already — enriching 150 tracks would be 150 extra API calls). */
+  const capped = queue.slice(0, QUEUE_MAX);
+  const head = await enrichTracks(capped.slice(0, ENRICH_HEAD));
+  return [...head, ...capped.slice(ENRICH_HEAD)];
 }
 
 export async function getArtistBlurb(artistId: number, artistName: string): Promise<string> {

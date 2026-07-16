@@ -28,8 +28,9 @@ import { COUNTRY_TO_ISO, GENRE_TO_MB_TAGS } from '@/lib/musicbrainz-tags';
 const cache = new Map<string, string[]>();
 let lastFetchAt = 0;
 const MB_MIN_INTERVAL_MS = 1100;  // hair over their 1 req/sec rule
-const MIN_SCORE = 75;             // MB relevance score 0–100; 100 = exact match
-const MAX_ARTISTS = 14;
+const MIN_SCORE = 65;             // MB relevance score 0–100; 100 = exact match
+const MAX_ARTISTS = 40;           // fetched from MB (score-ordered = quality-ordered)
+const RETURN_ARTISTS = 30;        // returned to the client per pairing
 
 /** Single shared rate limiter — all callers funnel through here. */
 async function rateLimitedFetch(url: string): Promise<Response> {
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
       .filter((a) => (a.score ?? 0) >= MIN_SCORE)
       .map((a) => a.name)
       .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
-      .slice(0, 12);
+      .slice(0, RETURN_ARTISTS);
 
     cache.set(key, filtered);
     return NextResponse.json({ artists: filtered, source: 'musicbrainz' });

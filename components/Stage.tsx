@@ -74,6 +74,23 @@ const MOBILE_TUNING: WheelTuning = {
 export default function Stage() {
   const { countryIdx, genreIdx, spinLeft, spinRight, setCountry, setGenre } = useStore();
 
+  // Info flip per wheel: clicking the SELECTED card flips it to a note about
+  // that country's scene / that genre (clicking again, or moving the wheel,
+  // flips it back). Clicking a non-selected card still picks it.
+  const [flipLeft, setFlipLeft] = useState(false);
+  const [flipRight, setFlipRight] = useState(false);
+  useEffect(() => { setFlipLeft(false); }, [countryIdx]);
+  useEffect(() => { setFlipRight(false); }, [genreIdx]);
+
+  const pickLeft = (i: number) => {
+    if (i === countryIdx) setFlipLeft(f => !f);
+    else setCountry(i);
+  };
+  const pickRight = (i: number) => {
+    if (i === genreIdx) setFlipRight(f => !f);
+    else setGenre(i);
+  };
+
   // Portrait/phone breakpoint — swaps in the mobile camera + wheel tuning.
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -114,7 +131,8 @@ export default function Stage() {
             position={[-cam.wheelOffsetX, 0, 0]}
             facing={1}
             onSpin={spinLeft}
-            onPick={setCountry}
+            onPick={pickLeft}
+            flipped={flipLeft}
           />
           {/* right circle — genres */}
           <Wheel
@@ -124,7 +142,8 @@ export default function Stage() {
             position={[cam.wheelOffsetX, 0, 0]}
             facing={1}
             onSpin={spinRight}
-            onPick={setGenre}
+            onPick={pickRight}
+            flipped={flipRight}
           />
         </Suspense>
       </Canvas>

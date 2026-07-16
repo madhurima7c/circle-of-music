@@ -96,6 +96,18 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Raw asset folders gitignored: `covers new/` (2.1GB), `menu icons/`.
 - **Nav v2**: frameless (no white pill), original 28px icon size, glow, `position: fixed` so it's identical on every route, per-route `data-theme` (dark labels on Circle, off-white on World), hover motion per instrument w/ spring-overshoot pop + staggered entrance; "Go to Circle/World" edge links removed (nav navigates). The world icon is a REAL 3D mini-globe (`components/NavGlobe.tsx`: three.js sphere, texture rasterized from the same `/geo/countries-110m.geojson`, spins on hover, module-level texture cache); the circle card-ring SVG is inlined in ExperienceNav for currentColor theming (#1d2bdf light / #767dec dark).
 
+## ✅ Circle fixes batch (2026-07-16, pushed)
+- Landing = Circle (`/` renders it; `/circle` redirects); hub removed. Frame edge-to-edge.
+- Nav 1.5× + 16px lower; circle-icon hover spin halved (6.4s).
+- Letter ladders = all 26 letters A–Z (dim = no item; click cycles same-initial items). Locks moved up for the taller rail.
+- Dock: no circle highlights ever — hover/press turns the icon stroke accent-blue; shuffle is a plain single-press button; More menu closes on outside click (scrim moved OUTSIDE the transformed .dock — transform traps position:fixed — and sits at z-39, below the dock).
+- CenterStack split into TWO cards: player (3D-flips to artist/song/year/album/facts) + separate scrollable Up Next card (9+ rows visible on tall screens; stack height = min(100dvh−240px, 690px), top-biased 12px below the nav).
+- Share "listen in" menu → body-level portal (fixed, z-70) — can't be clipped by the card; closes on outside click.
+- Queue-click bug fixed: queue keys now position-qualified (`${j}-${t.id}`), and the pipeline dedupes by normalized artist+title (normTitle strips parentheticals/remaster suffixes) — the same song as single+album cut was filling the queue with repeats and colliding keys.
+- Pipeline deepened: QUEUE_MAX 150 (was 22), MB proxy returns 30 artists (score ≥65, was 12@75), artists fetched in batches of 8 w/ 800ms pause (full-parallel burst tripped Deezer's ~50req/5s quota and starved queues), enrich only first 30 tracks. Verified UK×Soul = 90 tracks, 0 dupes.
+- Wheel cards: clicking the SELECTED card 3D-flips it to a curated note (`lib/wheel-notes.ts`: 20 country scenes + 20 genre blurbs, canvas-rendered onto the card back in its spine color; texture cached per card). Click again / spin flips back. Clicking selected no longer refetches.
+- Connector lines are alive: populating = line grows from wheel edge toward center (repeating); playing = pinned-string wave (3 sine harmonics, rAF, eased attack/release; synthesized — a WebAudio analyser on Deezer's CDN previews would taint the audio graph); paused = settles flat.
+
 ## ⏳ Waiting on user (blocks next steps)
 - [ ] **Shades** experience design (nav slot exists, marked coming soon).
 - [ ] **Translations** for the 19 listed languages (only `en` is `ready` in `lib/strings.ts`); countries/genres too.

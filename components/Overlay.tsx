@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
@@ -86,28 +87,93 @@ export function PopulatingText() {
 }
 
 /**
- * Connector lines from each wheel toward the center card in the selected
- * state. Drawn at z-index −1 inside the frame's stacking context so the
- * wheel canvas and the center card paint over them — each line visually
- * ends exactly at the edge of the cover art at any viewport size.
- * (The black country/genre tags that used to sit on these lines were
- * removed — they overlapped the cover art and duplicated the card's
- * own chips header.)
+ * Connector lines from each wheel toward the center card — a live element,
+ * not a static rule:
+ *   · populating → the line GROWS from the wheel-card edge toward the
+ *     center card (a loading indicator, restated each cycle);
+ *   · playing    → the line becomes a plucked string: a few superposed
+ *     sine harmonics with pinned ends, danced by a rAF loop;
+ *   · paused     → the string settles flat; empty/error → hidden.
+ * Drawn at z-index −1 so the wheel canvas and center card paint over the
+ * inner ends. The wave is synthesized (not an audio analyser — the Deezer
+ * CDN previews would taint a WebAudio graph and kill playback).
  */
+const WAVE_W = 400;  // viewBox units; SVG stretches to the real span
+const WAVE_H = 44;
+const WAVE_MID = WAVE_H / 2;
+
 export function ConnectorTags() {
-  const { status } = useStore();
-  const visible = status === 'ready';
+  const { status, isPlaying } = useStore();
+  const leftPath  = useRef<SVGPathElement | null>(null);
+  const rightPath = useRef<SVGPathElement | null>(null);
+  const live = useRef({ playing: false });
+  live.current.playing = status === 'ready' && isPlaying;
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let raf = 0;
+    let amp = 0;              // eased 0..1 — string energy
+    const flat = `M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`;
+    let wasFlat = false;
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      const target = live.current.playing ? 1 : 0;
+      amp += (target - amp) * 0.055;                    // attack + release
+      if (amp < 0.012) {
+        amp = 0;
+        if (!wasFlat) {
+          leftPath.current?.setAttribute('d', flat);
+          rightPath.current?.setAttribute('d', flat);
+          wasFlat = true;
+        }
+        return;
+      }
+      wasFlat = false;
+      const t = now / 1000;
+      for (const [el, phase] of [[leftPath.current, 0], [rightPath.current, 2.1]] as const) {
+        if (!el) continue;
+        let d = `M0,${WAVE_MID}`;
+        for (let x = 8; x <= WAVE_W; x += 8) {
+          const env = Math.sin((x / WAVE_W) * Math.PI);  // pinned string ends
+          const y = WAVE_MID + env * amp * (
+            Math.sin(x * 0.045 + t * 3.4 + phase) * 3.4 +
+            Math.sin(x * 0.021 - t * 2.3 + phase) * 2.6 +
+            Math.sin(x * 0.084 + t * 5.1 + phase) * 1.5
+          );
+          d += ` L${x},${y.toFixed(2)}`;
+        }
+        el.setAttribute('d', d);
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const state =
+    status === 'populating' ? 'loading' :
+    status === 'ready'      ? 'ready'   : 'hidden';
 
   return (
     <>
-      <div
-        className="absolute top-1/2 z-[-1] h-px bg-black transition-opacity duration-500"
-        style={{ left: '24%', right: '50%', opacity: visible ? 1 : 0, transitionDelay: '300ms' }}
-      />
-      <div
-        className="absolute top-1/2 z-[-1] h-px bg-black transition-opacity duration-500"
-        style={{ left: '50%', right: '24%', opacity: visible ? 1 : 0, transitionDelay: '300ms' }}
-      />
+      <svg
+        className="connector connector--left"
+        data-state={state}
+        viewBox={`0 0 ${WAVE_W} ${WAVE_H}`}
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path ref={leftPath} d={`M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`} />
+      </svg>
+      <svg
+        className="connector connector--right"
+        data-state={state}
+        viewBox={`0 0 ${WAVE_W} ${WAVE_H}`}
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path ref={rightPath} d={`M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`} />
+      </svg>
     </>
   );
 }
@@ -229,6 +295,17 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
   // Card flip (front = player, back = song/artist info) + share popover.
   const [flipped, setFlipped] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  // The share menu renders in a body-level portal (fixed overlay) so the
+  // card's overflow:hidden can never clip it — anchored to the button.
+  const shareBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [shareAt, setShareAt] = useState<{ x: number; y: number } | null>(null);
+  const toggleShare = () => {
+    if (!shareOpen && shareBtnRef.current) {
+      const r = shareBtnRef.current.getBoundingClientRect();
+      setShareAt({ x: r.left + r.width / 2, y: r.top - 8 });
+    }
+    setShareOpen(o => !o);
+  };
 
   // Audio itself lives in <GlobalPlayer> (root layout) so playback survives
   // navigation — this card is pure UI over the same store.
@@ -259,7 +336,11 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
     gsap.timeline({ defaults: { ease: 'power2.out' } })
       .from('.center__now',      { autoAlpha: 0, y: 8, duration: 0.40 })
       .from('.center__controls', { autoAlpha: 0, y: 6, duration: 0.35 }, '-=0.22')
-      .from('.center__queue-item', { autoAlpha: 0, y: 6, stagger: 0.045, duration: 0.30 }, '-=0.18');
+      // Only the visible head of the (now much longer) queue staggers in;
+      // clearProps so an interrupted tween can never strand rows dimmed.
+      .from('.center__queue-item:nth-child(-n+12)', {
+        autoAlpha: 0, y: 6, stagger: 0.045, duration: 0.30, clearProps: 'opacity,visibility,transform',
+      }, '-=0.18');
   }, { scope: stackRef, dependencies: [pairingKey, hasTrack] });
 
   // Track swap WITHIN a playlist (next/prev/auto-advance): the cover pops
@@ -400,8 +481,9 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                       </svg>
                     </button>
                     <button
+                      ref={shareBtnRef}
                       className="ctrl"
-                      onClick={() => setShareOpen(o => !o)}
+                      onClick={toggleShare}
                       title={STR.card.share}
                       aria-label={STR.card.share}
                       aria-expanded={shareOpen}
@@ -412,61 +494,6 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                         <path d="M5 13v6h14v-6" />
                       </svg>
                     </button>
-
-                    {shareOpen && links && (
-                      <div className="listen-menu" role="menu" aria-label={STR.card.listenIn}>
-                        <div className="listen-menu__head">{STR.card.listenIn.toUpperCase()}</div>
-                        <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer"><BrandIcon kind="spotify" />Spotify</a>
-                        <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
-                        <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
-                        <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
-                        {spotifyEnabled && (
-                          <button
-                            className="listen-menu__connect"
-                            data-connected={spotifyOn ? 'true' : 'false'}
-                            onClick={() => (spotifyOn ? disconnectSpotify() : connectSpotify())}
-                          >
-                            {spotifyOn ? STR.spotify.connected : STR.spotify.connect}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="center__up-next">
-                    <h3 className="center__up-next-title">{STR.card.upNext}</h3>
-                    <ul className="center__queue" aria-label="Queued tracks">
-                      {tracks.length <= 1 ? (
-                        <li className="center__queue-empty">
-                          {tracks.length === 0 ? STR.card.noTracks : STR.card.noOtherTracks}
-                        </li>
-                      ) : (
-                        Array.from({ length: tracks.length - 1 }, (_, step) => {
-                          const j = (trackIdx + 1 + step) % tracks.length;
-                          const t = tracks[j];
-                          return (
-                            <li
-                              key={t.id}
-                              className="center__queue-item"
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => { setTrackIdx(j); setIsPlaying(true); }}
-                              onKeyDown={(e) => { if (e.key === 'Enter') { setTrackIdx(j); setIsPlaying(true); } }}
-                            >
-                              {t.image
-                                ? <img className="qrow__img" src={t.image} alt="" loading="lazy" />
-                                : <span className="qrow__img" />}
-                              <span className="qrow__main">
-                                <span className="qrow__title">{t.title}</span>
-                                <span className="qrow__artist">{t.artist}</span>
-                              </span>
-                              <span className="qrow__album">{t.album}</span>
-                              <span className="qrow__dur tabular">{formatDuration(t.duration)}</span>
-                            </li>
-                          );
-                        })
-                      )}
-                    </ul>
                   </div>
                 </div>
               </div>
@@ -494,7 +521,81 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
               </div>
             </div>
           </div>
+
+          {/* Up Next — its own card, disconnected from the player so the
+              player can flip alone. Scrolls; sized to show 9+ rows. */}
+          {hasTrack && (
+            <div className="center__card center__card--queue">
+              <h3 className="center__up-next-title">{STR.card.upNext}</h3>
+              <ul className="center__queue" aria-label="Queued tracks">
+                {tracks.length <= 1 ? (
+                  <li className="center__queue-empty">
+                    {tracks.length === 0 ? STR.card.noTracks : STR.card.noOtherTracks}
+                  </li>
+                ) : (
+                  Array.from({ length: tracks.length - 1 }, (_, step) => {
+                    const j = (trackIdx + 1 + step) % tracks.length;
+                    const t = tracks[j];
+                    // Key includes the queue position: if the pool ever holds
+                    // two entries of one track, keys stay unique — duplicate
+                    // keys made React recycle rows with stale click handlers
+                    // (click played a different song) and stranded opacity.
+                    return (
+                      <li
+                        key={`${j}-${t.id}`}
+                        className="center__queue-item"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => { setTrackIdx(j); setIsPlaying(true); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { setTrackIdx(j); setIsPlaying(true); } }}
+                      >
+                        {t.image
+                          ? <img className="qrow__img" src={t.image} alt="" loading="lazy" />
+                          : <span className="qrow__img" />}
+                        <span className="qrow__main">
+                          <span className="qrow__title">{t.title}</span>
+                          <span className="qrow__artist">{t.artist}</span>
+                        </span>
+                        <span className="qrow__album">{t.album}</span>
+                        <span className="qrow__dur tabular">{formatDuration(t.duration)}</span>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Share ("listen to full song in") — body-level overlay so the card
+          edge can never clip it. The scrim closes it on any outside click. */}
+      {shareOpen && links && shareAt && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="listen-scrim" onClick={() => setShareOpen(false)} />
+          <div
+            className="listen-menu listen-menu--overlay"
+            role="menu"
+            aria-label={STR.card.listenIn}
+            style={{ left: shareAt.x, top: shareAt.y }}
+          >
+            <div className="listen-menu__head">{STR.card.listenIn.toUpperCase()}</div>
+            <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer"><BrandIcon kind="spotify" />Spotify</a>
+            <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
+            <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
+            <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
+            {spotifyEnabled && (
+              <button
+                className="listen-menu__connect"
+                data-connected={spotifyOn ? 'true' : 'false'}
+                onClick={() => (spotifyOn ? disconnectSpotify() : connectSpotify())}
+              >
+                {spotifyOn ? STR.spotify.connected : STR.spotify.connect}
+              </button>
+            )}
+          </div>
+        </>,
+        document.body,
       )}
     </div>
   );
@@ -503,37 +604,58 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
 /** Must match `.letter-ladder { --ladder-row }` in globals.css */
 const LADDER_ROW = 11;
 
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
 /**
- * Letter ladder — Maddy's alphabet rail (src/wheel.js buildLadder/updateLadder),
- * ported to React. One 11px row per wheel item: each row holds a clickable
- * 1px tick that snaps the wheel to that item. The active row's tick hides and
- * a square letter chip (first letter of the selection) sits centered on it.
+ * Letter ladder — the alphabet rail beside each wheel. All 26 letters, one
+ * bar per letter (first bar = A, second = B, …) so the rail reads as a fixed
+ * A–Z index of the wheel. Letters with no matching item are dimmed. Clicking
+ * a letter snaps the wheel to its first item; clicking it again cycles
+ * through the other items sharing that initial. The active letter's bar
+ * hides under a square letter chip.
  */
 export function Dial({ side }: { side: 'left' | 'right' }) {
   const { countryIdx, genreIdx, setCountry, setGenre } = useStore();
   const items  = side === 'left' ? COUNTRIES : GENRES;
   const idx    = side === 'left' ? countryIdx : genreIdx;
   const snapTo = side === 'left' ? setCountry : setGenre;
-  const letter = (items[idx] || '?')[0]?.toUpperCase() || '?';
+  const activeLetter = (items[idx] || '?')[0]?.toUpperCase() || '?';
+  const activeRow = Math.max(0, ALPHABET.indexOf(activeLetter));
+
+  const jumpTo = (letter: string) => {
+    const matches = items
+      .map((label, i) => ({ label, i }))
+      .filter(({ label }) => label[0]?.toUpperCase() === letter);
+    if (!matches.length) return;
+    // Already on this letter → cycle to the next item sharing the initial.
+    const pos = matches.findIndex(({ i }) => i === idx);
+    snapTo(matches[(pos + 1) % matches.length].i);
+  };
 
   return (
     <div className={`letter-ladder letter-ladder--${side}`}>
-      {items.map((label, i) => (
-        <div key={label} className="letter-ladder__row">
-          <button
-            type="button"
-            className="letter-ladder__tick"
-            title={label}
-            data-active={i === idx ? 'true' : 'false'}
-            onClick={() => snapTo(i)}
-          />
-        </div>
-      ))}
+      {ALPHABET.map((letter) => {
+        const first = items.find((label) => label[0]?.toUpperCase() === letter);
+        return (
+          <div key={letter} className="letter-ladder__row">
+            <button
+              type="button"
+              className="letter-ladder__tick"
+              title={first ? `${letter} — ${first}` : letter}
+              aria-label={first ? `${letter} — ${first}` : letter}
+              data-active={letter === activeLetter ? 'true' : 'false'}
+              data-empty={first ? 'false' : 'true'}
+              disabled={!first}
+              onClick={() => jumpTo(letter)}
+            />
+          </div>
+        );
+      })}
       <span
         className="letter-ladder__chip"
-        style={{ top: idx * LADDER_ROW + LADDER_ROW / 2 }}
+        style={{ top: activeRow * LADDER_ROW + LADDER_ROW / 2 }}
       >
-        {letter}
+        {activeLetter}
       </span>
     </div>
   );
@@ -1205,11 +1327,15 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
 
   return (
     <>
+      {/* Outside-click catcher — lives OUTSIDE .dock because the dock's
+          translateX(-50%) transform would trap a position:fixed child. */}
+      {menuOpen && <div className="dock-scrim" onClick={closeMenu} />}
+
       <div className="dock">
-        {/* Shuffle — the primary discovery verb, accent-styled. */}
+        {/* Shuffle — the primary discovery verb. Single-press action. */}
         <button
           onClick={onSurprise ?? surprise}
-          className="dock__btn dock__btn--primary"
+          className="dock__btn"
           title={
             lockedLeft && lockedRight ? STR.dock.surpriseBothLocked
             : lockedLeft  ? STR.dock.surpriseGenreOnly
@@ -1256,7 +1382,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
 
         {menuOpen && (
           <>
-            <div className="dock-scrim" onClick={closeMenu} />
             <div className="dock-menu" role="menu">
               {/* Language */}
               <button
