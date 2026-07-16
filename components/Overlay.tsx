@@ -13,8 +13,6 @@ import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind, useFinds } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
-import { getArtistPicture } from '@/lib/deezer';
-import { originForLive } from '@/lib/origins-live';
 import { audioBus } from '@/lib/audio-bus';
 import { LikedSongs } from '@/components/Library';
 import {
@@ -344,8 +342,7 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
-  // Card flip (front = player, back = song/artist info) + share popover.
-  const [flipped, setFlipped] = useState(false);
+  // Share popover state (the player card no longer flips).
   const [shareOpen, setShareOpen] = useState(false);
   // The share menu renders in a body-level portal (fixed overlay) so the
   // card's overflow:hidden can never clip it — anchored to the button.
@@ -358,30 +355,6 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
     }
     setShareOpen(o => !o);
   };
-
-  // "About the artist" (the card's back face): portrait from Deezer, origin
-  // (city, country) from the origins pipeline. Fetched lazily on first flip
-  // per track; `see more` opens the larger dialog.
-  const [artistInfo, setArtistInfo] = useState<{ img: string | null; origin: string | null } | null>(null);
-  const [artistMore, setArtistMore] = useState(false);
-  useEffect(() => { setArtistInfo(null); setArtistMore(false); }, [track?.artistId]);
-  useEffect(() => {
-    if (!flipped || !track || artistInfo) return;
-    let alive = true;
-    Promise.all([getArtistPicture(track.artistId), originForLive(track.artist)])
-      .then(([img, o]) => {
-        if (!alive) return;
-        setArtistInfo({
-          img,
-          origin: o ? (o.place ? `${o.place}, ${o.country}` : o.country || null) : null,
-        });
-      });
-    return () => { alive = false; };
-  }, [flipped, track, artistInfo]);
-  const artistBio = track
-    ? storyFor(track.artist, country, genre)
-      ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))
-    : '';
 
   // Audio itself lives in <GlobalPlayer> (root layout) so playback survives
   // navigation — this card is pure UI over the same store.
@@ -401,8 +374,8 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
   const pairingKey = `${country}|${genre}`;
   const lastPairing = useRef(pairingKey);
 
-  // Fresh pairing → face forward with the share menu closed.
-  useEffect(() => { setFlipped(false); setShareOpen(false); }, [pairingKey]);
+  // Fresh pairing / track → close the share menu.
+  useEffect(() => { setShareOpen(false); }, [pairingKey]);
   useEffect(() => { setShareOpen(false); }, [track?.id]);
 
   // Playlist entrance: when a fresh pairing becomes ready, the now-playing
@@ -468,20 +441,8 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
               </p>
             </div>
 
-            {/* Player card: front = playback, back = about-this-song.
-                Clicking anywhere non-interactive flips it. */}
-            <div
-              className="center__flipper"
-              data-flipped={flipped ? 'true' : 'false'}
-              hidden={!hasTrack}
-              onClick={(e) => {
-                if ((e.target as HTMLElement).closest('button, a, input, .center__queue, .center__bar')) return;
-                setFlipped(f => !f);
-                setShareOpen(false);
-              }}
-              title={flipped ? STR.card.flipBack : STR.card.flipHint}
-            >
-              <div className="center__face center__face--front">
+            {/* Player — now row, progress, transport. Content-sized. */}
+            <div className="center__player" hidden={!hasTrack}>
                 <div className="center__track">
                   <div className="center__now">
                     <div className="center__cover-wrap">
@@ -530,7 +491,7 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                   <ProgressBar trackDuration={track?.duration ?? null} />
 
                   <div className="center__controls">
-                    <button className="ctrl" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
+                    <button className="ctrl ctrl--shuffle" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
                       {/* Lucide "shuffle" (MIT) */}
                       <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                         <polyline points="16 3 21 3 21 8" />
@@ -574,34 +535,8 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                 </div>
               </div>
 
-              {/* Back face — About the artist: portrait, name, origin,
-                  short writeup, and `see more` → the larger dialog. */}
-              <div className="center__face center__face--back">
-                <div className="artist-face">
-                  <div className="artist-face__imgwrap">
-                    {artistInfo?.img
-                      ? <img className="artist-face__img" src={artistInfo.img} alt="" />
-                      : <div className="artist-face__img artist-face__img--empty" />}
-                    <span className="artist-face__kicker">{STR.card.aboutArtist}</span>
-                  </div>
-                  <h2 className="artist-face__name">{track?.artist}</h2>
-                  {artistInfo?.origin && <p className="artist-face__origin">{artistInfo.origin}</p>}
-                  <p className="artist-face__bio">{artistBio}</p>
-                  <button className="artist-face__more" onClick={() => setArtistMore(true)}>
-                    {STR.card.seeMore}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Flip affordance — sits between the controls and the hairline,
-                spaced evenly off both by the card's flex gap. */}
-            <span className="center__flip-hint" hidden={!hasTrack} aria-hidden>
-              {flipped ? STR.card.flipBack : STR.card.flipHintShort}
-            </span>
-
-            {/* Up Next — same card, hairline partition; the flipper above
-                turns alone. Scrolls; shows 9+ rows on tall screens. */}
+            {/* Up Next — same card, hairline partition.
+                Scrolls; shows 9+ rows on tall screens. */}
             <div className="center__up-next" hidden={!hasTrack}>
               <h3 className="center__up-next-title">{STR.card.upNext}</h3>
               <ul className="center__queue" aria-label="Queued tracks">
@@ -643,32 +578,6 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
             </div>
           </div>
         </div>
-      )}
-
-      {/* "See more" — the larger About-the-artist dialog. */}
-      {artistMore && track && typeof document !== 'undefined' && createPortal(
-        <>
-          <div className="dock-scrim dock-scrim--dim" onClick={() => setArtistMore(false)} />
-          <div className="artist-modal" role="dialog" aria-label={STR.card.aboutArtist}>
-            {artistInfo?.img && <img className="artist-modal__img" src={artistInfo.img} alt="" />}
-            <div className="artist-modal__body">
-              <div className="artist-face__kicker artist-face__kicker--static">{STR.card.aboutArtist}</div>
-              <h2 className="artist-modal__name">{track.artist}</h2>
-              {artistInfo?.origin && <p className="artist-modal__origin">{artistInfo.origin}</p>}
-              <p className="artist-modal__bio">{artistBio}</p>
-              <dl className="center__back-facts">
-                <div><dt>{STR.card.factAlbum}</dt><dd>{track.album || '—'}</dd></div>
-                <div><dt>{STR.card.factReleased}</dt><dd>{releaseYear(track.releaseDate) ?? '—'}</dd></div>
-                <div><dt>{STR.card.factFound}</dt><dd>{country} × {genre}</dd></div>
-                <div><dt>{STR.card.factLength}</dt><dd className="tabular">{formatDuration(track.duration)}</dd></div>
-              </dl>
-              <button className="artist-modal__close" onClick={() => setArtistMore(false)}>
-                {STR.library.close}
-              </button>
-            </div>
-          </div>
-        </>,
-        document.body,
       )}
 
       {/* Share ("listen to full song in") — body-level overlay so the card

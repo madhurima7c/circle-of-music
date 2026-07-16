@@ -1010,223 +1010,14 @@ html, body {
   white-space: pre-line;
 }
 
-/* ---- card flip: front = player, back = about-this-song ---- */
-.center__card--main { perspective: 1400px; }
-.center__flipper {
-  position: relative;
+/* ---- player section: now row + progress + transport, content-sized ---- */
+.center__player {
   flex: 0 0 auto;
-  height: 196px;   /* faces are absolute — sized to the player content */
-  min-height: 0;
-  transform-style: preserve-3d;
-  transition: transform 620ms cubic-bezier(0.4, 0.1, 0.2, 1);
-  cursor: pointer;
-}
-.center__flipper[hidden] { display: none; }
-.center__flipper[data-flipped="true"] { transform: rotateY(180deg); }
-.center__face {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
-.center__face--back { transform: rotateY(180deg); }
-.center__backpane {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-}
-.center__back-kicker {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.45);
-}
-.center__back-song {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.25;
-}
-.center__back-artist {
-  margin: 0;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.65);
-}
-.center__back-story {
-  margin: 6px 0 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.75);
-}
-.center__back-facts {
-  margin: 10px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 10px;
-}
-.center__back-facts div { display: flex; gap: 10px; font-size: 11.5px; }
-.center__back-facts dt {
-  flex: 0 0 64px;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-  padding-top: 1px;
-}
-.center__back-facts dd { margin: 0; min-width: 0; color: rgba(255, 255, 255, 0.85); }
-.center__back-hint {
-  margin-top: auto;
-  padding-top: 10px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-/* ---- "About the artist" — the player card's back face ---- */
-.artist-face {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  overflow: hidden;
-}
-.artist-face__imgwrap {
-  position: relative;
-  flex: 0 0 auto;
-  height: 88px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #3a3a3c;
-}
-.artist-face__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 22%;
-  display: block;
-}
-.artist-face__img--empty {
-  background: linear-gradient(135deg, #3a3a3c, #26262a);
-}
-.artist-face__kicker {
-  position: absolute;
-  left: 10px; top: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
-}
-.artist-face__kicker--static {
-  position: static;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-  text-shadow: none;
-}
-.artist-face__name {
-  margin: 4px 0 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.artist-face__origin {
-  margin: 0;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
-}
-.artist-face__bio {
-  margin: 2px 0 0;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.72);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.artist-face__more {
-  align-self: flex-start;
-  margin-top: auto;
-  padding: 0;
-  border: none;
-  background: none;
-  color: #fff;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.artist-face__more:hover { text-decoration: underline; }
-
-/* ---- the larger "see more" dialog ---- */
-.artist-modal {
-  position: fixed;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 60;
-  width: min(400px, calc(100vw - 48px));
-  max-height: min(78vh, 640px);
-  overflow-y: auto;
-  background: #232326;
-  color: #fff;
-  font-family: var(--font-plex-sans), sans-serif;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 32px 80px rgba(0,0,0,0.45);
-}
-.artist-modal__img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  object-position: center 20%;
-  display: block;
-}
-.artist-modal__body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px 18px 14px;
-}
-.artist-modal__name { margin: 0; font-size: 22px; font-weight: 600; }
-.artist-modal__origin { margin: 0; font-size: 12.5px; color: rgba(255, 255, 255, 0.55); }
-.artist-modal__bio {
-  margin: 8px 0 4px;
-  font-size: 13px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.8);
-}
-.artist-modal__close {
-  align-self: flex-end;
-  margin-top: 10px;
-  padding: 7px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  background: transparent;
-  color: #fff;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 140ms ease, transform 140ms ease;
-}
-.artist-modal__close:hover { background: rgba(255, 255, 255, 0.08); }
-.artist-modal__close:active { transform: scale(0.96); }
-
+.center__player[hidden] { display: none; }
 .center__track {
   display: flex;
   flex-direction: column;
@@ -1398,21 +1189,6 @@ html, body {
 }
 .listen-menu__connect[data-connected="true"] { color: rgba(0, 0, 0, 0.6); }
 
-/* Flip affordance — between the controls and the hairline; the card's
- * flex gap keeps it equidistant from both. Same size as the card's third
- * (origin) line, set in caps. */
-.center__flip-hint {
-  flex: 0 0 auto;
-  text-align: center;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
-  pointer-events: none;
-}
-.center__flip-hint[hidden] { display: none; }
-
 /* Up Next — same card as the player, split by a hairline. */
 .center__up-next {
   flex: 1;
@@ -1516,9 +1292,7 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 4px 0 0;
-  margin-top: auto;   /* pin to the flipper bottom — the flip hint below is
-                         then equidistant (card gap) from controls and rule */
+  padding: 4px 0 2px;   /* controls end close to the queue hairline */
 }
 .ctrl {
   background: rgba(255, 255, 255, 0.08);
@@ -1533,6 +1307,8 @@ html, body {
 }
 .ctrl:hover { background: rgba(255, 255, 255, 0.16); }
 .ctrl:active { transform: scale(0.94); }
+/* Shuffle press feedback: the circle-icon blue from the top nav. */
+.ctrl--shuffle:active { background: #1d2bdf; color: #fff; }
 .ctrl svg { width: 16px; height: 16px; display: block; }
 .ctrl:not(.ctrl--lg) svg { fill: none; }
 .ctrl__icon-shuffle {
@@ -1776,7 +1552,6 @@ html, body {
   /* Center cards: narrower, tighter type, shorter stack. */
   .center__stack { width: 216px; height: min(64vh, 480px); }
   .center__card--main { padding: 11px 11px 10px; gap: 8px; }
-  .center__flipper { height: 172px; }
   .center__title  { font-size: 13.5px; }
   .center__album  { font-size: 10.5px; }
   .center__cover  { width: 52px; height: 52px; }
