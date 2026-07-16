@@ -89,6 +89,21 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - World playlist panel height == genre rail (620px verified).
 - Dev note: `window.__world.select(name, genreIdx)` (dev-only) drives country taps headless. Turbopack stale-bundle bit twice more (once splitting the store into two module instances — UI dead while network fires). rm -rf .next + restart.
 
+## ✅ Card art + UI v2 (2026-07-15/16, pushed to BOTH remotes)
+- **Deploy setup**: Vercel watches `deploy` remote (`chanmekala/discovery-of-music`) — push every commit to origin AND deploy.
+- **Card art**: user's country/genre covers (fronts), dedicated spine strips (edges), spine-color solid backs (`lib/spine-colors.json`); lit PBR vinyl shading (locked lighting rig); dial values baked (cardSize 1.25, thickness 0.07, popZ 1.35, popScale 1.55, gap 0.38/0.2); leva dial kit REMOVED (restore from `30306c7` if needed).
+- **UI v2** (`a9d1878`): top-center ExperienceNav (user icons; Shades = coming soon); titles/hints/top-right library removed; dock = shuffle · liked · ⋮ (Language 19 langs / Hand tracking On-Off / world dots filter / Contact / About); LikedSongs popup w/ playlists + drag-drop (localStorage `playlists`); card flip (about-side w/ story+facts), progress bar w/ seek (lib/audio-bus), share → "listen to full song in" brand menu, rich queue rows w/ durations + click-to-jump; progressive edge blur replaces glass overlay; DM Sans/DM Mono fonts.
+- Raw asset folders gitignored: `covers new/` (2.1GB), `menu icons/`.
+
+## ⏳ Waiting on user (blocks next steps)
+- [ ] **Shades** experience design (nav slot exists, marked coming soon).
+- [ ] **Translations** for the 19 listed languages (only `en` is `ready` in `lib/strings.ts`); countries/genres too.
+- [ ] **Contact email** for the "Contact us" mailto (currently blank To:).
+- [ ] **About us** copy (currently reuses the hub thesis).
+- [ ] Lightweight **vector icons** for World/Shades nav (current = PNGs extracted from raster-embedded SVGs).
+- [ ] **Spotify client ID** once the Vercel URL exists (whitelist it as redirect URI; env var must be set in Vercel at build time).
+- [ ] `seed-proposals.json` review; axes growth (24×24) decision.
+
 ## 🔎 Needs real-device testing (can't verify in the hidden preview tab)
 - [ ] Hand mode: toggle on with a real webcam — cursor tracking, pinch-hold click, pinch-drag spin.
 - [ ] GSAP card animations actually play (preview tab is hidden → rAF paused).

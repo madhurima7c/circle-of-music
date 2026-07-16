@@ -10,10 +10,15 @@
 > previews are framed as a listening station; every find deep-links out to the
 > listener's own app, and can be kept in a local library.
 
-The repo is a clone of `github.com/madhurima7c/circle-of-music` (owned by
-madhurima7c; you commit as `chanmekala`). `origin/Maddy` is Madhurima's
-parallel Vite rewrite — **all active work is on `main`** (Next.js 16 + React
-Three Fiber).
+**TWO git remotes — push every commit to BOTH:**
+- `origin` = `github.com/madhurima7c/circle-of-music` (the original repo;
+  `origin/Maddy` is Madhurima's parallel Vite rewrite — ignore it).
+- `deploy` = `github.com/chanmekala/discovery-of-music` — **this is what
+  Vercel watches**; the live site only updates when you `git push deploy main`.
+
+All active work is on `main` (Next.js 16 + React Three Fiber). You commit
+as `chanmekala`. Convention: `git push origin main && git push deploy main`
+after each coherent change.
 
 ## Run it
 
@@ -33,25 +38,31 @@ Next API proxies), no accounts.
 **Optional Spotify full-song mode** (`lib/spotify.ts`): set
 `NEXT_PUBLIC_SPOTIFY_CLIENT_ID` in `.env.local` (free app at
 developer.spotify.com/dashboard; whitelist redirect URIs `<origin>/`,
-`<origin>/circle`, `<origin>/world`). A "Connect Spotify" link then appears
-in the card's links row; connected Premium users hear FULL tracks via the
-Web Playback SDK (PKCE, no server/secret), with automatic fallback to the
-30s Deezer preview for anything Spotify can't match. Without the env var,
-Spotify login is never mentioned.
+`<origin>/circle`, `<origin>/world`). A "Connect Spotify" entry then appears
+in the card's share ("listen in") menu; connected Premium users hear FULL
+tracks via the Web Playback SDK (PKCE, no server/secret), with automatic
+fallback to the 30s Deezer preview for anything Spotify can't match.
+Without the env var, Spotify login is never mentioned. Deferred by user
+until the published Vercel URL exists to whitelist.
 
 ## Routes & the shared spine
 
 - `app/page.tsx` — landing **hub** (server component) linking the two instruments.
 - `app/circle/page.tsx` — Circle of Music (client): `Stage` (R3F wheels) + `Overlay` UI.
 - `app/world/page.tsx` — World of Music (client): dynamically-imported `WorldGlobe`.
-- `app/layout.tsx` — root: fonts, the liquid-glass SVG filter, **`StoreProvider`**
-  and **`GlobalPlayer`** wrap everything so **selection + playback survive
+- `app/layout.tsx` — root: fonts (**DM Sans + DM Mono** via next/font, kept on
+  the legacy `--font-plex-*` variable names), **`StoreProvider`** and
+  **`GlobalPlayer`** wrap everything so **selection + playback survive
   navigation** between routes.
+- Page titles are gone — **`components/ExperienceNav.tsx`** (top-center
+  switcher: Circle / World / Shades) is the navigation on both instrument
+  pages. Shades is a designed-later experience: visible, marked coming-soon.
 
 State lives in **`lib/store.tsx`** (React context). Audio lives in **one**
 `<audio>` in **`components/GlobalPlayer.tsx`** (+ MediaSession + a mini-player
-pill on non-`/circle` routes). `CenterStack` (in `Overlay.tsx`) is pure UI over
-the store.
+pill on the hub). The element is also exposed via **`lib/audio-bus.ts`** so the
+card's progress bar can poll/seek it without store re-renders. `CenterStack`
+(in `Overlay.tsx`) is pure UI over the store.
 
 ## Data & playlist pipeline (unchanged core)
 
@@ -70,17 +81,19 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 | File | Role |
 |---|---|
 | `lib/store.tsx` | all app state + actions: `spinLeft/Right`, `setCountry/Genre`, `commit`, `surprise`, `playPlace` (globe, instant, no debounce), `playPlaceNamed` (any globe nation → MusicBrainz tier; sets `customCountry`, cleared by any wheel action), `countryName` (display name incl. custom), `loadQueue` (library), `toggleLock*`, `toggleHandMode`, playback. Indices mirrored into refs. |
-| `components/Overlay.tsx` | 2D UI: Title, CenterStack (card incl. **origin line** — story or facts fallback), Dial (letter ladder), WheelLock, Dock (surprise + hand toggle), Hint, **HandTracking** (opt-in VR-cursor gesture system), GestureToast. |
-| `components/Stage.tsx` / `Wheel.tsx` | R3F wheels; `MOBILE_CAMERA`/`MOBILE_TUNING` swap in ≤640px; leva dev panel (hidden on mobile). |
-| `components/WorldGlobe.tsx` | react-globe.gl globe; every nation tappable (seeded = curated pipeline, rest = MusicBrainz); artist-origin **dots** per queue (playing dot glows + ring, hover story tooltip, click jumps playback); vertical genre rail (left). `lib/geo.ts` maps GeoJSON `NAME`→seed country; data at `public/geo/countries-110m.geojson`. |
-| `lib/stories.ts` + `lib/track-stories.json` | curated artist/song stories (90) + `releaseYear`; keys are normalized artist names, optional `country\|genre\|artist` override. Grounded facts only. |
-| `lib/origins.ts` + `lib/origins.json` | artist → origin coords (city-level where Wikidata knows); built by `scripts/build-origins.ts`; manual fixes live in the JSON and survive re-runs. |
-| `lib/geo-iso.json` | GeoJSON NAME → ISO-3166 alpha-2 (generated from the Natural Earth file) — lets `/api/musicbrainz` accept any globe nation. |
-| `components/GlobalPlayer.tsx` | the one `<audio>` + MediaSession + mini-player. |
-| `components/Library.tsx` + `lib/library.ts` | local "finds" (localStorage, `useSyncExternalStore`). |
-| `lib/links.ts` | search deep links (Spotify/Apple/YouTube/Deezer) built locally — Odesli's free tier no longer returns the big three. |
-| `lib/strings.ts` | **all** user-facing copy (i18n-ready — add copy here, not inline). |
-| `lib/covers.ts` | real cover art on cards (front/back + sampled spine gradient); `public/covers/{countries,genres}/<kebab>.jpg`. |
+| `components/Overlay.tsx` | 2D UI: CenterStack (flip card: front = player w/ progress bar + share "listen in" menu + rich queue rows; back = about-this-song story/facts; click card to flip), Dial (letter ladder), WheelLock, **Dock** (shuffle · liked-songs popup · ⋮ menu w/ Language 19-langs / Hand tracking On-Off / world dots filter / Contact / About), **HandTracking** (opt-in VR-cursor gesture system), GestureToast. |
+| `components/ExperienceNav.tsx` | top-center switcher (Circle/World/Shades) using the user's icons in `public/icons/`; Shades = coming soon. |
+| `components/Stage.tsx` / `Wheel.tsx` | R3F wheels; tuned values are locked constants (`DESKTOP_TUNING`/`LIGHTS` — leva dial kit REMOVED for users; restore from git `30306c7` if tuning is needed again); lit PBR card materials (matte spine/back, clearcoat front). `MOBILE_*` swap in ≤640px. |
+| `components/WorldGlobe.tsx` | react-globe.gl globe; every nation tappable (seeded = curated pipeline, rest = world-seeds/MusicBrainz); flat artist-origin **dots** per queue (playing = avatar + sonar ring, hover popups per artists/songs filter, click jumps playback); vertical genre rail (left). Listens for `world:shuffle` / `world:dots` window events from the shared Dock. Dev hook: `window.__world.select(name, genreIdx)`. `lib/geo.ts` maps GeoJSON `NAME`→seed country. |
+| `lib/stories.ts` + `lib/track-stories.json` | curated artist/song stories (90) + `releaseYear` + `normKey` (Unicode-aware — keep the 4 copies in sync: stories, deezer, build-origins, enrich-seeds). |
+| `lib/origins.ts/.json` + `lib/origins-live.ts` | artist → origin coords (build-time for seeds via `npm run origins`; runtime Wikidata lookups w/ localStorage cache for everyone else). Manual JSON fixes survive re-runs. |
+| `lib/world-seeds.json` + `lib/enao-genres.json` | 161/175 nations w/ Deezer-verified genre-bucketed artists (`npm run world-seeds`); Every-Noise featured genres per country. Powers the World's any-nation tier + globe tint. |
+| `lib/geo-iso.json` | GeoJSON NAME → ISO-3166 alpha-2 — lets `/api/musicbrainz` accept any globe nation. |
+| `components/GlobalPlayer.tsx` | the one `<audio>` (+ Spotify SDK routing when connected) + MediaSession + hub mini-player; registers the element on `lib/audio-bus.ts`. |
+| `components/Library.tsx` + `lib/library.ts` | **LikedSongs popup** (Spotify-style: All liked + named playlists, drag-a-row-onto-a-playlist to add, create/delete, export/import) over localStorage stores `finds` + `playlists`. |
+| `lib/links.ts` | search deep links (Spotify/Apple/YouTube/Deezer) built locally — surfaced in the card's share menu. |
+| `lib/strings.ts` | **all** user-facing copy (i18n-ready; incl. the 19-language menu list — only `en` is `ready`). |
+| `lib/covers.ts` + `lib/spine-colors.json` | card faces: front = cover art, edges = dedicated spine art, back = solid spine color. `public/covers/{countries,genres,country-spines,genre-spines}/<kebab>.jpg`. Raw art folders `covers new/` + `menu icons/` are gitignored (2.1GB originals). |
 
 ## Conventions & gotchas (read before editing)
 
@@ -103,18 +116,29 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
   phone for real.
 - Benign console noise: `getServerSnapshot should be cached` ×4 comes from
   Next's `usePathname` in GlobalPlayer (shows on the hub too) — not our code.
-- Commit trailer: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
-  Push after each coherent change (user has been doing per-feature commits).
+- Commit trailer: `Co-Authored-By: Claude <noreply@anthropic.com>` (or current
+  model name). Push after each coherent change **to BOTH remotes**:
+  `git push origin main && git push deploy main` (deploy = Vercel).
+- **Fonts are DM Sans + DM Mono** (user's spec), loaded in layout.tsx on the
+  legacy `--font-plex-sans`/`--font-plex-mono` variable names.
 
 ## Current status
 
-**Done:** Phase 0 (routes/hub, opt-in hand tracking, shareable URLs, deep links,
-persistent player + MediaSession, mobile Circle, strings module) + Phase 1A
-(GSAP card polish, surprise/shuffle, finds library, audit script) + content
-wave 1 (+80 verified seeds, related-genre net — fallbacks 26%→5%; card origin
-line with 90 curated stories) + World **Phase 2** (origin dots w/ glow ring +
-story tooltips + dot-click playback, every nation tappable via MusicBrainz
-tier, vertical genre rail). See **`todo.md`** for what's next.
+**Done:** Phase 0 (routes/hub, hand tracking, shareable URLs, persistent
+player) + Phase 1A (GSAP polish, surprise, finds library, audit) + content
+wave 1 (+80 verified seeds, fallbacks 26%→5%, 90 curated stories, origin
+line) + World Phase 2 (flat origin dots w/ avatar+ring, artists/songs filter,
+every nation tappable, 161-nation world-seeds dataset, zoom + right playlist
+panel) + **user's card art** (country/genre covers + real spines + spine-color
+backs, lit vinyl PBR shading) + **UI v2** (experience nav w/ user icons,
+dock w/ Language·Hand·Contact·About menus, LikedSongs popup w/ playlists +
+drag-drop, card flip + progress bar + share menu + rich queue rows,
+progressive edge blur, DM fonts, dial kit removed). See **`todo.md`**.
+
+**Awaiting from user:** Shades experience design; translations (menu lists 19
+languages, only English live); contact email for "Contact us"; About copy;
+lightweight vector world/shades icons; Spotify client ID (after Vercel URL);
+seed-proposals.json review; axes growth decision (deferred).
 
 **Not done / known:** seed-proposals.json review + the 19 remaining fallbacks;
 axes growth (24×24/28×28) awaiting user decision + covers; reach arcs + layer
