@@ -1516,7 +1516,8 @@ html, body {
 .wnp__links {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
   padding: 4px 2px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -1528,14 +1529,6 @@ html, body {
   transition: background 120ms ease;
 }
 .wnp__links a:hover { background: rgba(255, 255, 255, 0.1); }
-.wnp__links-label {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-}
 .wnp__learn {
   align-self: center;
   padding: 4px 2px 2px;

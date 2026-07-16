@@ -351,6 +351,14 @@ export default function WorldGlobe() {
     if (trackIdx >= tracks.length - 1) void prefetchNextRef.current();
   }, [trackIdx, tracks.length]);
 
+  // The highlight follows the MUSIC: whenever the playing song's dot sits
+  // in a different country, that country becomes the selection (which in
+  // turn glides the camera to it — see the fly-to effect below).
+  useEffect(() => {
+    const dot = dotByQueueIdx.current[trackIdx];
+    if (dot && dot.geoKey !== selectedGeoRef.current) setSelectedGeo(dot.geoKey);
+  }, [trackIdx, tracks.length]);
+
   const playDot = async (dot: SongDot) => {
     chainActive.current = true;
     playedDots.current = new Set([dot.id]);
@@ -371,13 +379,18 @@ export default function WorldGlobe() {
   const playDotRef = useRef(playDot);
   playDotRef.current = playDot;
 
-  /* ---------- country taps ---------- */
-  const flyTo = (f: Feature) => {
+  /* ---------- selection = zoom: whenever a NEW country becomes selected
+   * (tapped, dot-clicked, or reached by the playing chain), the camera
+   * glides in and centers it. ---------- */
+  useEffect(() => {
+    if (!selectedGeo) return;
+    const f = features.find(x => x.properties.NAME === selectedGeo);
+    if (!f) return;
     globeRef.current?.pointOfView(
       { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X, altitude: 0.7 },
       1000,
     );
-  };
+  }, [selectedGeo, features]);
 
   /** Clicking country space (not a dot): highlight it and SHUFFLE its songs
    *  — a random in-country dot starts the chain when genres are selected;
@@ -385,7 +398,6 @@ export default function WorldGlobe() {
   const onClick = (feat: object) => {
     const f = feat as Feature;
     const name = f.properties.NAME;
-    flyTo(f);
     const local = dotsRef.current.filter(d => d.geoKey === name);
     if (local.length) {
       setSelectedGeo(name);
@@ -554,9 +566,12 @@ export default function WorldGlobe() {
           pointsData={dots}
           pointLat={(d: object) => (d as SongDot).lat}
           pointLng={(d: object) => (d as SongDot).lng}
+          /* Flat 2D discs, small enough not to overlap (was 3D pills).
+             Height sits a hair above the 0.01 country caps: still wins the
+             raycast, but only a disc-thin top face shows. */
           pointColor={(d: object) => colorFor((d as SongDot).genreIdx)}
-          pointAltitude={0.015}
-          pointRadius={0.32}
+          pointAltitude={0.0115}
+          pointRadius={0.11}
           pointsMerge={false}
           pointLabel={(d: object) => {
             const s = d as SongDot;

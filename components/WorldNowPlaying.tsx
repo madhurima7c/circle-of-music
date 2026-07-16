@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
-import { GENRES, formatDuration } from '@/lib/data';
+import { GENRES } from '@/lib/data';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind } from '@/lib/library';
@@ -121,7 +121,6 @@ export function WorldNowPlaying() {
               <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer" title="Apple Music"><BrandIcon kind="apple" /></a>
               <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer" title="Youtube"><BrandIcon kind="youtube" /></a>
               <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer" title="Deezer"><BrandIcon kind="deezer" /></a>
-              <span className="wnp__links-label">{formatDuration(track.duration)}</span>
             </div>
           )}
 
