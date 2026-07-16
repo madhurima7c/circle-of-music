@@ -130,6 +130,7 @@ export const STR = {
     listenIn: 'Listen to full song in',
     share: 'Listen in your own app',
     flipHint: 'Tap the card for artist info',
+    flipHintShort: 'Tap for artist info',
     aboutTitle: 'About this song',
     aboutArtist: 'About the artist',
     seeMore: 'see more',

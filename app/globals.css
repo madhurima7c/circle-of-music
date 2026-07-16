@@ -203,8 +203,8 @@ html, body {
  * ===================================================================== */
 .xnav {
   position: fixed;
-  left: 50%; top: 46px;
-  transform: translateX(-50%) scale(1.5);
+  left: 50%; top: 38px;
+  transform: translateX(-50%) scale(1.125);
   transform-origin: top center;
   z-index: 30;
   display: flex;
@@ -1353,6 +1353,14 @@ html, body {
   position: fixed;
   z-index: 70;
   transform: translate(-50%, -100%);   /* anchored above the share button */
+  /* Own entrance keyframes: the base links-in animates a bare translateY,
+     which wiped the anchor transform for a frame — the menu flashed at the
+     un-anchored position (off to the right) before snapping into place. */
+  animation: links-in-overlay 160ms ease backwards;
+}
+@keyframes links-in-overlay {
+  from { opacity: 0; transform: translate(-50%, calc(-100% + 4px)); }
+  to   { opacity: 1; transform: translate(-50%, -100%); }
 }
 .listen-menu__head {
   padding: 2px 10px 8px;
@@ -1389,6 +1397,21 @@ html, body {
   cursor: pointer;
 }
 .listen-menu__connect[data-connected="true"] { color: rgba(0, 0, 0, 0.6); }
+
+/* Flip affordance — between the controls and the hairline; the card's
+ * flex gap keeps it equidistant from both. Same size as the card's third
+ * (origin) line, set in caps. */
+.center__flip-hint {
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  pointer-events: none;
+}
+.center__flip-hint[hidden] { display: none; }
 
 /* Up Next — same card as the player, split by a hairline. */
 .center__up-next {
@@ -1493,7 +1516,9 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 4px 0 2px;   /* controls end close to the queue hairline */
+  padding: 4px 0 0;
+  margin-top: auto;   /* pin to the flipper bottom — the flip hint below is
+                         then equidistant (card gap) from controls and rule */
 }
 .ctrl {
   background: rgba(255, 255, 255, 0.08);

@@ -104,21 +104,22 @@ const WAVE_W = 400;  // viewBox units; SVG stretches to the real span
 /* The string splits into strands while music plays: every strand traces the
  * SAME waveform scaled by k (−1…1), so they fan apart in the middle and
  * rejoin at the pinned ends — the reference "split string" look. Colors are
- * the platform's blues (accent → the World's periwinkles), darkest
- * outermost; the k=0 center strand draws last (on top) and is the only one
- * visible at rest. */
+ * sampled from the three experience-nav icons: Circle's blue (#1d2bdf),
+ * the World globe's periwinkle (#7a83ec), and the Shades gradient's purple,
+ * magenta and orange. The k=0 center strand draws last (on top) and is the
+ * only one visible at rest. */
 const STRANDS: Array<{ k: number; color: string }> = [
-  { k: -1.0, color: '#1f2bd6' },
-  { k: -0.78, color: '#4a5cff' },
-  { k: -0.56, color: '#767dec' },
-  { k: -0.34, color: '#9daaff' },
-  { k: -0.15, color: '#cdd3ff' },
-  { k: 0.15, color: '#cdd3ff' },
-  { k: 0.34, color: '#9daaff' },
-  { k: 0.56, color: '#767dec' },
-  { k: 0.78, color: '#4a5cff' },
-  { k: 1.0, color: '#1f2bd6' },
-  { k: 0, color: '#1f2bd6' },   // center — always visible, drawn on top
+  { k: -1.0, color: '#1d2bdf' },   // circle
+  { k: -0.78, color: '#7a83ec' },  // world
+  { k: -0.56, color: '#8601a5' },  // shades — purple
+  { k: -0.34, color: '#a3087d' },  // shades — magenta
+  { k: -0.15, color: '#e4572a' },  // shades — orange
+  { k: 0.15, color: '#e4572a' },
+  { k: 0.34, color: '#a3087d' },
+  { k: 0.56, color: '#8601a5' },
+  { k: 0.78, color: '#7a83ec' },
+  { k: 1.0, color: '#1d2bdf' },
+  { k: 0, color: '#1d2bdf' },      // center — always visible, drawn on top
 ];
 const WAVE_H = 56;
 const WAVE_MID = WAVE_H / 2;
@@ -592,6 +593,12 @@ export function CenterStack({ dock = 'center' }: { dock?: 'center' | 'right' } =
                 </div>
               </div>
             </div>
+
+            {/* Flip affordance — sits between the controls and the hairline,
+                spaced evenly off both by the card's flex gap. */}
+            <span className="center__flip-hint" hidden={!hasTrack} aria-hidden>
+              {flipped ? STR.card.flipBack : STR.card.flipHintShort}
+            </span>
 
             {/* Up Next — same card, hairline partition; the flipper above
                 turns alone. Scrolls; shows 9+ rows on tall screens. */}
