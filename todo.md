@@ -94,6 +94,7 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - **Card art**: user's country/genre covers (fronts), dedicated spine strips (edges), spine-color solid backs (`lib/spine-colors.json`); lit PBR vinyl shading (locked lighting rig); dial values baked (cardSize 1.25, thickness 0.07, popZ 1.35, popScale 1.55, gap 0.38/0.2); leva dial kit REMOVED (restore from `30306c7` if needed).
 - **UI v2** (`a9d1878`): top-center ExperienceNav (user icons; Shades = coming soon); titles/hints/top-right library removed; dock = shuffle · liked · ⋮ (Language 19 langs / Hand tracking On-Off / world dots filter / Contact / About); LikedSongs popup w/ playlists + drag-drop (localStorage `playlists`); card flip (about-side w/ story+facts), progress bar w/ seek (lib/audio-bus), share → "listen to full song in" brand menu, rich queue rows w/ durations + click-to-jump; progressive edge blur replaces glass overlay; DM Sans/DM Mono fonts.
 - Raw asset folders gitignored: `covers new/` (2.1GB), `menu icons/`.
+- **Nav v2** (`7ce66ed`): frameless (no white pill), 2× icons w/ glow, `position: fixed` so it's identical on every route, per-route `data-theme` (dark labels on Circle, off-white on World), hover motion per instrument (circle ring turns / globe rotateY spin / shades hue-rotate) w/ spring-overshoot pop + staggered entrance; "Go to Circle/World" edge links removed (nav navigates).
 
 ## ⏳ Waiting on user (blocks next steps)
 - [ ] **Shades** experience design (nav slot exists, marked coming soon).
