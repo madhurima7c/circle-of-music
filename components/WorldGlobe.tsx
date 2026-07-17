@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Globe, { type GlobeMethods } from 'react-globe.gl';
 import * as THREE from 'three';
 import { useStore, toTrack } from '@/lib/store';
-import { GENRES, SEEDS, type Track } from '@/lib/data';
+import { COUNTRIES, GENRES, SEEDS, type Track } from '@/lib/data';
 import { GEO_URL, PLAYABLE_GEO_NAMES, geoName, seedCountry, seedCountryIdx } from '@/lib/geo';
 import { searchArtistTracksStrict, jsonp, type DeezerTrack } from '@/lib/deezer';
 import { originFor, type ArtistOrigin } from '@/lib/origins';
@@ -157,7 +157,7 @@ export default function WorldGlobe() {
       fetch(`/world-songs/${slugify(GENRES[gi])}.json`)
         .then((r) => (r.ok ? (r.json() as Promise<GenreSongFile>) : null))
         .catch(() => null)
-        .then((d) => setSongFiles((prev) => ({ ...prev, [gi]: d })));
+        .then((d) => { genreLoaded.current.add(gi); setSongFiles((prev) => ({ ...prev, [gi]: d })); });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGenres]);
@@ -248,6 +248,29 @@ export default function WorldGlobe() {
     return map;
   }, [features]);
 
+  // The 20 seed countries with map coordinates — used to snap an
+  // unrepresented (non-seed) nation to its nearest wheel country.
+  const seedPoints = useMemo(
+    () => COUNTRIES
+      .map((name, idx) => {
+        const lp = labelPoints.get(geoName(name));
+        return lp ? { name, idx, lat: lp.lat, lng: lp.lng } : null;
+      })
+      .filter((p): p is { name: string; idx: number; lat: number; lng: number } => !!p),
+    [labelPoints],
+  );
+
+  /** Nearest of the 20 seed countries to a lat/lng, or null before the
+   *  polygons (and thus their label points) have loaded. */
+  const nearestSeedIdx = useCallback((lat: number, lng: number): number => {
+    let best = -1, bestD = Infinity;
+    for (const p of seedPoints) {
+      const d = haversine({ lat, lng }, p);
+      if (d < bestD) { bestD = d; best = p.idx; }
+    }
+    return best;
+  }, [seedPoints]);
+
   const dots = useMemo<SongDot[]>(() => {
     if (!selectedGenres.length || !labelPoints.size) return [];
     const out: SongDot[] = [];
@@ -324,8 +347,10 @@ export default function WorldGlobe() {
   /* =====================================================================
    *  Dot playback chain — click a dot, its song plays and its country
    *  highlights; when a song ends the chain advances to the nearest
-   *  unplayed dot IN THE SAME COUNTRY first (any selected genre), then
-   *  radiates outward. Rolling prefetch keeps the next song queued.
+   *  unplayed dot IN THE SAME COUNTRY. When that country is exhausted it
+   *  FLIPS TO THE NEXT GENRE (still that country) rather than jumping to a
+   *  neighbouring country — proximity keeps you home, genre gives variety.
+   *  Rolling prefetch keeps the next song queued.
    * ===================================================================== */
   const chainActive = useRef(false);
   const playedDots = useRef(new Set<string>());
@@ -333,6 +358,12 @@ export default function WorldGlobe() {
   const dotByQueueIdx = useRef<(SongDot | null)[]>([]);
   const prefetching = useRef(false);
   const songCache = useRef(new Map<string, Track | null>());
+  // Which genres have finished loading their world-songs file (null OR data),
+  // so the genre-flip below can tell "still loading" from "loaded, no dots".
+  const genreLoaded = useRef(new Set<number>());
+  // A pending in-country genre flip: keep re-selecting the next genre until
+  // one has home-country dots (or every genre's been tried → radiate once).
+  const pendingFlip = useRef<{ home: string; tried: Set<number> } | null>(null);
 
   const fetchSongForDot = async (dot: SongDot): Promise<Track | null> => {
     if (songCache.current.has(dot.id)) return songCache.current.get(dot.id) ?? null;
@@ -353,34 +384,77 @@ export default function WorldGlobe() {
     return track;
   };
 
-  /** Nearest unplayed dot — same country as `from` first, then anywhere. */
-  const nearestUnplayed = (from: SongDot): SongDot | null => {
-    let bestHome: SongDot | null = null, bestHomeD = Infinity;
-    let bestAway: SongDot | null = null, bestAwayD = Infinity;
+  /** Nearest unplayed dot in the SAME country as `from`. */
+  const nearestHome = (from: SongDot): SongDot | null => {
+    let best: SongDot | null = null, bestD = Infinity;
     for (const d of dotsRef.current) {
-      if (playedDots.current.has(d.id)) continue;
+      if (playedDots.current.has(d.id) || d.geoKey !== from.geoKey) continue;
       const dist = haversine(from, d);
-      if (d.geoKey === from.geoKey) {
-        if (dist < bestHomeD) { bestHomeD = dist; bestHome = d; }
-      } else if (dist < bestAwayD) {
-        bestAwayD = dist; bestAway = d;
-      }
+      if (dist < bestD) { bestD = dist; best = d; }
     }
-    return bestHome ?? bestAway;
+    return best;
   };
+  /** Nearest unplayed dot in a DIFFERENT country — last-resort radiation
+   *  when every genre for the home country is exhausted. */
+  const nearestAway = (from: SongDot): SongDot | null => {
+    let best: SongDot | null = null, bestD = Infinity;
+    for (const d of dotsRef.current) {
+      if (playedDots.current.has(d.id) || d.geoKey === from.geoKey) continue;
+      const dist = haversine(from, d);
+      if (dist < bestD) { bestD = dist; best = d; }
+    }
+    return best;
+  };
+  /** Home first, then away — used for the dead-dot hop (a clicked dot whose
+   *  preview 404s should still land somewhere sensible). */
+  const nearestUnplayed = (from: SongDot): SongDot | null =>
+    nearestHome(from) ?? nearestAway(from);
+
+  /** Flip to the NEXT genre that has dots for the home country, keeping the
+   *  chain in that country. Selecting the genre reloads its dots; the pending
+   *  effect below resumes the chain once they arrive. When every genre has
+   *  been tried with no home dots, radiate to the nearest other country once
+   *  so the chain never dead-ends. */
+  const flipGenreForCountry = (home: string, fromGenre: number) => {
+    const pf = pendingFlip.current ?? { home, tried: new Set<number>([fromGenre]) };
+    let gi = -1;
+    for (let step = 1; step <= GENRES.length; step++) {
+      const cand = (fromGenre + step) % GENRES.length;
+      if (!pf.tried.has(cand)) { gi = cand; break; }
+    }
+    if (gi < 0) {
+      pendingFlip.current = null;
+      const from = lastDot.current;
+      const away = from ? nearestAway(from) : null;
+      if (!away) return;
+      playedDots.current.add(away.id);
+      void fetchSongForDot(away).then((t) => {
+        if (!chainActive.current || pendingFlip.current || !t) return;
+        lastDot.current = away;
+        dotByQueueIdx.current.push(away);
+        appendTracks([t]);
+      });
+      return;
+    }
+    pf.tried.add(gi);
+    pendingFlip.current = pf;
+    setSelectedGenres([gi]);   // reloads dots for this genre; effect resumes
+  };
+  const flipGenreRef = useRef(flipGenreForCountry);
+  flipGenreRef.current = flipGenreForCountry;
 
   /** Prefetch the next dot's song and append it to the queue — called when
    *  a dot starts and again as playback reaches the end of the queue.
-   *  Skips dots with no playable preview and keeps hunting outward. */
+   *  Stays in the home country; flips genre when the country is exhausted. */
   const prefetchNext = async () => {
-    if (!chainActive.current || prefetching.current) return;
+    if (!chainActive.current || prefetching.current || pendingFlip.current) return;
     prefetching.current = true;
     try {
       for (;;) {
         const from = lastDot.current;
         if (!from) return;
-        const next = nearestUnplayed(from);
-        if (!next) return;
+        const next = nearestHome(from);
+        if (!next) { flipGenreRef.current(from.geoKey, from.genreIdx); return; }
         playedDots.current.add(next.id);
         const t = await fetchSongForDot(next);
         if (!chainActive.current) return;
@@ -397,6 +471,36 @@ export default function WorldGlobe() {
   };
   const prefetchNextRef = useRef(prefetchNext);
   prefetchNextRef.current = prefetchNext;
+
+  // Resume a pending in-country genre flip once the newly-selected genre's
+  // dots have loaded: play the nearest home-country dot to continue the
+  // chain. If that genre turned out to have NO home dots, flip onward.
+  useEffect(() => {
+    const pf = pendingFlip.current;
+    if (!pf || !chainActive.current) return;
+    const gi = selectedGenresRef.current[0];
+    if (gi == null || !genreLoaded.current.has(gi)) return;   // still loading
+    const homeDots = dotsRef.current.filter(
+      d => d.geoKey === pf.home && !playedDots.current.has(d.id),
+    );
+    if (!homeDots.length) { flipGenreRef.current(pf.home, gi); return; }
+    pendingFlip.current = null;
+    const from = lastDot.current;
+    const nearest = from
+      ? homeDots.reduce((a, b) => (haversine(from, a) <= haversine(from, b) ? a : b))
+      : homeDots[0];
+    playedDots.current.add(nearest.id);
+    void fetchSongForDot(nearest).then((t) => {
+      if (!chainActive.current) return;
+      if (t) {
+        lastDot.current = nearest;
+        dotByQueueIdx.current.push(nearest);
+        appendTracks([t]);
+      }
+      void prefetchNextRef.current();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dots, songFiles]);
 
   // Rolling window: keep a REAL queue ahead of playback (~8 songs), not
   // just one. Each append changes tracks.length, refiring this effect, so
@@ -421,6 +525,7 @@ export default function WorldGlobe() {
 
   const playDot = async (dot: SongDot) => {
     chainActive.current = true;
+    pendingFlip.current = null;       // fresh chain — drop any pending flip
     playedDots.current = new Set([dot.id]);
     lastDot.current = dot;
     setSelectedGeo(dot.geoKey);       // picking a song highlights its country
@@ -470,11 +575,25 @@ export default function WorldGlobe() {
     if (name === selectedGeo && status !== 'error' && status !== 'empty') return;
     chainActive.current = false;           // country queue replaces the dot chain
     dotByQueueIdx.current = [];
-    setSelectedGeo(name);
     const gi = selectedGenresRef.current[0] ?? null;   // null = no genre → country's best
     const idx = seedCountryIdx(name);
-    if (idx >= 0) playPlace(idx, gi);
-    else playPlaceNamed(name, gi);
+    if (idx >= 0) {
+      setSelectedGeo(name);
+      playPlace(idx, gi);
+      return;
+    }
+    // Unrepresented nation (not one of the 20 wheel cards) with no dots in
+    // the selected genre — snap to its geographically nearest seed country
+    // and play within THAT, so the Circle always has a card to land on.
+    const lp = labelPoints.get(name);
+    const near = lp ? nearestSeedIdx(lp.lat, lp.lng) : -1;
+    if (near >= 0) {
+      setSelectedGeo(geoName(COUNTRIES[near]));
+      playPlace(near, gi);
+    } else {
+      setSelectedGeo(name);
+      playPlaceNamed(name, gi);   // fallback if coords aren't loaded yet
+    }
   };
 
   // Spin to a random curated country and play it (the radio.garden moment).

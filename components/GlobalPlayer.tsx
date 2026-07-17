@@ -42,7 +42,7 @@ export function GlobalPlayer() {
   const {
     tracks, trackIdx, isPlaying, status,
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
-    setAutoplayBlocked,
+    setAutoplayBlocked, endOfQueue,
   } = useStore();
   const track = tracks[trackIdx];
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -358,8 +358,13 @@ export function GlobalPlayer() {
       }
       return;
     }
-    if (trackIdx >= tracks.length - 1) shuffleTracks();  // replay the same pool from the top
-    else nextTrack();
+    if (trackIdx >= tracks.length - 1) {
+      // Whole queue played through. A pairing playlist flips to the next
+      // genre (same country) and rebuilds; a dot chain / library queue loops.
+      endOfQueue();
+      return;
+    }
+    nextTrack();
     setIsPlaying(true);
   };
   onEndedRef.current = onEnded;

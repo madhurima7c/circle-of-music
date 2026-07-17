@@ -84,6 +84,9 @@ type StoreShape = {
   surprise: () => void;
   /** Play an arbitrary queue (used by the finds library) from startIdx. */
   loadQueue: (queue: Track[], startIdx: number) => void;
+  /** The queue reached its end — a pairing playlist flips to the next genre
+   *  (same country) and rebuilds; anything else reshuffles/loops. */
+  endOfQueue: () => void;
   /** Append tracks to the current queue without resetting playback — the
    *  World's dot-chain feeds the next nearest song in as a rolling window. */
   appendTracks: (extra: Track[]) => void;
@@ -183,8 +186,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // plays its notable songs across genres. Cleared by any wheel/genre action.
   const anyGenreRef = useRef(false);
 
+  // How the current queue was built. 'pairing' = a country×genre playlist
+  // from commit() → when it finishes, we advance to the NEXT GENRE (same
+  // country) rather than reshuffle. 'other' = a dot chain or the library
+  // queue → those manage their own end-of-queue, so we just loop.
+  const queueKindRef = useRef<'pairing' | 'other'>('other');
+
   const commit = useCallback(async () => {
     const gen = ++populateGen.current;
+    queueKindRef.current = 'pairing';
     setStatus('populating');
     setTracks([]);
     setTrackIdx(0);
@@ -321,6 +331,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTrackIdx(keepCurrent ? Math.max(0, shuffled.indexOf(current)) : 0);
   }, [tracks, trackIdx]);
 
+  // Called by GlobalPlayer when the queue reaches its end. A country×genre
+  // PAIRING playlist advances to the NEXT GENRE (same country) and rebuilds
+  // — flipping genre, not country, matches the World's proximity model.
+  // Any other queue (a dot chain, the library) just reshuffles/loops.
+  const endOfQueue = useCallback(() => {
+    if (queueKindRef.current !== 'pairing') {
+      shuffleTracks();
+      return;
+    }
+    const g = (genreIdxRef.current + 1) % GENRES.length;
+    genreIdxRef.current = g;
+    anyGenreRef.current = false;   // a genre-less run now has a concrete genre
+    setGenreIdx(g);
+    commit();                      // rebuild this country × the next genre
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commit, shuffleTracks]);
+
   const surprise = useCallback(() => {
     // Pick a fresh index different from the current one so it always moves.
     const pickDifferent = (len: number, cur: number) => {
@@ -352,6 +379,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!queue.length) return;
     // Bump the generation so any in-flight pairing fetch can't overwrite this.
     populateGen.current++;
+    queueKindRef.current = 'other';   // dot chain / library — not a pairing
     if (settleTimer.current) clearTimeout(settleTimer.current);
     setTracks(queue);
     setTrackIdx(Math.max(0, Math.min(startIdx, queue.length - 1)));
@@ -443,7 +471,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
     surprise, loadQueue, appendTracks, playPlace, playPlaceNamed,
-    setNowPlayingOrigin,
+    setNowPlayingOrigin, endOfQueue,
     countryName: customCountry ?? COUNTRIES[countryIdx],
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
@@ -452,7 +480,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
        toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
-       appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin]);
+       appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin, endOfQueue]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }
