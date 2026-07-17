@@ -98,6 +98,10 @@ export async function connectSpotify(): Promise<void> {
   // If the popup is blocked, the mode is still on — the embed simply plays
   // Spotify previews until the user logs in to Spotify some other time.
   window.open(url, 'spotify-login', `width=${w},height=${h},left=${left},top=${top},popup=yes`);
+  // Tell GlobalPlayer to rebuild the embed iframe: only a FRESH iframe
+  // document picks up the login/cookie access the popup just granted —
+  // an already-created one stays logged-out (and capped at 30s clips).
+  window.dispatchEvent(new Event('spotify:connect-click'));
 }
 
 export function disconnectSpotify(): void {

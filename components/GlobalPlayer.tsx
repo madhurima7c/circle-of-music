@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -12,7 +12,7 @@ import {
 } from '@/lib/spotify';
 import {
   embedPlay, embedPause, embedResume, embedStart, embedSeek,
-  setEmbedStateListener, destroyEmbed,
+  setEmbedStateListener, destroyEmbed, attachEmbedHost,
 } from '@/lib/spotify-embed';
 
 /**
@@ -28,12 +28,13 @@ import {
  * routes where the Circle's center card isn't visible.
  *
  * Spotify mode (opt-in via "Connect Spotify"): each track is resolved to a
- * Spotify id and played through the HIDDEN embed (lib/spotify-embed.ts) —
- * full songs for anyone logged in to open.spotify.com in this browser; the
- * <audio> preview stays silent for that track and the card's controls +
- * progress bar drive the embed instead (audioBus.ext). Any miss (track not
- * on Spotify, lookup unavailable) falls back to the 30s Deezer preview —
- * never dead air.
+ * Spotify id and played through the embed (lib/spotify-embed.ts), shown as
+ * a compact VISIBLE strip — it must be visible because browsers only grant
+ * the iframe access to the user's Spotify login (full songs vs 30s clips)
+ * after the user interacts with Spotify's own widget. The card's controls +
+ * progress bar still drive it (audioBus.ext), and widget interactions sync
+ * back into the store. Any miss (track not on Spotify, lookup unavailable,
+ * embed never starts) falls back to the 30s Deezer preview — never dead air.
  */
 const serverFalse = () => false;
 
@@ -58,8 +59,44 @@ export function GlobalPlayer() {
   // embedPlay() can't tell, so a watchdog checks this and falls back.
   const embedStarted = useRef(false);
   const onEndedRef = useRef<() => void>(() => {});
+  // Stamped on every playback_update — lets the watchdog tell "embed is
+  // alive but still loading" (give it longer) from "embed is dead" (bail).
+  const lastUpdate = useRef(0);
+  // Mirror of isPlaying + timestamp of our last play/pause command, so the
+  // listener can sync state FROM the visible widget's own buttons without
+  // fighting a command we just issued.
+  const isPlayingRef = useRef(isPlaying);
+  const lastCmd = useRef(0);
+  // Bumped to force the track effect to rebuild the embed with a FRESH
+  // iframe (only a new iframe document sees a just-granted Spotify login).
+  const [freshNonce, setFreshNonce] = useState(0);
+  const stripRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => { handleSpotifyCallback(); }, []);
+
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+  /* The visible Spotify strip is the embed's home while connected. Attach
+     BEFORE the track effect below so a new controller lands inside it. */
+  const hasTrack = !!track;
+  useEffect(() => {
+    attachEmbedHost(spotifyOn && hasTrack ? stripRef.current : null);
+  }, [spotifyOn, hasTrack]);
+
+  /* Connect click → rebuild the iframe now (already-logged-in case) and
+     again when focus returns from the login popup (fresh-login case). */
+  useEffect(() => {
+    let pendingFocus = false;
+    const rebuild = () => { destroyEmbed(); setFreshNonce(n => n + 1); };
+    const onConnect = () => { pendingFocus = true; rebuild(); };
+    const onFocus = () => { if (pendingFocus) { pendingFocus = false; rebuild(); } };
+    window.addEventListener('spotify:connect-click', onConnect);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('spotify:connect-click', onConnect);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
 
   useEffect(() => {
     if (!spotifyOn) {
@@ -69,8 +106,19 @@ export function GlobalPlayer() {
       return;
     }
     setEmbedStateListener((s) => {
+      lastUpdate.current = Date.now();
       if (!viaSpotify.current) return;
       if (!s.paused) embedStarted.current = true;
+      // The widget is visible UI now — if the user plays/pauses INSIDE it,
+      // mirror that into the store (guarded so an in-flight command of our
+      // own doesn't get echoed back and cancelled).
+      if (
+        embedStarted.current &&
+        Date.now() - lastCmd.current > 800 &&
+        !s.paused !== isPlayingRef.current
+      ) {
+        setIsPlaying(!s.paused);
+      }
       const prev = embedPrev.current;
       embedPrev.current = { position: s.position, duration: s.duration };
       // Feed the card's progress bar (seconds) without store re-renders.
@@ -138,23 +186,31 @@ export function GlobalPlayer() {
         if (cancelled) return;
         if (ok) {
           viaSpotify.current = true;
+          lastCmd.current = Date.now();
           setIsPlaying(true);
           audio.pause();
           audio.removeAttribute('src');
           audio.load();
           audioBus.ext = { pos: 0, dur: 0, seek: (sec) => embedSeek(sec) };
           // Watchdog: embedPlay "succeeding" only means the command was
-          // accepted. If no playing update arrives (iframe blocked autoplay,
-          // user not logged in yet), route back to the preview — never dead
-          // air. 5s: the embed retries play() on a backoff while it loads a
-          // new uri, so give a slow load the chance to land before bailing.
-          stallTimer = setTimeout(() => {
+          // accepted — the iframe may still refuse (no gesture yet) or just
+          // be slow (full tracks init DRM and can take >5s). LIVENESS-aware:
+          // if the embed is sending updates it's loading, give it 12s total;
+          // dead silence bails at 5s. Never bail once sound has started.
+          const startedAt = Date.now();
+          const bail = () => {
             if (cancelled || embedStarted.current) return;
-            embedPause(); // cancel retries — a late embed start must not double-play
+            embedPause(); // cancel retries — a late start must not double-play
             viaSpotify.current = false;
             embedPrev.current = null;
             audioBus.ext = null;
             playPreview();
+          };
+          stallTimer = setTimeout(() => {
+            if (cancelled || embedStarted.current) return;
+            const alive = lastUpdate.current >= startedAt - 250;
+            if (alive) stallTimer = setTimeout(bail, 7000);
+            else bail();
           }, 5000);
         } else {
           playPreview();
@@ -162,7 +218,10 @@ export function GlobalPlayer() {
       })
       .catch(() => { if (!cancelled) playPreview(); });
     return () => { cancelled = true; if (stallTimer) clearTimeout(stallTimer); };
-  }, [track?.id, track?.preview, spotifyOn]);  // eslint-disable-line react-hooks/exhaustive-deps
+    // freshNonce: bumped after "Connect Spotify" so a FRESH iframe (which can
+    // see the new login) replaces the stale logged-out one for this track.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track?.id, track?.preview, spotifyOn, freshNonce]);
 
   /* ---------- prefetch Spotify uris for the WHOLE queue ----------
      Staggered sweep (batches of 4, 400ms apart), nearest tracks first, so
@@ -199,6 +258,7 @@ export function GlobalPlayer() {
   /* ---------- sync isPlaying with whichever backend is sounding ---------- */
   useEffect(() => {
     if (viaSpotify.current) {
+      lastCmd.current = Date.now();
       // resume() only un-pauses a track that has already begun; if the iframe
       // blocked autoplay, this user-gesture-driven play must call play().
       if (isPlaying) (embedStarted.current ? embedResume() : embedStart());
@@ -280,6 +340,15 @@ export function GlobalPlayer() {
         onPause={() => setIsPlaying(false)}
         onEnded={onEnded}
       />
+
+      {/* Spotify strip — the embed lives HERE, visible, while connected.
+          It must be real, clickable UI: the browser only lets the iframe see
+          the user's Spotify login (full songs vs 30s clips) after the user
+          has interacted with Spotify's own widget. One tap on its ▶ blesses
+          the whole session; our card controls keep driving it afterwards. */}
+      {spotifyOn && hasTrack && (
+        <div className="spotify-strip" ref={stripRef} aria-label="Spotify player" />
+      )}
 
       {showMini && (
         <div className="mini-player" role="region" aria-label={STR.player.nowPlaying}>

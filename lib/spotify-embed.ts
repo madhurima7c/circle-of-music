@@ -46,6 +46,19 @@ let apiPromise: Promise<IFrameAPI> | null = null;
 let controller: EmbedController | null = null;
 let host: HTMLDivElement | null = null;
 let stateCb: ((s: EmbedState) => void) | null = null;
+// Where the embed renders. When a visible container is attached (the card's
+// Spotify strip), the widget is REAL UI: clicking play inside it is the
+// interaction browsers require before giving the iframe access to the
+// user's Spotify login (Storage Access) — i.e. the difference between
+// 30s clips and full tracks. With no container it parks off-screen.
+let mountTarget: HTMLElement | null = null;
+
+export function attachEmbedHost(el: HTMLElement | null): void {
+  if (el === mountTarget) return;
+  mountTarget = el;
+  // An iframe can't move in the DOM without reloading — recreate on next play.
+  destroyEmbed();
+}
 // True while the embed's own playback_update says it's sounding. Drives the
 // play() retry pump below — module-level so it works before GlobalPlayer's
 // listener attaches and regardless of who's listening.
@@ -90,13 +103,18 @@ export async function embedPlay(uri: string): Promise<boolean> {
       if (token !== playAttempt) return false; // superseded while loading the API
       if (!controller) {
         host = document.createElement('div');
-        // Off-screen, NOT display:none — hidden iframes may refuse playback.
-        host.style.cssText = 'position:fixed;left:-10000px;bottom:0;width:320px;height:80px;pointer-events:none;';
-        document.body.appendChild(host);
+        if (mountTarget) {
+          host.style.cssText = 'width:100%;height:100%;';
+          mountTarget.appendChild(host);
+        } else {
+          // Off-screen, NOT display:none — hidden iframes may refuse playback.
+          host.style.cssText = 'position:fixed;left:-10000px;bottom:0;width:320px;height:80px;pointer-events:none;';
+          document.body.appendChild(host);
+        }
         const mount = document.createElement('div');
         host.appendChild(mount);
         await new Promise<void>((resolve) => {
-          api.createController(mount, { uri, width: 300, height: 80 }, (c) => {
+          api.createController(mount, { uri, width: '100%', height: 80 }, (c) => {
             controller = c;
             c.addListener('playback_update', (e: never) => {
               const d = (e as { data?: { isPaused?: boolean; position?: number; duration?: number } }).data;

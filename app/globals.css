@@ -1996,8 +1996,27 @@ html, body {
 .center__spotify-connect:hover { filter: brightness(1.2); }
 .center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
+/* Spotify strip — the visible embed widget while connected. Compact,
+   bottom-left, out of the card/dock/rails' way. Height must fit the
+   embed's 80px compact layout exactly (no inner scroll). */
+.spotify-strip {
+  position: fixed;
+  left: 16px;
+  bottom: 96px;              /* above the dock pill, clear of its corner */
+  width: min(340px, calc(100vw - 32px));
+  height: 80px;
+  z-index: 44;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  background: #1c1c1e;
+}
+.spotify-strip iframe { display: block; }
+
 @media (max-width: 640px) {
   .frame { inset: 0; }
+
+  .spotify-strip { width: min(280px, calc(100vw - 24px)); left: 12px; bottom: 92px; }
 
   .title { font-size: 24px !important; top: 20px !important; }
 
