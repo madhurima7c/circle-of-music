@@ -119,12 +119,6 @@ export const STR = {
     connecting: 'Connecting Spotify…',
     connectDone: 'Connected — you can close this window.',
     connectFail: 'Spotify connection didn’t complete. Close this window and try again.',
-    embedButton: 'Full song here (Spotify player)',
-    embedTitle: 'Full song — Spotify',
-    embedClose: 'Close the Spotify player',
-    embedNoMatch: 'This song isn’t on Spotify — previews only.',
-    embedUnconfigured: 'Song lookup needs setup: connect Spotify, or add the app’s client secret (see todo.md).',
-    embedHint: 'Logged in to Spotify in this browser? You’ll hear the full song. Otherwise it plays a preview.',
   },
 
   card: {

@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { STR } from '@/lib/strings';
 import { audioBus } from '@/lib/audio-bus';
 import {
-  spotifyEnabled, subscribeSpotify, isSpotifyConnected, handleSpotifyCallback,
-  ensurePlayer, findTrackUri, playUri, sdkPause, sdkResume,
+  subscribeSpotify, isSpotifyConnected, handleSpotifyCallback, resolveSpotifyUri,
 } from '@/lib/spotify';
+import {
+  embedPlay, embedPause, embedResume, embedSeek,
+  setEmbedStateListener, destroyEmbed,
+} from '@/lib/spotify-embed';
 
 /**
  * GlobalPlayer — the one <audio> element for the whole app.
@@ -23,11 +26,13 @@ import {
  * metadata + transport controls) and a compact mini-player pill shown on
  * routes where the Circle's center card isn't visible.
  *
- * Spotify mode (env-gated, opt-in): when the user has connected Spotify and
- * the Web Playback SDK device is ready, each track is searched on Spotify
- * and played in FULL through the SDK; the <audio> preview stays silent for
- * that track. Any miss (track not on Spotify, non-Premium account, SDK
- * failure) falls back to the 30s Deezer preview — never dead air.
+ * Spotify mode (opt-in via "Connect Spotify"): each track is resolved to a
+ * Spotify id and played through the HIDDEN embed (lib/spotify-embed.ts) —
+ * full songs for anyone logged in to open.spotify.com in this browser; the
+ * <audio> preview stays silent for that track and the card's controls +
+ * progress bar drive the embed instead (audioBus.ext). Any miss (track not
+ * on Spotify, lookup unavailable) falls back to the 30s Deezer preview —
+ * never dead air.
  */
 const serverFalse = () => false;
 
@@ -41,34 +46,45 @@ export function GlobalPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pathname = usePathname();
 
-  /* ---------- Spotify (full songs) ---------- */
+  /* ---------- Spotify (full songs via the hidden embed) ---------- */
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, serverFalse);
-  const [spotifyDevice, setSpotifyDevice] = useState<string | null>(null);
-  // True while the CURRENT track is sounding through the SDK, so the
+  // True while the CURRENT track is sounding through the embed, so the
   // isPlaying effect and end-of-track logic route to the right backend.
   const viaSpotify = useRef(false);
-  const sdkPrev = useRef<{ position: number; duration: number } | null>(null);
+  const embedPrev = useRef<{ position: number; duration: number } | null>(null);
   const onEndedRef = useRef<() => void>(() => {});
 
   useEffect(() => { handleSpotifyCallback(); }, []);
 
   useEffect(() => {
-    if (!spotifyEnabled || !spotifyOn) { setSpotifyDevice(null); return; }
-    let alive = true;
-    ensurePlayer((s) => {
-      if (!s) return;
-      const prev = sdkPrev.current;
-      sdkPrev.current = { position: s.position, duration: s.duration };
-      // "Track finished" signature: SDK rewinds to a paused position 0
-      // after having been near the end.
+    if (!spotifyOn) {
+      setEmbedStateListener(null);
+      destroyEmbed();
+      audioBus.ext = null;
+      return;
+    }
+    setEmbedStateListener((s) => {
+      if (!viaSpotify.current) return;
+      const prev = embedPrev.current;
+      embedPrev.current = { position: s.position, duration: s.duration };
+      // Feed the card's progress bar (seconds) without store re-renders.
+      audioBus.ext = {
+        pos: s.position / 1000,
+        dur: s.duration / 1000,
+        seek: (sec) => embedSeek(sec),
+      };
+      // "Track finished" signature: the embed pauses at/after the end (or
+      // rewinds to 0) after having been near the end.
       if (
-        viaSpotify.current && prev && s.paused && s.position === 0 &&
-        prev.duration > 0 && prev.position > prev.duration - 5000
+        prev && s.paused &&
+        prev.duration > 0 && prev.position > prev.duration - 5000 &&
+        (s.position === 0 || s.position >= s.duration - 800)
       ) {
+        embedPrev.current = null; // fire once per track
         onEndedRef.current();
       }
-    }).then((id) => { if (alive) setSpotifyDevice(id); });
-    return () => { alive = false; };
+    });
+    return () => setEmbedStateListener(null);
   }, [spotifyOn]);
 
   /* ---------- sync audio src + autoplay when track changes ---------- */
@@ -76,7 +92,10 @@ export function GlobalPlayer() {
     const audio = audioRef.current;
     if (!audio) return;
     setAutoplayBlocked(false);
+    if (viaSpotify.current) embedPause(); // old song must not keep sounding
     viaSpotify.current = false;
+    embedPrev.current = null;
+    audioBus.ext = null;
 
     const playPreview = () => {
       if (!track?.preview) {
@@ -92,14 +111,14 @@ export function GlobalPlayer() {
       audio.play().catch(() => setAutoplayBlocked(true));
     };
 
-    if (!(spotifyOn && spotifyDevice && track)) {
+    if (!(spotifyOn && track)) {
       playPreview();
       return;
     }
 
     let cancelled = false;
-    findTrackUri(track.artist, track.title)
-      .then((uri) => (uri && !cancelled ? playUri(uri) : false))
+    resolveSpotifyUri(track.artist, track.title)
+      .then((uri) => (uri && !cancelled ? embedPlay(uri) : false))
       .then((ok) => {
         if (cancelled) return;
         if (ok) {
@@ -108,19 +127,20 @@ export function GlobalPlayer() {
           audio.pause();
           audio.removeAttribute('src');
           audio.load();
+          audioBus.ext = { pos: 0, dur: 0, seek: (sec) => embedSeek(sec) };
         } else {
           playPreview();
         }
       })
       .catch(() => { if (!cancelled) playPreview(); });
     return () => { cancelled = true; };
-  }, [track?.id, track?.preview, spotifyOn, spotifyDevice]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [track?.id, track?.preview, spotifyOn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- sync isPlaying with whichever backend is sounding ---------- */
   useEffect(() => {
     if (viaSpotify.current) {
-      if (isPlaying) sdkResume();
-      else sdkPause();
+      if (isPlaying) embedResume();
+      else embedPause();
       return;
     }
     const audio = audioRef.current;

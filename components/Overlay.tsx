@@ -13,7 +13,6 @@ import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind, useFinds } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
 import { audioBus } from '@/lib/audio-bus';
-import { setEmbedOpen } from '@/lib/embed-bus';
 import { LikedSongs } from '@/components/Library';
 import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
@@ -305,6 +304,13 @@ export function ProgressBar({ trackDuration }: { trackDuration: number | null })
   const [dur, setDur] = useState(0);
   useEffect(() => {
     const tick = () => {
+      // The hidden Spotify embed's clock wins while it is the one sounding.
+      const ext = audioBus.ext;
+      if (ext && ext.dur > 0) {
+        setPos(ext.pos);
+        setDur(ext.dur);
+        return;
+      }
       const el = audioBus.el;
       if (el && isFinite(el.duration) && el.duration > 0) {
         setPos(el.currentTime);
@@ -328,10 +334,13 @@ export function ProgressBar({ trackDuration }: { trackDuration: number | null })
       <div
         className="center__bar"
         onClick={(e) => {
-          const el = audioBus.el;
-          if (!el || !dur) return;
+          if (!dur) return;
           const r = e.currentTarget.getBoundingClientRect();
-          el.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur;
+          const t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur;
+          const ext = audioBus.ext;
+          if (ext && ext.dur > 0) { ext.seek(t); return; }
+          const el = audioBus.el;
+          if (el) el.currentTime = t;
         }}
         role="slider"
         aria-label="Seek"
@@ -645,12 +654,6 @@ export function CenterStack() {
             <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
             <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
             <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
-            <button
-              className="listen-menu__connect"
-              onClick={() => { setEmbedOpen(true); setShareOpen(false); }}
-            >
-              {STR.spotify.embedButton}
-            </button>
             {spotifyEnabled && (
               <button
                 className="listen-menu__connect"

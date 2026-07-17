@@ -22,14 +22,22 @@
  */
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
-export const spotifyEnabled = !!CLIENT_ID;
 
+/* The EMBED path (lib/spotify-embed.ts) needs no client id in the browser,
+ * so the Connect entry is always available. */
+export const spotifyEnabled = true;
+
+/* NOTE: the OAuth/PKCE + Web Playback SDK kit below (scopes, verifier,
+ * /spotify-callback exchange, ensurePlayer…) is LEGACY — superseded by the
+ * embed path, kept because it's tested and useful if a Premium-quality SDK
+ * mode ever returns. Nothing initiates OAuth anymore. */
 const SCOPES = 'streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state';
 const LS = {
   verifier: 'spotify_pkce_verifier',
   access: 'spotify_access_token',
   refresh: 'spotify_refresh_token',
   expires: 'spotify_token_expires', // epoch ms
+  embedMode: 'spotify_embed_mode',  // '1' = route playback through the embed
 };
 
 /* ---------- tiny connected-state store (for React via useSyncExternalStore) ---------- */
@@ -37,10 +45,9 @@ const listeners = new Set<() => void>();
 function emit() { listeners.forEach((l) => l()); }
 export function subscribeSpotify(l: () => void): () => void {
   listeners.add(l);
-  // Tokens can land from ANOTHER window (the auth popup writes them to
-  // localStorage) — the storage event is how this window finds out.
+  // Another tab can flip the mode — the storage event is how we find out.
   const onStorage = (e: StorageEvent) => {
-    if (e.key === LS.refresh || e.key === LS.access) l();
+    if (e.key === LS.embedMode || e.key === LS.refresh) l();
   };
   window.addEventListener('storage', onStorage);
   return () => {
@@ -50,7 +57,7 @@ export function subscribeSpotify(l: () => void): () => void {
 }
 export function isSpotifyConnected(): boolean {
   if (typeof window === 'undefined') return false;
-  return !!window.localStorage.getItem(LS.refresh);
+  return !!window.localStorage.getItem(LS.embedMode);
 }
 
 /* ---------- PKCE ---------- */
@@ -72,32 +79,25 @@ function redirectUri(): string {
 }
 
 /**
- * Kick off the login in a POPUP so the app (and the music) keeps running;
- * if the browser blocks the popup, fall back to a full-page redirect.
- * Either way the code lands on /spotify-callback.
+ * Connect = turn on EMBED full-song mode + make sure the user is logged
+ * in to Spotify IN THIS BROWSER. The embed piggybacks on the browser's
+ * open.spotify.com session — ANY Spotify account, no OAuth consent, no
+ * Development-Mode allowlist — so "connecting" is just a plain Spotify
+ * login in a popup. Playback routing lives in GlobalPlayer, which drives
+ * the hidden embed (lib/spotify-embed.ts) from the app's own controls.
  */
 export async function connectSpotify(): Promise<void> {
-  if (!CLIENT_ID) return;
-  const verifier = randomString(64);
-  window.localStorage.setItem(LS.verifier, verifier);
-  const params = new URLSearchParams({
-    response_type: 'code',
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    redirect_uri: redirectUri(),
-    code_challenge_method: 'S256',
-    code_challenge: await challenge(verifier),
-  });
-  const url = `https://accounts.spotify.com/authorize?${params}`;
+  window.localStorage.setItem(LS.embedMode, '1');
+  emit();
+  const url =
+    'https://accounts.spotify.com/login?continue=' +
+    encodeURIComponent('https://open.spotify.com/');
   const w = 500, h = 780;
   const left = Math.max(0, (window.screen.width - w) / 2);
   const top = Math.max(0, (window.screen.height - h) / 2);
-  const popup = window.open(
-    url,
-    'spotify-auth',
-    `width=${w},height=${h},left=${left},top=${top},popup=yes`,
-  );
-  if (!popup) window.location.href = url; // popup blocked → redirect
+  // If the popup is blocked, the mode is still on — the embed simply plays
+  // Spotify previews until the user logs in to Spotify some other time.
+  window.open(url, 'spotify-login', `width=${w},height=${h},left=${left},top=${top},popup=yes`);
 }
 
 export function disconnectSpotify(): void {
@@ -106,6 +106,27 @@ export function disconnectSpotify(): void {
   player = null;
   deviceId = null;
   emit();
+}
+
+/**
+ * artist+title → spotify track uri for the embed. Server route first
+ * (client-credentials — works for every visitor once SPOTIFY_CLIENT_SECRET
+ * is configured); falls back to a legacy user token if one exists.
+ */
+export async function resolveSpotifyUri(artist: string, title: string): Promise<string | null> {
+  if (process.env.NODE_ENV !== 'production') {
+    // Dev hook: force a known uri to exercise the embed without the secret.
+    const forced = (window as unknown as { __spotifyUriOverride?: string }).__spotifyUriOverride;
+    if (forced) return forced;
+  }
+  try {
+    const res = await fetch(
+      `/api/spotify-search?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}`,
+    );
+    if (res.ok) return ((await res.json()) as { uri?: string }).uri ?? null;
+    if (res.status === 503) return await findTrackUri(artist, title);
+  } catch { /* offline etc. */ }
+  return null;
 }
 
 function storeTokens(data: { access_token?: string; refresh_token?: string; expires_in?: number }): void {

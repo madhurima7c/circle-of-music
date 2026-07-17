@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { DM_Mono, DM_Sans } from 'next/font/google';
 import { StoreProvider } from '@/lib/store';
 import { GlobalPlayer } from '@/components/GlobalPlayer';
-import { SpotifyEmbed } from '@/components/SpotifyEmbed';
 import { STR } from '@/lib/strings';
 import './globals.css';
 
@@ -36,9 +35,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <StoreProvider>
           {children}
           <GlobalPlayer />
-          {/* Spotify EMBED panel — root-mounted like GlobalPlayer so the
-              full-song player survives navigation between instruments. */}
-          <SpotifyEmbed />
         </StoreProvider>
       </body>
     </html>
