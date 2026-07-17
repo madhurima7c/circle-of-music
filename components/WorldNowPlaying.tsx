@@ -19,7 +19,7 @@ import { ProgressBar, BrandIcon } from '@/components/Overlay';
  * WorldNowPlaying — the World's single compact now-playing card
  * (bottom-right). There is no queue list here: the globe IS the queue —
  * dots and countries drive what plays next. LEARN MORE reveals the
- * "listen to full song in" deep links.
+ * "listen to song in" deep links.
  */
 export function WorldNowPlaying() {
   const {

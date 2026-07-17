@@ -638,22 +638,20 @@ export function CenterStack() {
         </div>
       )}
 
-      {/* Share ("listen to full song in") — body-level overlay so the card
-          edge can never clip it. The scrim closes it on any outside click. */}
+      {/* Share — compact icons-only menu (body portal to escape card clip). */}
       {shareOpen && links && shareAt && typeof document !== 'undefined' && createPortal(
         <>
           <div className="listen-scrim" onClick={() => setShareOpen(false)} />
           <div
-            className="listen-menu listen-menu--overlay"
+            className="listen-menu listen-menu--compact listen-menu--overlay"
             role="menu"
             aria-label={STR.card.listenIn}
             style={{ left: shareAt.x, top: shareAt.y }}
           >
-            <div className="listen-menu__head">{STR.card.listenIn.toUpperCase()}</div>
-            <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer"><BrandIcon kind="spotify" />Spotify</a>
-            <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
-            <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
-            <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
+            <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer" title="Spotify"><BrandIcon kind="spotify" /></a>
+            <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer" title="Apple Music"><BrandIcon kind="apple" /></a>
+            <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer" title="YouTube"><BrandIcon kind="youtube" /></a>
+            <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer" title="Deezer"><BrandIcon kind="deezer" /></a>
             {spotifyEnabled && (
               <button
                 className="listen-menu__connect"

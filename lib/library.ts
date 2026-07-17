@@ -95,6 +95,11 @@ export function removeFind(id: number) {
   write(read().filter(f => f.id !== id));
 }
 
+export function removeFinds(ids: number[]) {
+  const set = new Set(ids);
+  write(read().filter(f => !set.has(f.id)));
+}
+
 export function exportFinds(): string {
   return JSON.stringify(read(), null, 2);
 }
@@ -175,6 +180,22 @@ export function addToPlaylist(playlistId: string, trackId: number) {
 export function removeFromPlaylist(playlistId: string, trackId: number) {
   writePlaylists(readPlaylists().map(p =>
     p.id === playlistId ? { ...p, trackIds: p.trackIds.filter(t => t !== trackId) } : p,
+  ));
+}
+
+export function addBulkToPlaylist(playlistId: string, trackIds: number[]) {
+  writePlaylists(readPlaylists().map(p => {
+    if (p.id !== playlistId) return p;
+    const have = new Set(p.trackIds);
+    const fresh = trackIds.filter(id => !have.has(id));
+    return fresh.length ? { ...p, trackIds: [...p.trackIds, ...fresh] } : p;
+  }));
+}
+
+export function removeBulkFromPlaylist(playlistId: string, trackIds: number[]) {
+  const set = new Set(trackIds);
+  writePlaylists(readPlaylists().map(p =>
+    p.id === playlistId ? { ...p, trackIds: p.trackIds.filter(t => !set.has(t)) } : p,
   ));
 }
 

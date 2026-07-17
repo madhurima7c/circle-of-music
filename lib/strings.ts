@@ -136,7 +136,7 @@ export const STR = {
     unsave: 'Remove from your finds',
     aboutFallback: (genre: string, country: string, year: string | null) =>
       `A ${genre} find from ${country}${year ? `, released ${year}` : ''}.`,
-    listenIn: 'Listen to full song in',
+    listenIn: 'Listen to song in',
     share: 'Listen in your own app',
     flipHint: 'Tap the card for artist info',
     flipHintShort: 'Tap for artist info',
@@ -156,12 +156,12 @@ export const STR = {
     empty: 'No finds yet. Tap the ♥ on a track you love to keep it here.',
     playAll: 'Play all',
     export: 'Export',
-    import: 'Import',
-    exportCsv: 'Export CSV',
-    exportCsvHint: 'A song list for playlist-transfer tools — import it to Spotify (or Apple/YouTube) free at tunemymusic.com or soundiiz.com.',
     remove: 'Remove',
     close: 'Close',
-    imported: (n: number) => (n ? `Imported ${n} find${n === 1 ? '' : 's'}.` : 'Nothing new to import.'),
+    selectAll: 'Select all',
+    deselectAll: 'Deselect all',
+    clearSelected: 'Clear',
+    addToPlaylist: 'Add to playlist',
   },
 
   player: {

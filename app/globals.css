@@ -643,20 +643,7 @@ html, body {
   color: rgba(255, 255, 255, 0.4);
 }
 .liked__notice { color: #9be8b7; }
-.liked__side-actions { display: flex; gap: 6px; }
-.liked__side-actions button {
-  flex: 1;
-  padding: 6px 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 6px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.75);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  cursor: pointer;
-}
-.liked__side-actions button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
-.liked__side-actions button:disabled { opacity: 0.4; cursor: default; }
+/* (old .liked__side-actions removed — replaced by .liked__export-wrap) */
 .liked__main {
   flex: 1;
   min-width: 0;
@@ -1288,6 +1275,157 @@ html, body {
   cursor: pointer;
 }
 .listen-menu__connect[data-connected="true"] { color: rgba(0, 0, 0, 0.6); }
+
+/* Compact listen-in — horizontal icons, no text labels. */
+.listen-menu--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 5px;
+}
+.listen-menu--compact a {
+  display: grid;
+  place-items: center;
+  width: 32px; height: 32px;
+  padding: 0;
+  gap: 0;
+  border-radius: 8px;
+}
+.listen-menu--compact a svg { width: 20px; height: 20px; }
+.listen-menu--compact .listen-menu__connect {
+  flex-basis: 100%;
+  margin-top: 2px;
+  padding: 5px 8px;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Liked-songs: per-row & header checkbox. */
+.liked__check {
+  width: 14px; height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.liked__check:disabled { opacity: 0.3; cursor: default; }
+
+/* Selection count pill + bulk actions in the header. */
+.liked__sel-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  flex: 0 0 auto;
+}
+.liked__bulk-clear {
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 90, 122, 0.15);
+  color: #ff5a7a;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.liked__bulk-clear:hover { background: rgba(255, 90, 122, 0.25); }
+.liked__bulk-move {
+  position: relative;
+  flex: 0 0 auto;
+}
+.liked__bulk-move-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.liked__bulk-move-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.liked__bulk-move-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 140px;
+  background: #2c2c2e;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  z-index: 5;
+}
+.liked__bulk-move-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.liked__bulk-move-menu button:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* Selected row highlight. */
+.liked__row[data-selected="true"] { background: rgba(31, 43, 214, 0.12); }
+
+/* Export dropdown in sidebar footer. */
+.liked__export-wrap { position: relative; }
+.liked__export-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 7px 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+.liked__export-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
+.liked__export-btn:disabled { opacity: 0.4; cursor: default; }
+.liked__export-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0; right: 0;
+  background: #2c2c2e;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  animation: links-in-overlay 140ms ease backwards;
+}
+.liked__export-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-plex-sans), sans-serif;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.liked__export-menu button:hover { background: rgba(255, 255, 255, 0.08); }
+.liked__export-menu button + button { border-top: 1px solid rgba(255, 255, 255, 0.07); }
 
 /* Up Next — same card as the player, split by a hairline. */
 .center__up-next {
