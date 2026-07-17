@@ -107,7 +107,13 @@ export function GlobalPlayer() {
     }
     setEmbedStateListener((s) => {
       lastUpdate.current = Date.now();
-      if (!viaSpotify.current) return;
+      if (!viaSpotify.current) {
+        // Zombie guard: the embed sounding while we're NOT routing through it
+        // means a late start slipped past a fallback's pause (same swallowed-
+        // command race as play). Kill it — exactly one source may sound.
+        if (!s.paused) embedPause();
+        return;
+      }
       if (!s.paused) embedStarted.current = true;
       // The widget is visible UI now — if the user plays/pauses INSIDE it,
       // mirror that into the store (guarded so an in-flight command of our
@@ -177,6 +183,13 @@ export function GlobalPlayer() {
       return;
     }
 
+    // Silence the <audio> NOW, before the async Spotify resolve — leaving the
+    // OLD track's preview sounding while the embed spins up is the
+    // double-audio echo. The fallback path re-arms it with the new track.
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+
     let cancelled = false;
     let stallTimer: ReturnType<typeof setTimeout> | undefined;
     embedStarted.current = false;
@@ -188,9 +201,6 @@ export function GlobalPlayer() {
           viaSpotify.current = true;
           lastCmd.current = Date.now();
           setIsPlaying(true);
-          audio.pause();
-          audio.removeAttribute('src');
-          audio.load();
           audioBus.ext = { pos: 0, dur: 0, seek: (sec) => embedSeek(sec) };
           // Watchdog: embedPlay "succeeding" only means the command was
           // accepted — the iframe may still refuse (no gesture yet) or just
