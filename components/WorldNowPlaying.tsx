@@ -8,6 +8,7 @@ import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
 import { originFor } from '@/lib/origins';
+import { countryISO, countryContinent } from '@/lib/geo';
 import { ProgressBar, BrandIcon } from '@/components/Overlay';
 
 /**
@@ -45,6 +46,29 @@ export function WorldNowPlaying() {
         </div>
       ) : (
         <>
+          {/* "FROM 🇮🇳 INDIA, ASIA" origin banner */}
+          {(() => {
+            const origin = originFor(track.artist);
+            const place = origin?.country ?? countryName;
+            const iso = countryISO(place);
+            const continent = countryContinent(place);
+            if (!place) return null;
+            return (
+              <div className="wnp__from">
+                <span className="wnp__from-label">FROM</span>
+                {iso && (
+                  <img
+                    className="wnp__from-flag"
+                    src={`https://flagcdn.com/w40/${iso.toLowerCase()}.png`}
+                    alt=""
+                  />
+                )}
+                <span className="wnp__from-name">
+                  {place.toUpperCase()}{continent ? `, ${continent.toUpperCase()}` : ''}
+                </span>
+              </div>
+            );
+          })()}
           <div className="wnp__now">
             {track.image
               ? <img className="wnp__cover" src={track.image} alt="" />

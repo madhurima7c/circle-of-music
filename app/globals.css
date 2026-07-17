@@ -1536,6 +1536,23 @@ html, body {
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
   animation: links-in 260ms ease backwards;
 }
+.wnp__from {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-plex-sans), sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.wnp__from-flag {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.wnp__from-name { color: rgba(255, 255, 255, 0.85); }
 .wnp__pending {
   padding: 22px 4px;
   text-align: center;
@@ -1639,8 +1656,20 @@ html, body {
   font: inherit !important;
 }
 
-/* Country hover — circular flag + name pill, riding the cursor. Same
- * white surface as the bottom dock. */
+/* Country hover — self-managed React tooltip (not globe.gl's built-in).
+ * Appears only after 1.5s of hovering the same country, positioned at the
+ * cursor via fixed coords. */
+.geo-tip-wrap {
+  position: fixed;
+  z-index: 35;
+  pointer-events: none;
+  transform: translate(12px, -50%);
+  animation: geo-tip-in 180ms ease both;
+}
+@keyframes geo-tip-in {
+  from { opacity: 0; transform: translate(12px, -50%) scale(0.92); }
+  to   { opacity: 1; transform: translate(12px, -50%) scale(1); }
+}
 .geo-tip {
   display: flex;
   align-items: center;

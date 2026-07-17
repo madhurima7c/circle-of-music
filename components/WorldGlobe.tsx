@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Globe, { type GlobeMethods } from 'react-globe.gl';
 import * as THREE from 'three';
 import { useStore, toTrack } from '@/lib/store';
@@ -522,6 +522,28 @@ export default function WorldGlobe() {
    * dot renders our own card at the dot's screen position: cover (fetched
    * lazily, cached with the click path's songCache), title, album and the
    * "A <genre> find from <country>" line. */
+  /* ---------- delayed country hover tooltip ----------
+   * Only show the country pill after the cursor has rested on the same
+   * country for ~1.5s — prevents overstimulation when sweeping across
+   * the globe or exploring song dots. */
+  const [delayedHover, setDelayedHover] = useState<string | null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const onPolyHover = useCallback((f: object | null) => {
+    const name = f ? (f as Feature).properties.NAME : null;
+    setHovered(name);
+    if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
+    if (!name) { setDelayedHover(null); return; }
+    hoverTimerRef.current = setTimeout(() => setDelayedHover(name), 1500);
+  }, []);
+
+  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
+
+  const onGlobeMouseMove = useCallback((e: React.MouseEvent) => {
+    mouseRef.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
   const [hoverDot, setHoverDot] = useState<SongDot | null>(null);
   const [hoverTrack, setHoverTrack] = useState<Track | null>(null);
   const [hoverXY, setHoverXY] = useState<{ x: number; y: number } | null>(null);
@@ -531,6 +553,10 @@ export default function WorldGlobe() {
     hoverIdRef.current = dot?.id ?? null;
     setHoverDot(dot);
     setHoverTrack(null);
+    if (dot) {
+      setDelayedHover(null);
+      if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
+    }
     if (!dot) return;
     const g = globeRef.current as unknown as {
       getScreenCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number };
@@ -550,18 +576,6 @@ export default function WorldGlobe() {
     if (name === hovered) return playable || worldCovered.has(name) ? COL.hover : COL.dimHover;
     if (playable) return COL.playable;
     return worldCovered.has(name) ? COL.world : COL.dim;
-  };
-
-  /** Country hover — a circular flag with the name beside it, riding the
-   *  cursor (globe.gl positions the label at the pointer already). */
-  const label = (feat: object) => {
-    const name = (feat as Feature).properties.NAME;
-    const hasMusic = PLAYABLE_GEO_NAMES.has(name) || worldCovered.has(name);
-    const iso = (GEO_ISO as Record<string, string>)[name];
-    const flag = iso
-      ? `<img class="geo-tip__flag" src="https://flagcdn.com/w80/${iso.toLowerCase()}.png" alt="" />`
-      : `<span class="geo-tip__flag geo-tip__flag--none"></span>`;
-    return `<div class="geo-tip" data-playable="${hasMusic}">${flag}<span class="geo-tip__name">${esc(name)}</span></div>`;
   };
 
   /* ---------- the playing marker: avatar + sonar ring ---------- */
@@ -614,7 +628,7 @@ export default function WorldGlobe() {
   };
 
   return (
-    <div ref={wrapRef} className="world-globe">
+    <div ref={wrapRef} className="world-globe" onMouseMove={onGlobeMouseMove}>
       {size.w > 0 && (
         <Globe
           ref={globeRef}
@@ -633,9 +647,8 @@ export default function WorldGlobe() {
              country cap ABOVE the song dots, so the polygon swallowed
              every dot click. Dots must always sit on top. */
           polygonAltitude={0.01}
-          polygonLabel={label}
-          onPolygonHover={(f: object | null) =>
-            setHovered(f ? (f as Feature).properties.NAME : null)}
+          polygonLabel={() => ''}
+          onPolygonHover={onPolyHover}
           onPolygonClick={onClick}
           polygonsTransitionDuration={220}
           /* song dots — camera-facing sprites: genuinely 2D circles from
@@ -706,6 +719,26 @@ export default function WorldGlobe() {
       </div>
 
       {toast && <div className="world-toast" role="status">{toast}</div>}
+
+      {/* Country hover — delayed pill (only shows after 1.5s on the same
+          country, so sweeping across the globe doesn't flash tooltips). */}
+      {delayedHover && (() => {
+        const hasMusic = PLAYABLE_GEO_NAMES.has(delayedHover) || worldCovered.has(delayedHover);
+        const iso = (GEO_ISO as Record<string, string>)[delayedHover];
+        return (
+          <div
+            className="geo-tip-wrap"
+            style={{ left: mouseRef.current.x, top: mouseRef.current.y }}
+          >
+            <div className="geo-tip" data-playable={String(hasMusic)}>
+              {iso
+                ? <img className="geo-tip__flag" src={`https://flagcdn.com/w80/${iso.toLowerCase()}.png`} alt="" />
+                : <span className="geo-tip__flag geo-tip__flag--none" />}
+              <span className="geo-tip__name">{delayedHover}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Song hover — a shrunken now-playing card above the dot. */}
       {hoverDot && hoverXY && (
