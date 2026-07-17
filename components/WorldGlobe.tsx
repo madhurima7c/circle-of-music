@@ -117,7 +117,7 @@ export default function WorldGlobe() {
   const {
     status, tracks, trackIdx,
     playPlace, playPlaceNamed, loadQueue, appendTracks,
-    countryName, genreIdx,
+    setNowPlayingOrigin, countryName, genreIdx,
   } = useStore();
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -407,19 +407,24 @@ export default function WorldGlobe() {
     if (tracks.length - trackIdx <= 8) void prefetchNextRef.current();
   }, [trackIdx, tracks.length]);
 
-  // The highlight follows the MUSIC: whenever the playing song's dot sits
-  // in a different country, that country becomes the selection (which in
-  // turn glides the camera to it — see the fly-to effect below).
+  // The highlight AND the store's displayed origin follow the MUSIC:
+  // whenever the playing song's dot sits in a new country/genre, the globe
+  // re-selects it (gliding the camera — see the fly-to effect) and the
+  // store's country + genre update, so the "FROM" banner is always right
+  // and the Circle's cards flip to match when you switch over.
   useEffect(() => {
     const dot = dotByQueueIdx.current[trackIdx];
-    if (dot && dot.geoKey !== selectedGeoRef.current) setSelectedGeo(dot.geoKey);
-  }, [trackIdx, tracks.length]);
+    if (!dot) return;
+    if (dot.geoKey !== selectedGeoRef.current) setSelectedGeo(dot.geoKey);
+    setNowPlayingOrigin(dot.country, dot.genreIdx);
+  }, [trackIdx, tracks.length, setNowPlayingOrigin]);
 
   const playDot = async (dot: SongDot) => {
     chainActive.current = true;
     playedDots.current = new Set([dot.id]);
     lastDot.current = dot;
     setSelectedGeo(dot.geoKey);       // picking a song highlights its country
+    setNowPlayingOrigin(dot.country, dot.genreIdx);  // "FROM" updates instantly
     const t = await fetchSongForDot(dot);
     if (!chainActive.current) return;
     if (!t) {

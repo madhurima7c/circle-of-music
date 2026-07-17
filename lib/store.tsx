@@ -95,6 +95,13 @@ type StoreShape = {
   /** Like playPlace but for a country OUTSIDE the seed wheel (any globe
    *  nation). Playlist comes from the MusicBrainz/LLM tiers only. */
   playPlaceNamed: (countryName: string, genreIdx?: number | null) => void;
+  /** Reflect the CURRENTLY-PLAYING origin (country + genre) in the store's
+   *  displayed state WITHOUT refetching a pipeline or touching the queue.
+   *  The World's dot chain calls this every time the sounding dot changes,
+   *  so the "FROM" banner and — on the Circle — the country/genre cards
+   *  follow the music. A seed country flips its wheel card; a non-seed
+   *  nation (e.g. Taiwan) shows as a custom place. */
+  setNowPlayingOrigin: (country: string, genreIdx: number) => void;
   /** Display name of the active country — a custom globe country when one
    *  is playing, else COUNTRIES[countryIdx]. */
   countryName: string;
@@ -390,6 +397,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commit]);
 
+  const setNowPlayingOrigin = useCallback((country: string, gi: number) => {
+    // Seed country → flip its wheel card and drop any custom place; a
+    // non-seed nation shows as a custom place (no matching wheel card).
+    const seedIdx = COUNTRIES.indexOf(country);
+    if (seedIdx >= 0) {
+      countryIdxRef.current = seedIdx;
+      setCountryIdx(seedIdx);
+      customCountryRef.current = null;
+      setCustomCountry(null);
+    } else {
+      customCountryRef.current = country;
+      setCustomCountry(country);
+    }
+    const g = ((gi % GENRES.length) + GENRES.length) % GENRES.length;
+    anyGenreRef.current = false;
+    genreIdxRef.current = g;
+    setGenreIdx(g);
+    // NO commit / no queue change — the dot chain owns the queue.
+  }, []);
+
   /* ---------- transient toast for gesture confirmation ---------- */
   const flashToast = useCallback((t: GestureToast) => {
     setToast(t);
@@ -416,6 +443,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
     surprise, loadQueue, appendTracks, playPlace, playPlaceNamed,
+    setNowPlayingOrigin,
     countryName: customCountry ?? COUNTRIES[countryIdx],
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
@@ -424,7 +452,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
        toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
-       appendTracks, playPlace, playPlaceNamed]);
+       appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }
