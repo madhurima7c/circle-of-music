@@ -200,6 +200,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const mapped = raw.map(toTrack);
       setTracks(mapped);
       setStatus(mapped.length ? 'ready' : 'error');
+      if (mapped.length) setIsPlaying(true);
     } catch (e) {
       console.warn('Deezer playlist fetch failed:', e);
       if (gen !== populateGen.current) return;
