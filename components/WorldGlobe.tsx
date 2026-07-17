@@ -398,10 +398,13 @@ export default function WorldGlobe() {
   const prefetchNextRef = useRef(prefetchNext);
   prefetchNextRef.current = prefetchNext;
 
-  // Rolling window: as playback reaches the last known track, top it up.
+  // Rolling window: keep a REAL queue ahead of playback (~8 songs), not
+  // just one. Each append changes tracks.length, refiring this effect, so
+  // the buffer self-fills one song at a time until the target is reached —
+  // and Up Next (here and back on the Circle) always shows a real list.
   useEffect(() => {
     if (!chainActive.current) return;
-    if (trackIdx >= tracks.length - 1) void prefetchNextRef.current();
+    if (tracks.length - trackIdx <= 8) void prefetchNextRef.current();
   }, [trackIdx, tracks.length]);
 
   // The highlight follows the MUSIC: whenever the playing song's dot sits
