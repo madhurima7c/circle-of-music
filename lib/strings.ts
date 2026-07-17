@@ -26,7 +26,7 @@ export const STR = {
     backCta: 'Home →',
     tapHint: 'Pick a genre to light up its songs around the world · tap any country to hear its music',
     learnMore: 'Listen to full song',
-    maxGenres: 'Up to five genres at once — deselect one first',
+    maxGenres: 'Select 5 genres at a time',
     fromLine: (place: string | null, year: string | null) =>
       place && year ? `From ${place} · ${year}`
       : place ? `From ${place}`

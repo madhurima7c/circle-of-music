@@ -205,17 +205,17 @@ html, body {
  * ===================================================================== */
 .xnav {
   position: fixed;
-  left: 50%; top: 38px;
-  transform: translateX(-50%) scale(1.125);
+  left: 50%; top: 30px;
+  transform: translateX(-50%) scale(0.956); /* 1.125 − 15% */
   transform-origin: top center;
   z-index: 30;
   display: flex;
-  gap: 10px;
-  padding: 9px 16px 7px;
+  gap: 6px;
+  padding: 6px 10px; /* the dock's spacing */
   background: rgba(255, 255, 255, var(--glass-frost, 0.14));
   -webkit-backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 170%));
   backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 170%));
-  border-radius: var(--glass-radius, 18px);
+  border-radius: var(--glass-radius, 999px);
   border: 1px solid rgba(255, 255, 255, var(--glass-border, 0.28));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.32),
@@ -1480,25 +1480,36 @@ html, body {
 .world-genre-chip:last-child { border-bottom: none; }
 .world-genre-chip:hover { color: #fff; background: rgba(205, 211, 255, 0.07); }
 .world-genre-chip:active { color: #fff; }
-/* Every genre owns a fixed color (lib/genre-colors.ts) — shown as a small
- * swatch at rest, filling the whole chip when selected. --chip-ink keeps
- * the label readable on light and dark genre colors alike. */
-.world-genre-chip__swatch {
-  flex: none;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--chip-c, var(--accent));
-  box-shadow: 0 0 6px var(--chip-c, var(--accent));
-  opacity: 0.85;
-}
+/* Every genre owns a fixed color (lib/genre-colors.ts). No legend — the
+ * selected chip fills with its color, and the dots on the globe match.
+ * --chip-ink keeps the label readable on light and dark colors alike. */
 .world-genre-chip[data-active="true"] {
   background: var(--chip-c, var(--accent));
   color: var(--chip-ink, #0e0f1a);
   font-weight: 500;
 }
-.world-genre-chip[data-active="true"] .world-genre-chip__swatch {
-  background: var(--chip-ink, #0e0f1a);
-  box-shadow: none;
+
+/* The 5-genre cap toast — appears beside the rail, fades on its own. */
+.world-toast {
+  position: absolute;
+  left: 178px; top: 50%;
+  transform: translateY(-50%);
+  z-index: 18;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(10, 10, 18, 0.92);
+  border: 1px solid rgba(205, 211, 255, 0.22);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: world-toast-in 160ms ease both;
+}
+@keyframes world-toast-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
 }
 
 
@@ -1618,21 +1629,29 @@ html, body {
   transition: color 140ms ease;
 }
 .wnp__learn:hover { color: #fff; }
-/* Country hover — circular flag + name, riding the cursor. */
+/* globe.gl's tooltip container paints its own dark rounded box — kill it
+ * so our .geo-tip pill is the only visible surface. */
+.float-tooltip-kap {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+  font: inherit !important;
+}
+
+/* Country hover — circular flag + name pill, riding the cursor. Same
+ * white surface as the bottom dock. */
 .geo-tip {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 5px 13px 5px 5px;
+  padding: 5px 15px 5px 5px;
   border-radius: 999px;
-  background: rgba(10, 10, 18, 0.88);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.04);
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: #fff;
+  color: #0a0a0a;
   white-space: nowrap;
 }
 .geo-tip__flag {
@@ -1640,39 +1659,68 @@ html, body {
   width: 26px; height: 26px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(120, 130, 255, 0.2); /* shows while the flag loads */
 }
 .geo-tip__flag--none { background: rgba(120, 130, 255, 0.25); }
-.geo-tip[data-playable="false"] .geo-tip__name { color: rgba(255, 255, 255, 0.6); }
+.geo-tip[data-playable="false"] .geo-tip__name { color: rgba(10, 10, 10, 0.55); }
 
-/* Song-dot hover — genre-colored dot + title / artist · country. */
-.song-tip {
+/* Song-dot hover — a shrunken now-playing card (same surface as .wnp):
+ * cover + title + album + the "A <genre> find from <country>" line.
+ * Positioned by WorldGlobe at the dot's screen coords. */
+.song-hover {
+  position: absolute;
+  z-index: 25;
+  transform: translate(-50%, calc(-100% - 16px));
   display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 12px;
+  gap: 10px;
+  width: 238px;
+  padding: 9px 11px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
-  background: rgba(10, 10, 18, 0.92);
-  border: 1px solid rgba(205, 211, 255, 0.16);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
-  font-family: var(--font-mono);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-plex-sans), sans-serif;
   color: #fff;
-  white-space: nowrap;
+  pointer-events: none;
+  animation: song-hover-in 150ms ease both;
 }
-.song-tip__dot {
+@keyframes song-hover-in {
+  from { opacity: 0; transform: translate(-50%, calc(-100% - 10px)); }
+}
+.song-hover__cover {
   flex: none;
-  width: 8px; height: 8px;
-  border-radius: 50%;
+  width: 46px; height: 46px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #3a3a3a; /* placeholder while the cover fetches */
 }
-.song-tip__text {
+.song-hover__meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 10.5px;
+  min-width: 0;
 }
-.song-tip__text strong { font-size: 11.5px; }
-.song-tip__text span { color: rgba(205, 211, 255, 0.75); }
+.song-hover__title {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.song-hover__album {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.song-hover__about {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.5);
+}
 
 /* ---------- flat origin markers (html elements layer) ---------- */
 /* The wrapper is positioned by the globe; keep it flat — a 2D pin on the

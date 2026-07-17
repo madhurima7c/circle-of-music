@@ -22,10 +22,10 @@ import { NavGlobe } from '@/components/NavGlobe';
  * Values persist in localStorage so a tuned look sticks everywhere.
  */
 
-const GLASS_KEY = 'navGlass.v1';
+const GLASS_KEY = 'navGlass.v2'; // v2: pill default (old saved radii ignored)
 const GLASS_DEFAULTS = {
   blur: 16,      // px of backdrop blur
-  radius: 18,    // px corner radius
+  radius: 999,   // pill — CSS clamps to half the bar height
   frost: 0.14,   // white tint opacity
   sat: 170,      // % backdrop saturation
   border: 0.28,  // border opacity
@@ -80,7 +80,7 @@ function NavTuner({ target }: { target: React.RefObject<HTMLElement | null> }) {
       {dial('shadow', 'shadow', 0, 0.6, 0.02)}
       <div className="navtune__presets">
         <button onClick={() => setG(prev => ({ ...prev, radius: 14 }))}>Sharp</button>
-        <button onClick={() => setG(prev => ({ ...prev, radius: 48 }))}>Pill</button>
+        <button onClick={() => setG(prev => ({ ...prev, radius: 999 }))}>Pill</button>
         <button onClick={() => setG(GLASS_DEFAULTS)}>Reset</button>
       </div>
     </div>

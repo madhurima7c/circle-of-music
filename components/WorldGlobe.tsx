@@ -9,7 +9,7 @@ import { GEO_URL, PLAYABLE_GEO_NAMES, geoName, seedCountry, seedCountryIdx } fro
 import { searchArtistTracksStrict, jsonp, type DeezerTrack } from '@/lib/deezer';
 import { originFor, type ArtistOrigin } from '@/lib/origins';
 import { originForLive } from '@/lib/origins-live';
-import { normKey } from '@/lib/stories';
+import { normKey, releaseYear } from '@/lib/stories';
 import { STR } from '@/lib/strings';
 import { genreColor, genreInk } from '@/lib/genre-colors';
 import GEO_ISO from '@/lib/geo-iso.json';
@@ -481,6 +481,7 @@ export default function WorldGlobe() {
       clearGenres: () => setSelectedGenres([]),
       dots: () => dotsRef.current,
       playDot: (i: number) => { const d = dotsRef.current[i]; if (d) void playDotRef.current(d); },
+      hover: (i: number | null) => onDotHover(i == null ? null : dotsRef.current[i] ?? null),
       selectedGeo: () => selectedGeoRef.current,
       screenXY: (i: number) => {
         const d = dotsRef.current[i];
@@ -499,11 +500,45 @@ export default function WorldGlobe() {
   }, [playPlace, playPlaceNamed, features]);
 
   /* ---------- genre rail: multi-select, max five ---------- */
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toggleGenre = (i: number) => {
-    setSelectedGenres(prev => {
-      if (prev.includes(i)) return prev.filter(g => g !== i);
-      if (prev.length >= MAX_GENRES) return prev;   // cap — deselect one first
-      return [...prev, i];
+    const cur = selectedGenresRef.current;
+    if (!cur.includes(i) && cur.length >= MAX_GENRES) {
+      // Cap hit — tell the wanderer instead of silently ignoring the tap.
+      setToast(STR.world.maxGenres);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => setToast(null), 2200);
+      return;
+    }
+    setSelectedGenres(prev =>
+      prev.includes(i) ? prev.filter(g => g !== i)
+      : prev.length >= MAX_GENRES ? prev   // same-tick burst guard (ref lags a render)
+      : [...prev, i]);
+  };
+
+  /* ---------- song-dot hover card — a mini now-playing preview ----------
+   * The globe.gl string tooltip can't hold async artwork, so hovering a
+   * dot renders our own card at the dot's screen position: cover (fetched
+   * lazily, cached with the click path's songCache), title, album and the
+   * "A <genre> find from <country>" line. */
+  const [hoverDot, setHoverDot] = useState<SongDot | null>(null);
+  const [hoverTrack, setHoverTrack] = useState<Track | null>(null);
+  const [hoverXY, setHoverXY] = useState<{ x: number; y: number } | null>(null);
+  const hoverIdRef = useRef<string | null>(null);
+  const onDotHover = (d: object | null) => {
+    const dot = (d as SongDot | null) ?? null;
+    hoverIdRef.current = dot?.id ?? null;
+    setHoverDot(dot);
+    setHoverTrack(null);
+    if (!dot) return;
+    const g = globeRef.current as unknown as {
+      getScreenCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number };
+    };
+    const xy = g?.getScreenCoords?.(dot.lat, dot.lng, DOT_ALTITUDE);
+    if (xy) setHoverXY(xy);
+    void fetchSongForDot(dot).then((t) => {
+      if (hoverIdRef.current === dot.id) setHoverTrack(t);
     });
   };
 
@@ -621,16 +656,7 @@ export default function WorldGlobe() {
             if (pos) (obj as THREE.Sprite).position.set(pos.x, pos.y, pos.z);
             (obj as THREE.Sprite).material = dotMaterial(colorFor(dot.genreIdx));
           }}
-          customLayerLabel={(d: object) => {
-            const s = d as SongDot;
-            const c = colorFor(s.genreIdx);
-            return `<div class="song-tip">` +
-              `<span class="song-tip__dot" style="background:${c};box-shadow:0 0 8px ${c}"></span>` +
-              `<span class="song-tip__text">` +
-                `<strong>${esc(s.title ?? s.artist)}</strong>` +
-                `<span>${s.title ? `${esc(s.artist)} · ` : ''}${esc(s.country)}</span>` +
-              `</span></div>`;
-          }}
+          onCustomLayerHover={onDotHover}
           onCustomLayerClick={(d: object) => { void playDotRef.current(d as SongDot); }}
           /* the playing song — avatar + sonar ring */
           htmlElementsData={htmlMarkers}
@@ -673,12 +699,40 @@ export default function WorldGlobe() {
               title={full ? STR.world.maxGenres : g}
               onClick={() => toggleGenre(i)}
             >
-              <span className="world-genre-chip__swatch" aria-hidden />
               {g}
             </button>
           );
         })}
       </div>
+
+      {toast && <div className="world-toast" role="status">{toast}</div>}
+
+      {/* Song hover — a shrunken now-playing card above the dot. */}
+      {hoverDot && hoverXY && (
+        <div
+          className="song-hover"
+          style={{
+            // keep the card on-screen for dots near the edges
+            left: Math.min(Math.max(hoverXY.x, 132), Math.max(size.w - 132, 132)),
+            top: Math.max(hoverXY.y, 96),
+          }}
+        >
+          {hoverTrack?.image
+            ? <img className="song-hover__cover" src={hoverTrack.image} alt="" />
+            : <div className="song-hover__cover" />}
+          <div className="song-hover__meta">
+            <strong className="song-hover__title">{hoverDot.title ?? hoverDot.artist}</strong>
+            <span className="song-hover__album">{hoverTrack?.album ?? hoverDot.artist}</span>
+            <span className="song-hover__about">
+              {STR.card.aboutFallback(
+                GENRES[hoverDot.genreIdx] ?? '',
+                hoverDot.country,
+                releaseYear(hoverTrack?.releaseDate),
+              )}
+            </span>
+          </div>
+        </div>
+      )}
 
       {status === 'empty' && (
         <div className="world-hint">{STR.world.tapHint}</div>
