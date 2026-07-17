@@ -638,20 +638,21 @@ export function CenterStack() {
         </div>
       )}
 
-      {/* Share — compact icons-only menu (body portal to escape card clip). */}
+      {/* Share — full menu with names (body portal to escape card clip). */}
       {shareOpen && links && shareAt && typeof document !== 'undefined' && createPortal(
         <>
           <div className="listen-scrim" onClick={() => setShareOpen(false)} />
           <div
-            className="listen-menu listen-menu--compact listen-menu--overlay"
+            className="listen-menu listen-menu--overlay"
             role="menu"
             aria-label={STR.card.listenIn}
             style={{ left: shareAt.x, top: shareAt.y }}
           >
-            <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer" title="Spotify"><BrandIcon kind="spotify" /></a>
-            <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer" title="Apple Music"><BrandIcon kind="apple" /></a>
-            <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer" title="YouTube"><BrandIcon kind="youtube" /></a>
-            <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer" title="Deezer"><BrandIcon kind="deezer" /></a>
+            <div className="listen-menu__head">{STR.card.listenIn.toUpperCase()}</div>
+            <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer"><BrandIcon kind="spotify" />Spotify</a>
+            <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
+            <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
+            <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
             {spotifyEnabled && (
               <button
                 className="listen-menu__connect"
