@@ -10,7 +10,7 @@ import {
   subscribeSpotify, isSpotifyConnected, handleSpotifyCallback, resolveSpotifyUri,
 } from '@/lib/spotify';
 import {
-  embedPlay, embedPause, embedResume, embedSeek,
+  embedPlay, embedPause, embedResume, embedStart, embedSeek,
   setEmbedStateListener, destroyEmbed,
 } from '@/lib/spotify-embed';
 
@@ -52,6 +52,10 @@ export function GlobalPlayer() {
   // isPlaying effect and end-of-track logic route to the right backend.
   const viaSpotify = useRef(false);
   const embedPrev = useRef<{ position: number; duration: number } | null>(null);
+  // Set the moment the embed reports ACTUAL playback (paused:false). The
+  // iframe can silently refuse to autoplay (no user gesture, not logged in) —
+  // embedPlay() can't tell, so a watchdog checks this and falls back.
+  const embedStarted = useRef(false);
   const onEndedRef = useRef<() => void>(() => {});
 
   useEffect(() => { handleSpotifyCallback(); }, []);
@@ -65,6 +69,7 @@ export function GlobalPlayer() {
     }
     setEmbedStateListener((s) => {
       if (!viaSpotify.current) return;
+      if (!s.paused) embedStarted.current = true;
       const prev = embedPrev.current;
       embedPrev.current = { position: s.position, duration: s.duration };
       // Feed the card's progress bar (seconds) without store re-renders.
@@ -107,8 +112,9 @@ export function GlobalPlayer() {
       audio.src = track.preview;
       audio.load();
       // Always autoplay a newly loaded track; a rejected play() means the
-      // browser wants a user gesture first — surfaced on the play button.
-      audio.play().catch(() => setAutoplayBlocked(true));
+      // browser wants a user gesture first — surfaced on the play button
+      // (and isPlaying goes false so the card shows PLAY, not a silent pause).
+      audio.play().catch(() => { setAutoplayBlocked(true); setIsPlaying(false); });
     };
 
     if (!(spotifyOn && track)) {
@@ -117,6 +123,8 @@ export function GlobalPlayer() {
     }
 
     let cancelled = false;
+    let stallTimer: ReturnType<typeof setTimeout> | undefined;
+    embedStarted.current = false;
     resolveSpotifyUri(track.artist, track.title)
       .then((uri) => (uri && !cancelled ? embedPlay(uri) : false))
       .then((ok) => {
@@ -128,18 +136,30 @@ export function GlobalPlayer() {
           audio.removeAttribute('src');
           audio.load();
           audioBus.ext = { pos: 0, dur: 0, seek: (sec) => embedSeek(sec) };
+          // Watchdog: embedPlay "succeeding" only means the command was
+          // accepted. If no playing update arrives (iframe blocked autoplay,
+          // user not logged in yet), route back to the preview — never dead air.
+          stallTimer = setTimeout(() => {
+            if (cancelled || embedStarted.current) return;
+            viaSpotify.current = false;
+            embedPrev.current = null;
+            audioBus.ext = null;
+            playPreview();
+          }, 3000);
         } else {
           playPreview();
         }
       })
       .catch(() => { if (!cancelled) playPreview(); });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; if (stallTimer) clearTimeout(stallTimer); };
   }, [track?.id, track?.preview, spotifyOn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- sync isPlaying with whichever backend is sounding ---------- */
   useEffect(() => {
     if (viaSpotify.current) {
-      if (isPlaying) embedResume();
+      // resume() only un-pauses a track that has already begun; if the iframe
+      // blocked autoplay, this user-gesture-driven play must call play().
+      if (isPlaying) (embedStarted.current ? embedResume() : embedStart());
       else embedPause();
       return;
     }

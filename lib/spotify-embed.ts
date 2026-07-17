@@ -109,6 +109,9 @@ export async function embedPlay(uri: string): Promise<boolean> {
 
 export function embedPause(): void { controller?.pause(); }
 export function embedResume(): void { controller?.resume(); }
+/** Start the loaded URI from scratch — resume() is a no-op on a track that
+ *  never began (e.g. the iframe blocked autoplay until a user gesture). */
+export function embedStart(): void { controller?.play(); }
 export function embedSeek(seconds: number): void { controller?.seek(seconds); }
 
 export function destroyEmbed(): void {
