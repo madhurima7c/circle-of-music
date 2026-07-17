@@ -18,6 +18,7 @@ import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
 } from '@/lib/spotify';
+import { backColor } from '@/lib/covers';
 
 gsap.registerPlugin(useGSAP);
 
@@ -97,132 +98,186 @@ export function PopulatingText() {
  * inner ends. The wave is synthesized (not an audio analyser — the Deezer
  * CDN previews would taint a WebAudio graph and kill playback).
  */
-const WAVE_W = 400;  // viewBox units; SVG stretches to the real span
+const WAVE_W = 400;  // synth domain units; canvas maps them to the real span
 /* The string splits into strands while music plays: every strand traces the
  * SAME waveform scaled by k (−1…1), so they fan apart in the middle and
- * rejoin at the pinned ends — the reference "split string" look. Colors are
- * sampled from the three experience-nav icons: Circle's blue (#1d2bdf),
- * the World globe's periwinkle (#7a83ec), and the Shades gradient's purple,
- * magenta and orange. The k=0 center strand draws last (on top) and is the
- * only one visible at rest. */
-const STRANDS: Array<{ k: number; color: string }> = [
-  { k: -1.0, color: '#1d2bdf' },   // circle
-  { k: -0.78, color: '#7a83ec' },  // world
-  { k: -0.56, color: '#8601a5' },  // shades — purple
-  { k: -0.34, color: '#a3087d' },  // shades — magenta
-  { k: -0.15, color: '#e4572a' },  // shades — orange
-  { k: 0.15, color: '#e4572a' },
-  { k: 0.34, color: '#a3087d' },
-  { k: 0.56, color: '#8601a5' },
-  { k: 0.78, color: '#7a83ec' },
-  { k: 1.0, color: '#1d2bdf' },
-  { k: 0, color: '#1d2bdf' },      // center — always visible, drawn on top
+ * rejoin at the pinned ends — the "split string" look. Rendered as a point
+ * cloud (thousands of jittered dots, not strokes). Color: ONE gradient runs
+ * across the whole stage — the country card's spine color on the far left
+ * blending into the genre card's on the far right (the center card hides
+ * the seam) — and each strand carries a lighter/darker shade of that local
+ * gradient color, so all the shades of both posters appear in the fan. */
+const STRAND_KS = [
+  -1.0, -0.78, -0.56, -0.34, -0.15,
+  0.15, 0.34, 0.56, 0.78, 1.0,
+  0,  // center — always visible, drawn on top
 ];
 const WAVE_H = 56;
-const WAVE_MID = WAVE_H / 2;
+
+type Rgb = [number, number, number];
+function hexToRgb(hex: string): Rgb {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.slice(0, 2), 16) || 0,
+    parseInt(h.slice(2, 4), 16) || 0,
+    parseInt(h.slice(4, 6), 16) || 0,
+  ];
+}
+function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+/** t > 0 lightens toward white, t < 0 deepens toward black. */
+function shadeRgb(c: Rgb, t: number): Rgb {
+  return t >= 0 ? mixRgb(c, [255, 255, 255], t) : mixRgb(c, [0, 0, 0], -t);
+}
 
 export function ConnectorTags() {
-  const { status, isPlaying } = useStore();
-  const leftSvg  = useRef<SVGSVGElement | null>(null);
-  const rightSvg = useRef<SVGSVGElement | null>(null);
+  const { status, isPlaying, countryIdx, genreIdx } = useStore();
+  const leftCv  = useRef<HTMLCanvasElement | null>(null);
+  const rightCv = useRef<HTMLCanvasElement | null>(null);
   const live = useRef({ playing: false });
+  const ampRef = useRef(0); // persists across color changes — no wave reset
   live.current.playing = status === 'ready' && isPlaying;
 
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let raf = 0;
-    let amp = 0;              // eased 0..1 — string energy
-    let wasFlat = false;
-    const N = Math.floor(WAVE_W / 6);
-    const xs = Array.from({ length: N + 1 }, (_, i) => (i * WAVE_W) / N);
-    const flat = `M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`;
+  const leftColor  = backColor('countries', COUNTRIES[countryIdx]);
+  const rightColor = backColor('genres', GENRES[genreIdx]);
 
+  useEffect(() => {
+    const from = hexToRgb(leftColor);
+    const to   = hexToRgb(rightColor);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const STEPS = 140;
+
+    // Left canvas spans gradient t 0→0.5, right t 0.5→1 — one continuous
+    // blend across the stage; the center card covers the join.
+    const sides = [
+      { cv: leftCv.current,  phase: 0,   t0: 0,   t1: 0.5 },
+      { cv: rightCv.current, phase: 2.1, t0: 0.5, t1: 1 },
+    ];
+
+    const fit = () => sides.forEach((s) => {
+      if (!s.cv) return;
+      const r = s.cv.getBoundingClientRect();
+      s.cv.width  = Math.max(1, Math.round(r.width * dpr));
+      s.cv.height = Math.max(1, Math.round(r.height * dpr));
+    });
+    fit();
+    const ro = new ResizeObserver(fit);
+    sides.forEach((s) => s.cv && ro.observe(s.cv));
+
+    // Palette precomputed per (strand, x-step): local gradient color shaded
+    // lighter/darker by the strand's k — the poster's tints and deeps.
+    const palettes = sides.map((s) =>
+      STRAND_KS.map((k) =>
+        Array.from({ length: STEPS + 1 }, (_, j) => {
+          const gt = s.t0 + (s.t1 - s.t0) * (j / STEPS);
+          const c = shadeRgb(mixRgb(from, to, gt), k * 0.45);
+          return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+        }),
+      ),
+    );
+
+    // Rest state — the single center strand as a quiet dotted line.
+    const drawFlat = () => {
+      sides.forEach((s, si) => {
+        const ctx = s.cv?.getContext('2d');
+        if (!s.cv || !ctx) return;
+        const W = s.cv.width, H = s.cv.height, mid = H / 2;
+        ctx.clearRect(0, 0, W, H);
+        const pal = palettes[si][STRAND_KS.indexOf(0)];
+        ctx.globalAlpha = 0.9;
+        for (let j = 0; j <= STEPS; j++) {
+          ctx.fillStyle = pal[j];
+          ctx.fillRect((j / STEPS) * W, mid, dpr, dpr);
+        }
+      });
+    };
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      drawFlat();
+      return () => ro.disconnect();
+    }
+
+    let raf = 0;
+    let wasFlat = false;
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       const target = live.current.playing ? 1 : 0;
-      amp += (target - amp) * 0.05;                     // attack + release
-      const svgs: Array<[SVGSVGElement | null, number]> =
-        [[leftSvg.current, 0], [rightSvg.current, 2.1]];
-
+      ampRef.current += (target - ampRef.current) * 0.05;
+      const amp = ampRef.current;
       if (amp < 0.012) {
-        amp = 0;
-        if (!wasFlat) {
-          for (const [svg] of svgs) {
-            svg?.querySelectorAll('path').forEach((p, i) => {
-              p.setAttribute('d', flat);
-              p.style.strokeOpacity = STRANDS[i].k === 0 ? '1' : '0';
-            });
-          }
-          wasFlat = true;
-        }
+        ampRef.current = 0;
+        if (!wasFlat) { drawFlat(); wasFlat = true; }
         return;
       }
       wasFlat = false;
       const t = now / 1000;
-      const strandOpacity = String(Math.min(1, amp * 1.4) * 0.85);
+      const fanAlpha = Math.min(1, amp * 1.4) * 0.8;
 
-      for (const [svg, phase] of svgs) {
-        if (!svg) continue;
-        // One shared waveform per side; every strand is a scaled copy of it,
-        // so the fan stays nested (no strand crossings) like the reference.
-        const wave = xs.map((x) => {
-          const env = Math.sin((x / WAVE_W) * Math.PI);  // pinned string ends
-          return env * amp * (
-            Math.sin(x * 0.028 + t * 2.7 + phase) * 5.6 +
-            Math.sin(x * 0.013 - t * 1.8 + phase) * 4.2 +
-            Math.sin(x * 0.061 + t * 4.2 + phase) * 2.2
-          );
-        });
-        svg.querySelectorAll('path').forEach((p, i) => {
-          const { k } = STRANDS[i];
-          let d = `M0,${WAVE_MID}`;
-          for (let j = 1; j <= N; j++) {
-            d += ` L${xs[j].toFixed(1)},${(WAVE_MID + k * wave[j]).toFixed(2)}`;
+      sides.forEach((s, si) => {
+        const ctx = s.cv?.getContext('2d');
+        if (!s.cv || !ctx) return;
+        const W = s.cv.width, H = s.cv.height, mid = H / 2;
+        ctx.clearRect(0, 0, W, H);
+        const unit = H / WAVE_H; // keep the old 56-unit proportions
+        for (let i = 0; i < STRAND_KS.length; i++) {
+          const k = STRAND_KS[i];
+          const isCenter = k === 0;
+          const baseAlpha = isCenter ? 0.95 : fanAlpha;
+          const pal = palettes[si][i];
+          for (let j = 0; j <= STEPS; j++) {
+            const u = j / STEPS;
+            const wx = u * WAVE_W;              // synth domain
+            // Soft envelope, not hard-pinned: the card edges hide the line
+            // ends (z −1), and only the outer slice of each connector is
+            // visible — it should already be fanned there, like the
+            // reference's homogeneous point field.
+            const env = 0.35 + 0.65 * Math.sin(u * Math.PI);
+            const wave = env * amp * (
+              Math.sin(wx * 0.028 + t * 2.7 + s.phase) * 8.4 +
+              Math.sin(wx * 0.013 - t * 1.8 + s.phase) * 6.3 +
+              Math.sin(wx * 0.061 + t * 4.2 + s.phase) * 3.3
+            );
+            const x = u * W;
+            const y = mid + k * wave * unit;
+            const scatter = (2 + 4 * env) * amp * dpr;
+            ctx.fillStyle = pal[j];
+            for (let d = 0; d < 3; d++) {
+              ctx.globalAlpha = baseAlpha * (0.25 + Math.random() * 0.75);
+              const sz = (0.5 + Math.random() * 0.9) * dpr;
+              ctx.fillRect(
+                x + (Math.random() - 0.5) * 4 * dpr,
+                y + (Math.random() - 0.5) * scatter * (isCenter ? 0.6 : 1.6),
+                sz, sz,
+              );
+            }
           }
-          p.setAttribute('d', d);
-          p.style.strokeOpacity = k === 0 ? '1' : strandOpacity;
-        });
-      }
+        }
+        ctx.globalAlpha = 1;
+      });
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [leftColor, rightColor]);
 
   const state =
     status === 'populating' ? 'loading' :
     status === 'ready'      ? 'ready'   : 'hidden';
 
-  const strandPaths = STRANDS.map(({ k, color }) => (
-    <path
-      key={k}
-      d={`M0,${WAVE_MID} L${WAVE_W},${WAVE_MID}`}
-      stroke={color}
-      style={{ strokeOpacity: k === 0 ? 1 : 0 }}
-    />
-  ));
-
   return (
     <>
-      <svg
-        ref={leftSvg}
+      <canvas
+        ref={leftCv}
         className="connector connector--left"
         data-state={state}
-        viewBox={`0 0 ${WAVE_W} ${WAVE_H}`}
-        preserveAspectRatio="none"
         aria-hidden
-      >
-        {strandPaths}
-      </svg>
-      <svg
-        ref={rightSvg}
+      />
+      <canvas
+        ref={rightCv}
         className="connector connector--right"
         data-state={state}
-        viewBox={`0 0 ${WAVE_W} ${WAVE_H}`}
-        preserveAspectRatio="none"
         aria-hidden
-      >
-        {strandPaths}
-      </svg>
+      />
     </>
   );
 }

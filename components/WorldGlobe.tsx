@@ -535,7 +535,7 @@ export default function WorldGlobe() {
     setHovered(name);
     if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
     if (!name) { setDelayedHover(null); return; }
-    hoverTimerRef.current = setTimeout(() => setDelayedHover(name), 1500);
+    hoverTimerRef.current = setTimeout(() => setDelayedHover(name), 900);
   }, []);
 
   useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);

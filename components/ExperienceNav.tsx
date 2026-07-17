@@ -124,6 +124,8 @@ export function ExperienceNav() {
   const isCircle = pathname === '/' || pathname === '/circle';
   const theme = pathname === '/world' ? 'dark' : 'light';
   const [worldSpin, setWorldSpin] = useState(false);
+  const [shadesHover, setShadesHover] = useState(false);
+  const shadesRef = useRef<HTMLButtonElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   const [tune, setTune] = useState(false);
 
@@ -168,10 +170,12 @@ export function ExperienceNav() {
       </Link>
 
       <button
+        ref={shadesRef}
         type="button"
         className="xnav__item xnav__item--soon"
-        title={STR.nav.shadesSoon}
         aria-disabled="true"
+        onMouseEnter={() => setShadesHover(true)}
+        onMouseLeave={() => setShadesHover(false)}
       >
         <span className="xnav__iconwrap" aria-hidden>
           <img className="xnav__icon xnav__icon--shades" src="/icons/nav-shades.png" alt="" />
@@ -182,6 +186,18 @@ export function ExperienceNav() {
         </span>
       </button>
     </nav>
+    {shadesHover && shadesRef.current && (() => {
+      const r = shadesRef.current!.getBoundingClientRect();
+      return (
+        <div
+          className="xnav__soon"
+          style={{ top: r.top + r.height / 2, left: r.right + 10 }}
+          aria-hidden
+        >
+          👀 COMING SOON
+        </div>
+      );
+    })()}
     </>
   );
 }
