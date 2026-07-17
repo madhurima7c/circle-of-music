@@ -2025,6 +2025,24 @@ html, body {
   width: 240px;
   z-index: 2;
 }
+/* Seated over the card's reserved slot — real, clickable UI (its ▶ is the
+   tap that lets the iframe see the user's Spotify login = full songs). */
+.spotify-strip--slot {
+  z-index: 41;             /* above the card, below popups/scrims (44+) */
+  border-radius: 10px;
+  pointer-events: auto;
+  background: #101012;
+}
+/* The reserved row inside the card the strip seats onto (replaces the
+   progress bar while connected — the widget brings its own seek). Takes
+   the progress bar's flex slot: .center__track children are ordered. */
+.spotify-slot {
+  order: 2;                /* = .center__progress — between now and controls */
+  height: 80px;
+  margin: 2px 0;
+  border-radius: 10px;
+  background: #101012;
+}
 
 @media (max-width: 640px) {
   .frame { inset: 0; }

@@ -71,8 +71,36 @@ export function GlobalPlayer() {
   // iframe (only a new iframe document sees a just-granted Spotify login).
   const [freshNonce, setFreshNonce] = useState(0);
   const stripRef = useRef<HTMLDivElement | null>(null);
+  // The Circle card renders a reserved [data-spotify-slot] row while
+  // connected; the strip seats itself over it (fixed overlay — the iframe
+  // itself can never move into the card's DOM without reloading). When no
+  // slot exists (World, hub), the strip tucks behind the now-playing card.
+  const [slotRect, setSlotRect] = useState<{ left: number; top: number; width: number } | null>(null);
 
   useEffect(() => { handleSpotifyCallback(); }, []);
+
+  useEffect(() => {
+    if (!(spotifyOn && !!track)) { setSlotRect(null); return; }
+    const measure = () => {
+      const el = document.querySelector('[data-spotify-slot]');
+      if (!el) { setSlotRect(r => (r === null ? r : null)); return; }
+      const r = el.getBoundingClientRect();
+      if (!r.width) return;
+      setSlotRect(prev =>
+        prev &&
+        Math.abs(prev.left - r.left) < 1 &&
+        Math.abs(prev.top - r.top) < 1 &&
+        Math.abs(prev.width - r.width) < 1
+          ? prev
+          : { left: r.left, top: r.top, width: r.width });
+    };
+    measure();
+    // The card animates in and layouts shift — keep the seat re-measured.
+    const iv = setInterval(measure, 800);
+    window.addEventListener('resize', measure);
+    return () => { clearInterval(iv); window.removeEventListener('resize', measure); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotifyOn, !!track, pathname]);
 
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
@@ -352,17 +380,20 @@ export function GlobalPlayer() {
         onEnded={onEnded}
       />
 
-      {/* Spotify strip — the embed's home while connected. It stays at FULL
-          opacity (the embed downgrades to 30s clips when it detects it's
-          hidden — opacity:0 broke full playback) but sits BEHIND the opaque
-          now-playing card at a lower z-index, so the user never sees it.
-          Occlusion is the one kind of hidden the widget can't detect. */}
+      {/* Spotify strip — the embed's home while connected. Preferred seat:
+          the card's reserved slot (visible, clickable — it IS the progress
+          row while connected). With no slot on the page it tucks BEHIND the
+          opaque now-playing card at full opacity: occluded for the user,
+          but "visible" by every check the iframe can run (opacity:0 made
+          the embed downgrade to 30s clips). */}
       {spotifyOn && hasTrack && (
         <div
-          className={`spotify-strip spotify-strip--${pathname === '/world' ? 'world' : 'circle'}`}
+          className={slotRect
+            ? 'spotify-strip spotify-strip--slot'
+            : `spotify-strip spotify-strip--${pathname === '/world' ? 'world' : 'circle'}`}
+          style={slotRect ? { left: slotRect.left, top: slotRect.top, width: slotRect.width } : undefined}
           ref={stripRef}
           aria-label="Spotify player"
-          aria-hidden
         />
       )}
 

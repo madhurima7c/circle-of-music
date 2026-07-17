@@ -406,6 +406,14 @@ export function CenterStack() {
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
+  // True while the Spotify embed is the sounding source (audioBus.ext set by
+  // GlobalPlayer) — decides progress bar vs the embedded Spotify slot.
+  const [embedActive, setEmbedActive] = useState(false);
+  useEffect(() => {
+    const iv = setInterval(() => setEmbedActive(!!audioBus.ext), 500);
+    return () => clearInterval(iv);
+  }, []);
+
   // Share popover state (the player card no longer flips).
   const [shareOpen, setShareOpen] = useState(false);
   // The share menu renders in a body-level portal (fixed overlay) so the
@@ -546,7 +554,16 @@ export function CenterStack() {
                     )}
                   </div>
 
-                  <ProgressBar trackDuration={track?.duration ?? null} />
+                  {/* Connected AND the embed is the sounding source: the
+                      Spotify widget replaces the progress row (GlobalPlayer's
+                      fixed strip seats itself over this slot — the iframe
+                      itself can't live in the card, it would reload on every
+                      route change). It brings its own full-length progress +
+                      seek; our transport row keeps driving it. On preview
+                      fallback the normal progress bar stays. */}
+                  {spotifyOn && embedActive
+                    ? <div className="spotify-slot" data-spotify-slot aria-hidden />
+                    : <ProgressBar trackDuration={track?.duration ?? null} />}
 
                   <div className="center__controls">
                     <button className="ctrl ctrl--shuffle" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>

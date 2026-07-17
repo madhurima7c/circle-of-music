@@ -117,6 +117,7 @@ export default function WorldGlobe() {
   const {
     status, tracks, trackIdx,
     playPlace, playPlaceNamed, loadQueue, appendTracks,
+    countryName, genreIdx,
   } = useStore();
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -170,6 +171,23 @@ export default function WorldGlobe() {
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  /* ---------- arrival sync: the interfaces speak to each other ----------
+   * Landing here while music from the Circle (or the hub) is playing, the
+   * globe turns to THAT country and highlights it, and the song's genre
+   * lights up on the rail — without touching the playing queue. Runs once,
+   * and never overrides a selection the user already made here. */
+  const arrivalSynced = useRef(false);
+  useEffect(() => {
+    if (arrivalSynced.current || !features.length) return;
+    if (selectedGeoRef.current) { arrivalSynced.current = true; return; }
+    if (status !== 'ready' || !tracks.length) return;   // nothing playing (yet)
+    arrivalSynced.current = true;
+    const geo = geoName(countryName);
+    if (!features.some(f => f.properties.NAME === geo)) return;
+    setSelectedGeo(geo);   // highlight + camera glide (the fly-to effect)
+    setSelectedGenres(prev => (prev.length ? prev : [genreIdx]));
+  }, [features, status, tracks.length, countryName, genreIdx]);
 
   /* ---------- responsive sizing ---------- */
   useEffect(() => {
