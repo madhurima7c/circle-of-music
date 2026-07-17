@@ -1,22 +1,29 @@
 /**
- * World songs — popular songs for EVERY globe nation, per wheel genre.
+ * World songs v2 — popular songs for EVERY globe nation, per wheel genre.
  * Powers the World's song dots: pick genres, see their songs everywhere.
  *
  *   npm run world-songs                          # everything (hours; resumable)
  *   npm run world-songs -- --genres "Jazz,Rock"  # limit to genres
  *   npm run world-songs -- --countries "France"  # limit to countries
  *   npm run world-songs -- --limit 20            # first N countries per genre
+ *   npm run world-songs -- --fresh               # re-run all countries (ignores __done)
  *
  * Per (country × genre):
  *   1. Artist candidates, popularity-first:
- *      MusicBrainz artist search `country:ISO AND (tag:…)` (score-ordered,
- *      1 req/1.1s — their hard rate limit), unioned with our curated seeds
- *      (wheel countries) and world-seeds buckets.
- *   2. Deezer resolution: artist → top tracks (popularity-ordered, preview
- *      required). Up to SONGS_PER_PAIR songs per pairing, a couple per
- *      artist so one act can't own a country.
- *   3. Coordinates: the origins pipeline where it knows the artist,
- *      otherwise the country's label point with deterministic jitter.
+ *      a) MusicBrainz artist search `country:ISO AND (tag:…)` — up to 40 artists
+ *         per query, score-ordered (1 req/1.1s — their hard rate limit).
+ *      b) Deezer search `"genre country"` — popular tracks in that style.
+ *      c) Curated seeds (wheel countries) and world-seeds buckets.
+ *   2. Genre verification — cross-check each artist against:
+ *      a) MusicBrainz tags (the artist must carry a matching tag).
+ *      b) Every Noise at Once micro-genres for the country (the artist's
+ *         Deezer genre must map to one of our wheel genres).
+ *      c) Deezer's own genre_id on the artist profile.
+ *   3. Deezer resolution: artist → top 25 tracks (popularity-ordered, preview
+ *      required). Up to SONGS_PER_PAIR songs per pairing, a few per artist so
+ *      one act can't own a country.
+ *   4. Coordinates: the origins pipeline where it knows the artist, otherwise
+ *      the country's label point with deterministic jitter.
  *
  * Output public/world-songs/<genre-slug>.json (fetched lazily by the app):
  *   { "<GeoJSON NAME>": [ { i: deezerTrackId, t: title, a: artist,
@@ -33,10 +40,11 @@ const OUT_DIR = path.join(ROOT, 'public', 'world-songs');
 const UA = 'MusicExploration/0.1 ( https://github.com/madhurima7c/circle-of-music )';
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const SONGS_PER_PAIR = 8;     // 175 countries × 8 ≈ 1,400+ per genre
-const PER_ARTIST_CAP = 2;     // variety beats depth inside one pairing
-const MB_ARTISTS = 12;
-const MB_MIN_SCORE = 60;
+const SONGS_PER_PAIR = 50;    // max songs per country × genre
+const PER_ARTIST_CAP = 5;     // tracks taken from one artist per pairing
+const MB_ARTISTS = 40;        // MusicBrainz artist search limit
+const MB_MIN_SCORE = 50;      // lower threshold → more candidates to verify
+const DZ_SEARCH_TRACKS = 50;  // Deezer search results per query
 
 /* ---------- inputs ---------- */
 const geoIso = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'geo-iso.json'), 'utf8')) as Record<string, string>;
@@ -55,8 +63,10 @@ const origins = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'origins.json'), 
 const geo = JSON.parse(
   readFileSync(path.join(ROOT, 'public', 'geo', 'countries-110m.geojson'), 'utf8'),
 ) as { features: Array<{ properties: { NAME: string; LABEL_X: number; LABEL_Y: number } }> };
+const enaoGenres = JSON.parse(
+  readFileSync(path.join(ROOT, 'lib', 'enao-genres.json'), 'utf8'),
+) as Record<string, string[]>;
 
-// Import would drag in TS path aliases; keep the tag map inline-read instead.
 const mbTagsSrc = readFileSync(path.join(ROOT, 'lib', 'musicbrainz-tags.ts'), 'utf8');
 function extractRecord(varName: string): Record<string, unknown> {
   const m = mbTagsSrc.match(new RegExp(`${varName}[^=]*=\\s*({[\\s\\S]*?})\\s*;`));
@@ -71,8 +81,74 @@ for (const f of geo.features) {
   LABEL_POINT.set(f.properties.NAME, { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X });
 }
 
-// Our-country-name → GeoJSON NAME (only the US differs among the wheel 20).
 const SEED_TO_GEO: Record<string, string> = { 'United States': 'United States of America' };
+
+/* ---------- ENAO micro-genre → wheel genre mapping ----------
+ * Each of our 20 genres maps to keywords; an ENAO micro-genre matches if
+ * any keyword appears as a substring. This lets us verify that a Deezer
+ * artist's genre aligns with what ENAO says exists in that country. */
+const GENRE_KEYWORDS: Record<string, string[]> = {
+  Afrobeats:    ['afrobeat', 'afropop', 'afro'],
+  Ambient:      ['ambient', 'drone', 'chillout', 'new age', 'meditation'],
+  'Bossa Nova': ['bossa nova', 'bossa', 'mpb', 'tropicalia'],
+  Classical:    ['classical', 'baroque', 'chamber', 'opera', 'symphony', 'orchestral', 'carnatic', 'hindustani', 'qawwali', 'gamelan'],
+  Cumbia:       ['cumbia'],
+  Disco:        ['disco', 'eurodance', 'hi-nrg', 'italo'],
+  Electronic:   ['electronic', 'electronica', 'idm', 'synth', 'glitch', 'downtempo', 'trip hop', 'breakbeat', 'drum and bass', 'dnb', 'jungle'],
+  Folk:         ['folk', 'singer-songwriter', 'traditional', 'bluegrass', 'country', 'fado', 'chanson', 'flamenco', 'ranchera', 'tango', 'mbalax', 'gnawa'],
+  Funk:         ['funk', 'p-funk', 'boogie'],
+  'Hip Hop':    ['hip hop', 'hip-hop', 'rap', 'trap', 'drill', 'grime', 'boom bap', 'crunk', 'phonk'],
+  House:        ['house', 'garage', 'uk garage', 'speed garage'],
+  Indie:        ['indie', 'alternative', 'shoegaze', 'dream pop', 'lo-fi', 'noise pop', 'post-rock', 'emo', 'math rock'],
+  Jazz:         ['jazz', 'bebop', 'bop', 'swing', 'big band', 'hard bop', 'cool jazz', 'modal', 'free jazz', 'latin jazz', 'smooth jazz'],
+  Pop:          ['pop', 'k-pop', 'j-pop', 'c-pop', 'europop', 'synthpop', 'dancepop', 'teen pop', 'bubblegum'],
+  Punk:         ['punk', 'hardcore', 'post-punk', 'anarcho', 'oi', 'ska punk', 'pop punk'],
+  Reggae:       ['reggae', 'dub', 'dancehall', 'ska', 'rocksteady', 'roots'],
+  Rock:         ['rock', 'metal', 'grunge', 'blues rock', 'hard rock', 'prog rock', 'psychedelic', 'stoner', 'garage rock', 'surf'],
+  Soul:         ['soul', 'r&b', 'rnb', 'motown', 'gospel', 'neo soul', 'rhythm and blues', 'neo-soul'],
+  Techno:       ['techno', 'minimal', 'acid', 'industrial', 'ebm', 'gabber', 'hardstyle', 'trance'],
+  World:        ['world', 'ethnic', 'global', 'fusion', 'devotional', 'sufi', 'griot', 'highlife', 'soukous', 'zouk', 'calypso', 'soca', 'bhangra', 'bollywood', 'filmi', 'enka', 'kayokyoku', 'sertanejo', 'axe', 'rebetiko', 'rai', 'chaabi'],
+};
+
+function enaoMatchesGenre(country: string, genre: string): boolean {
+  const micros = enaoGenres[country];
+  if (!micros || !micros.length) return true; // no ENAO data → don't filter
+  const keywords = GENRE_KEYWORDS[genre];
+  if (!keywords) return true;
+  return micros.some(m => keywords.some(kw => m.includes(kw)));
+}
+
+/* ---------- Deezer genre_id → wheel genre mapping ---------- */
+const DEEZER_GENRE_MAP: Record<number, string[]> = {
+  // Deezer genre IDs: https://api.deezer.com/genre
+  0:   [],                                    // All
+  2:   ['World', 'Folk'],                     // Pop → too broad, skip
+  85:  ['Jazz', 'Soul'],                      // Alternative
+  106: ['Electronic', 'Techno', 'House'],      // Electro
+  113: ['Rock'],                               // Rock
+  116: ['Hip Hop'],                            // Rap/Hip Hop
+  129: ['Jazz'],                               // Jazz
+  132: ['Classical'],                          // Classical
+  144: ['Reggae'],                             // Reggae
+  152: ['Pop'],                                // Pop
+  153: ['Soul', 'Funk'],                       // R&B
+  165: ['Soul'],                               // Soul & Funk
+  169: ['Folk'],                               // Folk
+  170: ['Metal'],                              // Metal
+  173: ['Ambient'],                            // Chillout/Lounge
+  186: ['World', 'Folk'],                      // World
+  197: ['World', 'Folk', 'Afrobeats'],         // Latin / African
+  464: ['Electronic', 'Techno', 'House'],      // Dance
+  466: ['Punk', 'Rock'],                       // Punk
+  549: ['Indie', 'Rock'],                      // Indie
+};
+
+function deezerGenreMatches(genreId: number | undefined, targetGenre: string): boolean {
+  if (!genreId) return true; // unknown → don't filter
+  const mapped = DEEZER_GENRE_MAP[genreId];
+  if (!mapped || !mapped.length) return true;
+  return mapped.includes(targetGenre);
+}
 
 /* ---------- normalization (keep in sync with lib/stories.ts) ---------- */
 const FOLD: Record<string, string> = {
@@ -114,13 +190,38 @@ async function mbArtists(iso: string, genre: string): Promise<string[]> {
     const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
     if (res.status === 503) { await sleep(5000); return []; }
     if (!res.ok) return [];
-    const data = (await res.json()) as { artists?: Array<{ name?: string; score?: number }> };
+    const data = (await res.json()) as { artists?: Array<{ name?: string; score?: number; tags?: Array<{ name: string }> }> };
     return (data.artists ?? [])
       .filter((a) => (a.score ?? 0) >= MB_MIN_SCORE)
       .map((a) => a.name)
       .filter((n): n is string => !!n && n.trim().length > 0);
   } catch {
     return [];
+  }
+}
+
+/** Verify an artist has matching tags on MusicBrainz (for artists found via
+ *  non-MB sources). Returns true if we find at least one matching tag, or if
+ *  MusicBrainz has no tags at all (benefit of the doubt). */
+async function mbVerifyArtist(artistName: string, genre: string): Promise<boolean> {
+  const tags = GENRE_TO_MB_TAGS[genre] ?? [genre.toLowerCase()];
+  const q = `artist:"${artistName.replace(/"/g, '')}"`;
+  const url = `https://musicbrainz.org/ws/2/artist?query=${encodeURIComponent(q)}&fmt=json&limit=3`;
+  const wait = 1100 - (Date.now() - lastMb);
+  if (wait > 0) await sleep(wait);
+  lastMb = Date.now();
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
+    if (!res.ok) return true; // can't verify → pass
+    const data = (await res.json()) as { artists?: Array<{ name?: string; tags?: Array<{ name: string }> }> };
+    const target = normName(artistName);
+    const match = (data.artists ?? []).find(a => normName(a.name ?? '') === target);
+    if (!match) return true; // not on MB → can't verify, pass
+    const artistTags = (match.tags ?? []).map(t => t.name.toLowerCase());
+    if (!artistTags.length) return true; // no tags → pass
+    return tags.some(t => artistTags.includes(t));
+  } catch {
+    return true;
   }
 }
 
@@ -135,7 +236,7 @@ async function deezer<T>(pathAndQuery: string): Promise<T | null> {
         });
         const data = (await res.json()) as T & { error?: { code?: number } };
         if ((data as { error?: { code?: number } }).error?.code === 4) {
-          await sleep(5500);           // quota exceeded — wait a window
+          await sleep(5500);
           continue;
         }
         return data;
@@ -145,7 +246,6 @@ async function deezer<T>(pathAndQuery: string): Promise<T | null> {
     }
     return null;
   };
-  // ~7 req/s ceiling, serialized through a rolling promise.
   const prev = deezerBudget;
   let done: () => void;
   deezerBudget = new Promise<void>((r) => { done = r; });
@@ -155,14 +255,16 @@ async function deezer<T>(pathAndQuery: string): Promise<T | null> {
   return result;
 }
 
-type DzArtist = { id: number; name: string };
+type DzArtist = { id: number; name: string; nb_fan?: number };
 type DzTrack = {
-  id: number; title: string; preview?: string;
+  id: number; title: string; preview?: string; rank?: number;
   artist?: { id?: number; name?: string };
+  album?: { genre_id?: number };
 };
+type DzArtistFull = DzArtist & { genre_id?: number };
 
-async function resolveArtist(name: string): Promise<DzArtist | null> {
-  const data = await deezer<{ data?: DzArtist[] }>(
+async function resolveArtist(name: string): Promise<DzArtistFull | null> {
+  const data = await deezer<{ data?: DzArtistFull[] }>(
     `/search/artist?q=${encodeURIComponent(name)}&limit=5`,
   );
   const hits = data?.data ?? [];
@@ -171,7 +273,17 @@ async function resolveArtist(name: string): Promise<DzArtist | null> {
 }
 
 async function topTracks(artistId: number): Promise<DzTrack[]> {
-  const data = await deezer<{ data?: DzTrack[] }>(`/artist/${artistId}/top?limit=7`);
+  const data = await deezer<{ data?: DzTrack[] }>(`/artist/${artistId}/top?limit=25`);
+  return (data?.data ?? []).filter((t) => t.preview);
+}
+
+/** Search Deezer directly for tracks matching "genre country" — surfaces
+ *  popular songs that might not show up via artist-first discovery. */
+async function deezerSearchTracks(genre: string, countryName: string): Promise<DzTrack[]> {
+  const query = `${genre} ${countryName}`;
+  const data = await deezer<{ data?: DzTrack[] }>(
+    `/search/track?q=${encodeURIComponent(query)}&limit=${DZ_SEARCH_TRACKS}`,
+  );
   return (data?.data ?? []).filter((t) => t.preview);
 }
 
@@ -183,39 +295,80 @@ function coordsFor(artist: string, geoNameKey: string, songIdx: number): { la: n
   const base = o ?? LABEL_POINT.get(geoNameKey) ?? null;
   if (!base) return null;
   const h = hashCode(`${artist}|${songIdx}`);
-  const spread = o ? 0.5 : 3.0;   // curated coords barely jitter; label points fan out
+  const spread = o ? 0.5 : 3.0;
   return {
     la: Math.round((base.lat + ((h % 100) / 100 - 0.5) * spread) * 100) / 100,
     ln: Math.round((base.lng + (((h >> 7) % 100) / 100 - 0.5) * spread) * 100) / 100,
   };
 }
 
+// Track genre-verification failures for logging
+let verifySkips = 0;
+
 async function songsFor(geoNameKey: string, genre: string): Promise<Song[]> {
   const iso = geoIso[geoNameKey];
   const seedName = Object.entries(SEED_TO_GEO).find(([, g]) => g === geoNameKey)?.[0] ?? geoNameKey;
+  const hasEnaoGenre = enaoMatchesGenre(geoNameKey, genre);
 
-  // Popularity-first artist list: MB score order, then curated, then world-seeds.
+  // Phase 1: gather artist candidates from all sources.
   const names: string[] = [];
   const seenArtists = new Set<string>();
-  const add = (n: string) => {
+  const artistSource = new Map<string, string>(); // track source for verification
+  const add = (n: string, source: string) => {
     const k = normName(n);
-    if (k && !seenArtists.has(k)) { seenArtists.add(k); names.push(n); }
+    if (k && !seenArtists.has(k)) {
+      seenArtists.add(k);
+      names.push(n);
+      artistSource.set(k, source);
+    }
   };
-  (iso ? await mbArtists(iso, genre) : []).forEach(add);
-  (seeds.artists[seedName]?.[genre] ?? []).forEach(add);
-  (worldSeeds[geoNameKey]?.genres?.[genre] ?? []).forEach(add);
 
+  // Source A: MusicBrainz (pre-verified by tag — highest trust)
+  (iso ? await mbArtists(iso, genre) : []).forEach(n => add(n, 'mb'));
+
+  // Source B: curated seeds (hand-picked — highest trust)
+  (seeds.artists[seedName]?.[genre] ?? []).forEach(n => add(n, 'seed'));
+
+  // Source C: world-seeds (Deezer-verified — high trust)
+  (worldSeeds[geoNameKey]?.genres?.[genre] ?? []).forEach(n => add(n, 'ws'));
+
+  // Source D: Deezer direct search (needs verification)
+  const searchTracks = await deezerSearchTracks(genre, seedName);
+  for (const t of searchTracks) {
+    if (t.artist?.name) add(t.artist.name, 'dz');
+  }
+
+  // Phase 2: resolve each artist on Deezer, verify genre, take best tracks.
   const songs: Song[] = [];
   const seenTitles = new Set<string>();
+
   for (const name of names) {
     if (songs.length >= SONGS_PER_PAIR) break;
     const artist = await resolveArtist(name);
     if (!artist) continue;
+
+    // Genre verification for non-MB/non-seed sources.
+    const source = artistSource.get(normName(name)) ?? 'unknown';
+    if (source === 'dz') {
+      // Deezer-found artists: verify via Deezer genre_id AND cross-check
+      // with ENAO (if the country has ENAO data for this genre).
+      if (!deezerGenreMatches(artist.genre_id, genre)) {
+        verifySkips++;
+        continue;
+      }
+      // If ENAO says this genre doesn't exist in this country AND the
+      // artist came only from a generic Deezer search, be skeptical.
+      if (!hasEnaoGenre && source === 'dz') {
+        const mbOk = await mbVerifyArtist(name, genre);
+        if (!mbOk) { verifySkips++; continue; }
+      }
+    }
+
     const tracks = await topTracks(artist.id);
     let taken = 0;
     for (const t of tracks) {
       if (taken >= PER_ARTIST_CAP || songs.length >= SONGS_PER_PAIR) break;
-      if (t.artist?.id !== artist.id) continue;      // no collab pollution
+      if (t.artist?.id !== artist.id) continue;
       const titleKey = `${normName(artist.name)}|${normTitle(t.title)}`;
       if (seenTitles.has(titleKey)) continue;
       const c = coordsFor(artist.name, geoNameKey, songs.length);
@@ -239,6 +392,7 @@ async function main() {
   const onlyGenres = pick('genres')?.split(',').map((s) => s.trim());
   const onlyCountries = pick('countries')?.split(',').map((s) => s.trim());
   const limit = Number(pick('limit') ?? 0) || Infinity;
+  const fresh = args.includes('--fresh');
 
   mkdirSync(OUT_DIR, { recursive: true });
   const genres = seeds.genres.filter((g) => !onlyGenres || onlyGenres.includes(g));
@@ -249,12 +403,19 @@ async function main() {
     const data: GenreFile = existsSync(file)
       ? (JSON.parse(readFileSync(file, 'utf8')) as GenreFile)
       : {};
-    const done = new Set((data.__done as string[] | undefined) ?? []);
+    const done = fresh ? new Set<string>() : new Set((data.__done as string[] | undefined) ?? []);
+    if (fresh) {
+      // Wipe old data for this genre when --fresh is used
+      for (const k of Object.keys(data)) {
+        if (k !== '__done') delete data[k];
+      }
+    }
     const todo = allCountries.filter((c) => !done.has(c)).slice(0, limit);
     let total = Object.entries(data)
       .filter(([k]) => k !== '__done')
       .reduce((n, [, v]) => n + (v as Song[]).length, 0);
     console.log(`\n=== ${genre}: ${done.size} countries done, ${todo.length} to go, ${total} songs so far ===`);
+    verifySkips = 0;
 
     for (const country of todo) {
       const songs = await songsFor(country, genre);
@@ -263,7 +424,7 @@ async function main() {
       data.__done = [...done];
       total += songs.length;
       writeFileSync(file, JSON.stringify(data));
-      console.log(`  ${genre} · ${country}: +${songs.length} (genre total ${total})`);
+      console.log(`  ${genre} · ${country}: +${songs.length} (genre total ${total})${verifySkips ? ` [${verifySkips} genre-filtered]` : ''}`);
     }
   }
   console.log('\ndone.');

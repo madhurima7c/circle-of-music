@@ -46,10 +46,11 @@ export function WorldNowPlaying() {
         </div>
       ) : (
         <>
-          {/* "FROM 🇮🇳 INDIA, ASIA" origin banner */}
+          {/* "FROM 🇮🇳 NIGERIA, AFRICA" origin banner — uses the store's
+              country (what the user selected/tapped), not the artist-origin
+              lookup which can disagree for diaspora artists. */}
           {(() => {
-            const origin = originFor(track.artist);
-            const place = origin?.country ?? countryName;
+            const place = countryName;
             const iso = countryISO(place);
             const continent = countryContinent(place);
             if (!place) return null;

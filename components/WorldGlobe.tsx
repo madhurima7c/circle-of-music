@@ -548,6 +548,10 @@ export default function WorldGlobe() {
   const [hoverTrack, setHoverTrack] = useState<Track | null>(null);
   const [hoverXY, setHoverXY] = useState<{ x: number; y: number } | null>(null);
   const hoverIdRef = useRef<string | null>(null);
+
+  // Playing marker hover — same card style as song dots.
+  type MarkerInfo = { img: string; title: string; artist: string; album: string; place: string; genreIdx: number; releaseDate: string | null; lat: number; lng: number };
+  const [markerHover, setMarkerHover] = useState<MarkerInfo | null>(null);
   const onDotHover = (d: object | null) => {
     const dot = (d as SongDot | null) ?? null;
     hoverIdRef.current = dot?.id ?? null;
@@ -555,6 +559,7 @@ export default function WorldGlobe() {
     setHoverTrack(null);
     if (dot) {
       setDelayedHover(null);
+      setMarkerHover(null);
       if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
     }
     if (!dot) return;
@@ -604,10 +609,15 @@ export default function WorldGlobe() {
       img: track.image || '',
       title: track.title,
       artist: track.artist,
+      album: track.album || '',
       place: dot ? dot.country : (liveOrigin?.place || liveOrigin?.country || ''),
+      genreIdx: dot?.genreIdx ?? -1,
+      releaseDate: track.releaseDate ?? null,
     };
   }, [status, track, trackIdx, liveOrigin]);
   const htmlMarkers = useMemo(() => (playingMarker ? [playingMarker] : []), [playingMarker]);
+  const playingMarkerRef = useRef(playingMarker);
+  playingMarkerRef.current = playingMarker;
 
   const makeMarkerEl = (d: object) => {
     const m = d as NonNullable<typeof playingMarker>;
@@ -615,15 +625,24 @@ export default function WorldGlobe() {
     el.className = 'origin-marker';
     el.dataset.playing = 'true';
     el.dataset.kind = m.img ? 'avatar' : 'dot';
-    el.innerHTML =
-      (m.img
-        ? `<img class="origin-marker__img" src="${esc(m.img)}" alt="" draggable="false"/>`
-        : `<span class="origin-marker__dot"></span>`) +
-      `<div class="origin-pop">` +
-        `<strong>${esc(m.title)}</strong>` +
-        `<span class="origin-pop__where">${esc(m.artist)}</span>` +
-        (m.place ? `<span class="origin-pop__songs">${esc(m.place)}</span>` : '') +
-      `</div>`;
+    el.innerHTML = m.img
+      ? `<img class="origin-marker__img" src="${esc(m.img)}" alt="" draggable="false"/>`
+      : `<span class="origin-marker__dot"></span>`;
+    el.addEventListener('mouseenter', () => {
+      const pm = playingMarkerRef.current;
+      if (!pm) return;
+      setDelayedHover(null);
+      setHoverDot(null);
+      hoverIdRef.current = null;
+      if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
+      setMarkerHover(pm);
+      const g = globeRef.current as unknown as {
+        getScreenCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number };
+      };
+      const xy = g?.getScreenCoords?.(pm.lat, pm.lng, 0.019);
+      if (xy) setHoverXY(xy);
+    });
+    el.addEventListener('mouseleave', () => setMarkerHover(null));
     return el;
   };
 
@@ -720,9 +739,9 @@ export default function WorldGlobe() {
 
       {toast && <div className="world-toast" role="status">{toast}</div>}
 
-      {/* Country hover — delayed pill (only shows after 1.5s on the same
-          country, so sweeping across the globe doesn't flash tooltips). */}
-      {delayedHover && (() => {
+      {/* Country hover — delayed pill. Hidden when any song/marker card is
+          showing so the two hovers never overlap. */}
+      {delayedHover && !hoverDot && !markerHover && (() => {
         const hasMusic = PLAYABLE_GEO_NAMES.has(delayedHover) || worldCovered.has(delayedHover);
         const iso = (GEO_ISO as Record<string, string>)[delayedHover];
         return (
@@ -740,32 +759,39 @@ export default function WorldGlobe() {
         );
       })()}
 
-      {/* Song hover — a shrunken now-playing card above the dot. */}
-      {hoverDot && hoverXY && (
-        <div
-          className="song-hover"
-          style={{
-            // keep the card on-screen for dots near the edges
-            left: Math.min(Math.max(hoverXY.x, 132), Math.max(size.w - 132, 132)),
-            top: Math.max(hoverXY.y, 96),
-          }}
-        >
-          {hoverTrack?.image
-            ? <img className="song-hover__cover" src={hoverTrack.image} alt="" />
-            : <div className="song-hover__cover" />}
-          <div className="song-hover__meta">
-            <strong className="song-hover__title">{hoverDot.title ?? hoverDot.artist}</strong>
-            <span className="song-hover__album">{hoverTrack?.album ?? hoverDot.artist}</span>
-            <span className="song-hover__about">
-              {STR.card.aboutFallback(
-                GENRES[hoverDot.genreIdx] ?? '',
-                hoverDot.country,
-                releaseYear(hoverTrack?.releaseDate),
-              )}
-            </span>
+      {/* Song/marker hover — same card for both dot hovers and the playing
+          marker. Shows cover art, title, album, genre/country/year line. */}
+      {(() => {
+        const isDot = !!(hoverDot && hoverXY);
+        const isMarker = !!(markerHover && hoverXY);
+        if (!isDot && !isMarker) return null;
+        const coverImg = isDot ? hoverTrack?.image : markerHover!.img;
+        const title = isDot ? (hoverDot!.title ?? hoverDot!.artist) : markerHover!.title;
+        const album = isDot ? (hoverTrack?.album ?? hoverDot!.artist) : markerHover!.album;
+        const genreName = isDot ? (GENRES[hoverDot!.genreIdx] ?? '') : (GENRES[markerHover!.genreIdx] ?? '');
+        const country = isDot ? hoverDot!.country : markerHover!.place;
+        const date = isDot ? hoverTrack?.releaseDate : markerHover!.releaseDate;
+        return (
+          <div
+            className="song-hover"
+            style={{
+              left: Math.min(Math.max(hoverXY!.x, 132), Math.max(size.w - 132, 132)),
+              top: Math.max(hoverXY!.y, 96),
+            }}
+          >
+            {coverImg
+              ? <img className="song-hover__cover" src={coverImg} alt="" />
+              : <div className="song-hover__cover" />}
+            <div className="song-hover__meta">
+              <strong className="song-hover__title">{title}</strong>
+              <span className="song-hover__album">{album}</span>
+              <span className="song-hover__about">
+                {STR.card.aboutFallback(genreName, country, releaseYear(date))}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {status === 'empty' && (
         <div className="world-hint">{STR.world.tapHint}</div>
