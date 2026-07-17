@@ -535,7 +535,16 @@ export default function WorldGlobe() {
     setHovered(name);
     if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
     if (!name) { setDelayedHover(null); return; }
-    hoverTimerRef.current = setTimeout(() => setDelayedHover(name), 900);
+    hoverTimerRef.current = setTimeout(() => {
+      // Verify the cursor is STILL resting on the globe canvas — it may
+      // have moved onto overlay UI (hint, toast, dock, card) without the
+      // canvas ever seeing another mousemove to cancel this timer.
+      const { x, y } = mouseRef.current;
+      const el = document.elementFromPoint(x, y);
+      if (el?.tagName === 'CANVAS' && wrapRef.current?.contains(el)) {
+        setDelayedHover(name);
+      }
+    }, 900);
   }, []);
 
   useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
@@ -552,6 +561,21 @@ export default function WorldGlobe() {
   // Playing marker hover — same card style as song dots.
   type MarkerInfo = { img: string; title: string; artist: string; album: string; place: string; genreIdx: number; releaseDate: string | null; lat: number; lng: number };
   const [markerHover, setMarkerHover] = useState<MarkerInfo | null>(null);
+
+  /* Leaving the globe entirely (onto the now-playing card, dock, nav…)
+   * never delivers a globe.gl hover(null) — raycasts only run on canvas
+   * mousemove. Without this, the pending country timer fires AFTER the
+   * cursor has left and the pill appears over other UI, and dot/marker
+   * hovers stick. Clear every hover state on wrapper mouseleave. */
+  const clearAllHovers = useCallback(() => {
+    setHovered(null);
+    setDelayedHover(null);
+    setHoverDot(null);
+    setHoverTrack(null);
+    hoverIdRef.current = null;
+    setMarkerHover(null);
+    if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
+  }, []);
   const onDotHover = (d: object | null) => {
     const dot = (d as SongDot | null) ?? null;
     hoverIdRef.current = dot?.id ?? null;
@@ -619,6 +643,17 @@ export default function WorldGlobe() {
   const playingMarkerRef = useRef(playingMarker);
   playingMarkerRef.current = playingMarker;
 
+  /* The marker element is rebuilt whenever the song changes — if the
+   * cursor was resting on it, its mouseleave never fires and the hover
+   * card would stick showing the OLD song. Same for song dots when the
+   * dot set is swapped (genre/queue change) under the cursor. */
+  useEffect(() => { setMarkerHover(null); }, [playingMarker]);
+  useEffect(() => {
+    setHoverDot(null);
+    setHoverTrack(null);
+    hoverIdRef.current = null;
+  }, [dots]);
+
   const makeMarkerEl = (d: object) => {
     const m = d as NonNullable<typeof playingMarker>;
     const el = document.createElement('div');
@@ -647,7 +682,7 @@ export default function WorldGlobe() {
   };
 
   return (
-    <div ref={wrapRef} className="world-globe" onMouseMove={onGlobeMouseMove}>
+    <div ref={wrapRef} className="world-globe" onMouseMove={onGlobeMouseMove} onMouseLeave={clearAllHovers}>
       {size.w > 0 && (
         <Globe
           ref={globeRef}
@@ -699,6 +734,9 @@ export default function WorldGlobe() {
           htmlElementVisibilityModifier={(el: HTMLElement, visible: boolean) => {
             el.style.opacity = visible ? '1' : '0';
             el.style.pointerEvents = visible ? 'auto' : 'none';
+            // Rotating the marker behind the globe while hovered fires no
+            // mouseleave — drop the card so it can't linger unanchored.
+            if (!visible) setMarkerHover(null);
           }}
           ringsData={htmlMarkers}
           ringLat={(d: object) => (d as { lat: number }).lat}
@@ -713,7 +751,15 @@ export default function WorldGlobe() {
 
       {/* Genre rail — multi-select (max five). Every genre shows its own
           fixed color as a swatch; selecting fills the chip with it. */}
-      <div className="world-genres" role="listbox" aria-label="Genre" aria-multiselectable="true">
+      <div
+        className="world-genres"
+        role="listbox"
+        aria-label="Genre"
+        aria-multiselectable="true"
+        /* the rail overlays the canvas — entering it stops globe raycasts
+           without a wrapper mouseleave, so clear hovers here too */
+        onMouseEnter={clearAllHovers}
+      >
         {GENRES.map((g, i) => {
           const active = selectedGenres.includes(i);
           const full = !active && selectedGenres.length >= MAX_GENRES;

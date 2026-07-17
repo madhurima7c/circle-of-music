@@ -174,8 +174,10 @@ export function ExperienceNav() {
         type="button"
         className="xnav__item xnav__item--soon"
         aria-disabled="true"
-        onMouseEnter={() => setShadesHover(true)}
-        onMouseLeave={() => setShadesHover(false)}
+        /* pointer events, gated to mice — a touch tap fires mouseenter
+           with no mouseleave and would strand the pill on screen */
+        onPointerEnter={(e) => { if (e.pointerType === 'mouse') setShadesHover(true); }}
+        onPointerLeave={() => setShadesHover(false)}
       >
         <span className="xnav__iconwrap" aria-hidden>
           <img className="xnav__icon xnav__icon--shades" src="/icons/nav-shades.png" alt="" />
