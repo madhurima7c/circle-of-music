@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useStore } from '@/lib/store';
 import { GENRES } from '@/lib/data';
 import { trackLinks } from '@/lib/links';
@@ -9,6 +9,10 @@ import { toggleFind, useIsFind } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
 import { originFor } from '@/lib/origins';
 import { countryISO, countryContinent } from '@/lib/geo';
+import {
+  spotifyEnabled, subscribeSpotify, isSpotifyConnected,
+  connectSpotify, disconnectSpotify,
+} from '@/lib/spotify';
 import { ProgressBar, BrandIcon } from '@/components/Overlay';
 
 /**
@@ -25,6 +29,7 @@ export function WorldNowPlaying() {
   const track = tracks[trackIdx];
   const [more, setMore] = useState(false);
   const saved = useIsFind(track?.id);
+  const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
 
   if (status === 'empty') return null;
   const pending = status === 'populating' || status === 'error';
@@ -141,12 +146,23 @@ export function WorldNowPlaying() {
           </div>
 
           {more && links && (
-            <div className="wnp__links" role="menu" aria-label={STR.card.listenIn}>
-              <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer" title="Spotify"><BrandIcon kind="spotify" /></a>
-              <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer" title="Apple Music"><BrandIcon kind="apple" /></a>
-              <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer" title="Youtube"><BrandIcon kind="youtube" /></a>
-              <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer" title="Deezer"><BrandIcon kind="deezer" /></a>
-            </div>
+            <>
+              <div className="wnp__links" role="menu" aria-label={STR.card.listenIn}>
+                <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer" title="Spotify"><BrandIcon kind="spotify" /></a>
+                <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer" title="Apple Music"><BrandIcon kind="apple" /></a>
+                <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer" title="Youtube"><BrandIcon kind="youtube" /></a>
+                <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer" title="Deezer"><BrandIcon kind="deezer" /></a>
+              </div>
+              {spotifyEnabled && (
+                <button
+                  className="listen-menu__connect wnp__connect"
+                  data-connected={spotifyOn ? 'true' : 'false'}
+                  onClick={() => (spotifyOn ? disconnectSpotify() : connectSpotify())}
+                >
+                  {spotifyOn ? STR.spotify.connected : STR.spotify.connect}
+                </button>
+              )}
+            </>
           )}
 
           <button className="wnp__learn" onClick={() => setMore(m => !m)} aria-expanded={more}>

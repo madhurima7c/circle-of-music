@@ -6,11 +6,16 @@
  *
  * Setup (one-time, free):
  *   1. https://developer.spotify.com/dashboard → Create app
- *   2. Add redirect URIs: http://localhost:3000/ , /circle , /world
- *      (plus the production origin equivalents)
+ *   2. Add redirect URIs (Spotify no longer accepts http://localhost for
+ *      new apps — use the 127.0.0.1 loopback locally):
+ *        http://127.0.0.1:3000/spotify-callback
+ *        https://discovery-of-music.vercel.app/spotify-callback
  *   3. .env.local → NEXT_PUBLIC_SPOTIFY_CLIENT_ID=<client id>
  *
- * Flow: Authorization Code + PKCE (no server, no secret) → tokens in
+ * Flow: Authorization Code + PKCE (no server, no secret). "Connect" opens
+ * Spotify's login in a POPUP (full-page redirect fallback if blocked);
+ * the popup lands on /spotify-callback which exchanges the code and
+ * closes itself — the main app keeps playing throughout. Tokens live in
  * localStorage → Web Playback SDK ("Music Exploration" device) → search
  * the current artist+title → play the full track. GlobalPlayer owns the
  * wiring; this module owns auth, search, and the SDK device.
@@ -32,7 +37,16 @@ const listeners = new Set<() => void>();
 function emit() { listeners.forEach((l) => l()); }
 export function subscribeSpotify(l: () => void): () => void {
   listeners.add(l);
-  return () => listeners.delete(l);
+  // Tokens can land from ANOTHER window (the auth popup writes them to
+  // localStorage) — the storage event is how this window finds out.
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === LS.refresh || e.key === LS.access) l();
+  };
+  window.addEventListener('storage', onStorage);
+  return () => {
+    listeners.delete(l);
+    window.removeEventListener('storage', onStorage);
+  };
 }
 export function isSpotifyConnected(): boolean {
   if (typeof window === 'undefined') return false;
@@ -52,11 +66,16 @@ async function challenge(verifier: string): Promise<string> {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+/** One fixed callback path — the only redirect URI Spotify needs to know. */
 function redirectUri(): string {
-  return window.location.origin + window.location.pathname;
+  return window.location.origin + '/spotify-callback';
 }
 
-/** Kick off the login redirect. Returns only on failure. */
+/**
+ * Kick off the login in a POPUP so the app (and the music) keeps running;
+ * if the browser blocks the popup, fall back to a full-page redirect.
+ * Either way the code lands on /spotify-callback.
+ */
 export async function connectSpotify(): Promise<void> {
   if (!CLIENT_ID) return;
   const verifier = randomString(64);
@@ -69,7 +88,16 @@ export async function connectSpotify(): Promise<void> {
     code_challenge_method: 'S256',
     code_challenge: await challenge(verifier),
   });
-  window.location.href = `https://accounts.spotify.com/authorize?${params}`;
+  const url = `https://accounts.spotify.com/authorize?${params}`;
+  const w = 500, h = 780;
+  const left = Math.max(0, (window.screen.width - w) / 2);
+  const top = Math.max(0, (window.screen.height - h) / 2);
+  const popup = window.open(
+    url,
+    'spotify-auth',
+    `width=${w},height=${h},left=${left},top=${top},popup=yes`,
+  );
+  if (!popup) window.location.href = url; // popup blocked → redirect
 }
 
 export function disconnectSpotify(): void {
@@ -89,16 +117,16 @@ function storeTokens(data: { access_token?: string; refresh_token?: string; expi
   emit();
 }
 
-/** Handle ?code=… after the auth redirect. Call once on mount; no-op otherwise. */
-export async function handleSpotifyCallback(): Promise<void> {
-  if (!CLIENT_ID || typeof window === 'undefined') return;
-  const code = new URLSearchParams(window.location.search).get('code');
+/**
+ * Exchange an auth code for tokens (PKCE — the verifier is in localStorage,
+ * which the popup shares with the main window, same origin). Used by the
+ * /spotify-callback page. Returns true when tokens were stored.
+ */
+export async function exchangeSpotifyCode(code: string): Promise<boolean> {
+  if (!CLIENT_ID || typeof window === 'undefined') return false;
   const verifier = window.localStorage.getItem(LS.verifier);
-  if (!code || !verifier) return;
+  if (!verifier) return false;
   window.localStorage.removeItem(LS.verifier);
-  // Strip the code from the URL before any await so a re-render can't reuse it.
-  const clean = window.location.pathname + window.location.hash;
-  window.history.replaceState(null, '', clean);
   try {
     const res = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -111,8 +139,23 @@ export async function handleSpotifyCallback(): Promise<void> {
         code_verifier: verifier,
       }),
     });
-    if (res.ok) storeTokens(await res.json());
-  } catch { /* stay disconnected */ }
+    if (!res.ok) return false;
+    storeTokens(await res.json());
+    return true;
+  } catch {
+    return false; /* stay disconnected */
+  }
+}
+
+/** Handle ?code=… after an auth redirect. Call once on mount; no-op otherwise. */
+export async function handleSpotifyCallback(): Promise<void> {
+  if (!CLIENT_ID || typeof window === 'undefined') return;
+  const code = new URLSearchParams(window.location.search).get('code');
+  if (!code || !window.localStorage.getItem(LS.verifier)) return;
+  // Strip the code from the URL before any await so a re-render can't reuse it.
+  const clean = window.location.pathname + window.location.hash;
+  window.history.replaceState(null, '', clean);
+  await exchangeSpotifyCode(code);
 }
 
 async function accessToken(): Promise<string | null> {

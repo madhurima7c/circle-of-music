@@ -1650,6 +1650,13 @@ html, body {
   transition: background 120ms ease;
 }
 .wnp__links a:hover { background: rgba(255, 255, 255, 0.1); }
+/* Connect Spotify on the dark World card — same entry as the Circle share
+   menu, recolored for the dark surface. */
+.wnp__connect {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+.wnp__connect[data-connected="true"] { color: rgba(255, 255, 255, 0.55); }
 .wnp__learn {
   align-self: center;
   padding: 4px 2px 2px;

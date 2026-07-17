@@ -116,6 +116,9 @@ export const STR = {
     connect: 'Connect Spotify',
     connected: 'Spotify ✓ full songs',
     disconnect: 'Disconnect Spotify (back to previews)',
+    connecting: 'Connecting Spotify…',
+    connectDone: 'Connected — you can close this window.',
+    connectFail: 'Spotify connection didn’t complete. Close this window and try again.',
   },
 
   card: {

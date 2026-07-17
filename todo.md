@@ -130,8 +130,9 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - [ ] **Contact email** for the "Contact us" mailto (currently blank To:).
 - [ ] **About us** copy (currently reuses the hub thesis).
 - [ ] Lightweight **vector icons** for World/Shades nav (current = PNGs extracted from raster-embedded SVGs).
-- [ ] **Spotify client ID** once the Vercel URL exists (whitelist it as redirect URI; env var must be set in Vercel at build time).
+- [ ] **Spotify client ID** — popup connect flow is BUILT (2026-07-16); user must create the free app at developer.spotify.com/dashboard, whitelist redirect URIs `http://127.0.0.1:3000/spotify-callback` (NOT localhost — Spotify rejects it for new apps) + `https://discovery-of-music.vercel.app/spotify-callback`, then set `NEXT_PUBLIC_SPOTIFY_CLIENT_ID` in `.env.local` AND Vercel env vars (redeploy). Dev-mode cap: owner + 25 allowlisted users (Dashboard → User Management). Full songs need Premium; misses auto-fall back to previews.
 - [ ] `seed-proposals.json` review; axes growth (24×24) decision.
+- [ ] **Accounts / cross-device library** (decided 2026-07-16: defer until Spotify is live). Plan when ready: Supabase free tier (email magic-link + Google auth; `finds` + `playlists` tables keyed by user id w/ RLS), local-first sync behind the existing `lib/library.ts` store interface — no UI changes needed. Sign-in stays optional ("save across devices"), never a wall.
 
 ## 🔎 Needs real-device testing (can't verify in the hidden preview tab)
 - [ ] Hand mode: toggle on with a real webcam — cursor tracking, pinch-hold click, pinch-drag spin.
