@@ -174,7 +174,7 @@ function Card({
       t.needsUpdate = true;
       return t;
     };
-    return { top: mk(-Math.PI / 2), bottom: mk(Math.PI / 2) };
+    return { top: mk(Math.PI / 2), bottom: mk(-Math.PI / 2) };
   }, [cover]);
 
   if (cover) {
