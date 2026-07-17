@@ -11,6 +11,8 @@ import { originFor, type ArtistOrigin } from '@/lib/origins';
 import { originForLive } from '@/lib/origins-live';
 import { normKey } from '@/lib/stories';
 import { STR } from '@/lib/strings';
+import { genreColor, genreInk } from '@/lib/genre-colors';
+import GEO_ISO from '@/lib/geo-iso.json';
 
 type Feature = {
   properties: { NAME: string; LABEL_X: number; LABEL_Y: number; [k: string]: unknown };
@@ -36,11 +38,10 @@ type GenreSongFile = Record<string, Array<{ i: number; t: string; a: string; la:
 
 type WorldEntry = { top: string[]; featured: string[]; genres: Record<string, string[]> };
 
-/** Up to five simultaneously-selected genres, one color each (placeholder
- *  palette — distinct against the dark globe; swap when the brand set
- *  arrives). Color follows selection ORDER, not the genre itself. */
+/** Up to five simultaneously-selected genres. Every genre owns a FIXED
+ *  color (lib/genre-colors.ts — anchored to everynoise.com), so a dot's
+ *  color identifies its genre no matter what else is selected. */
 export const MAX_GENRES = 5;
-const GENRE_COLORS = ['#3ce080', '#ffd166', '#ff6b9d', '#4cc9f0', '#c77dff'];
 
 // Stylized, non-satellite palette (matches the app's ink/accent).
 const COL = {
@@ -89,7 +90,7 @@ function dotMaterial(color: string): THREE.SpriteMaterial {
   }
   return m;
 }
-const DOT_SCALE = 0.6;       // world units (globe radius = 100) ≈ small flat dot
+const DOT_SCALE = 0.3;       // world units (globe radius = 100) ≈ tiny flat dot
 const DOT_ALTITUDE = 0.012;  // a hair above the 0.01 country caps
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -127,13 +128,12 @@ export default function WorldGlobe() {
   const selectedGeoRef = useRef(selectedGeo);
   selectedGeoRef.current = selectedGeo;
 
-  // Up to MAX_GENRES selected at once — none by default. Selection order
-  // assigns each its color.
+  // Up to MAX_GENRES selected at once — none by default. Each genre keeps
+  // its own fixed color from lib/genre-colors.ts.
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
   const selectedGenresRef = useRef(selectedGenres);
   selectedGenresRef.current = selectedGenres;
-  const colorFor = (genreIdx: number) =>
-    GENRE_COLORS[Math.max(0, selectedGenres.indexOf(genreIdx)) % GENRE_COLORS.length];
+  const colorFor = (genreIdx: number) => genreColor(GENRES[genreIdx] ?? '');
 
   const [worldSeeds, setWorldSeeds] = useState<Record<string, WorldEntry> | null>(null);
   useEffect(() => {
@@ -517,10 +517,16 @@ export default function WorldGlobe() {
     return worldCovered.has(name) ? COL.world : COL.dim;
   };
 
+  /** Country hover — a circular flag with the name beside it, riding the
+   *  cursor (globe.gl positions the label at the pointer already). */
   const label = (feat: object) => {
     const name = (feat as Feature).properties.NAME;
     const hasMusic = PLAYABLE_GEO_NAMES.has(name) || worldCovered.has(name);
-    return `<div class="globe-tip" data-playable="${hasMusic}">${esc(name)}${hasMusic ? '' : STR.world.exploreSuffix}</div>`;
+    const iso = (GEO_ISO as Record<string, string>)[name];
+    const flag = iso
+      ? `<img class="geo-tip__flag" src="https://flagcdn.com/w80/${iso.toLowerCase()}.png" alt="" />`
+      : `<span class="geo-tip__flag geo-tip__flag--none"></span>`;
+    return `<div class="geo-tip" data-playable="${hasMusic}">${flag}<span class="geo-tip__name">${esc(name)}</span></div>`;
   };
 
   /* ---------- the playing marker: avatar + sonar ring ---------- */
@@ -617,8 +623,13 @@ export default function WorldGlobe() {
           }}
           customLayerLabel={(d: object) => {
             const s = d as SongDot;
-            return `<div class="globe-tip" data-playable="true">${
-              s.title ? `${esc(s.title)} — ` : ''}${esc(s.artist)} · ${esc(s.country)}</div>`;
+            const c = colorFor(s.genreIdx);
+            return `<div class="song-tip">` +
+              `<span class="song-tip__dot" style="background:${c};box-shadow:0 0 8px ${c}"></span>` +
+              `<span class="song-tip__text">` +
+                `<strong>${esc(s.title ?? s.artist)}</strong>` +
+                `<span>${s.title ? `${esc(s.artist)} · ` : ''}${esc(s.country)}</span>` +
+              `</span></div>`;
           }}
           onCustomLayerClick={(d: object) => { void playDotRef.current(d as SongDot); }}
           /* the playing song — avatar + sonar ring */
@@ -642,12 +653,11 @@ export default function WorldGlobe() {
         />
       )}
 
-      {/* Genre rail — multi-select (max five), each pick takes a color and
-          lights up its songs worldwide. Click an active chip to clear it. */}
+      {/* Genre rail — multi-select (max five). Every genre shows its own
+          fixed color as a swatch; selecting fills the chip with it. */}
       <div className="world-genres" role="listbox" aria-label="Genre" aria-multiselectable="true">
         {GENRES.map((g, i) => {
-          const pos = selectedGenres.indexOf(i);
-          const active = pos >= 0;
+          const active = selectedGenres.includes(i);
           const full = !active && selectedGenres.length >= MAX_GENRES;
           return (
             <button
@@ -656,10 +666,14 @@ export default function WorldGlobe() {
               aria-selected={active}
               data-active={active ? 'true' : 'false'}
               className="world-genre-chip"
-              style={active ? { ['--chip-c' as string]: GENRE_COLORS[pos] } as React.CSSProperties : undefined}
+              style={{
+                ['--chip-c' as string]: genreColor(g),
+                ['--chip-ink' as string]: genreInk(g),
+              } as React.CSSProperties}
               title={full ? STR.world.maxGenres : g}
               onClick={() => toggleGenre(i)}
             >
+              <span className="world-genre-chip__swatch" aria-hidden />
               {g}
             </button>
           );

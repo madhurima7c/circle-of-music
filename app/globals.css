@@ -197,9 +197,11 @@ html, body {
 
 /* =====================================================================
  *  Experience nav — top-center switcher (Circle · World · Shades).
- *  Frameless: icons float over the stage. position: fixed so it sits at
- *  the exact same spot on every route (Circle's .frame is inset 28px,
- *  World's isn't). Label ink + glow adapt per route via data-theme.
+ *  A glassmorphic frame (frosted backdrop blur) keeps it legible over
+ *  the dark globe. position: fixed so it sits at the exact same spot on
+ *  every route (Circle's .frame is inset 28px, World's isn't). Label
+ *  ink + glow adapt per route via data-theme. The --glass-* vars are
+ *  live-tunable via the `?tune` dial kit (ExperienceNav.tsx).
  * ===================================================================== */
 .xnav {
   position: fixed;
@@ -209,6 +211,16 @@ html, body {
   z-index: 30;
   display: flex;
   gap: 10px;
+  padding: 9px 16px 7px;
+  background: rgba(255, 255, 255, var(--glass-frost, 0.14));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 170%));
+  backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 170%));
+  border-radius: var(--glass-radius, 18px);
+  border: 1px solid rgba(255, 255, 255, var(--glass-border, 0.28));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 0 1px rgba(15, 18, 60, 0.05),
+    0 10px 34px rgba(0, 0, 0, var(--glass-shadow, 0.22));
   /* Light stage (Circle): ink labels, soft blue-tinted halo. */
   --nav-ink: rgba(10, 10, 10, 0.6);
   --nav-ink-strong: #0a0a0a;
@@ -305,6 +317,53 @@ html, body {
   /* hue drift is a color change, not motion — it may stay;
      NavGlobe checks prefers-reduced-motion itself. */
 }
+
+/* The `?tune` dial kit for the nav glass — top-right, dev/design aid. */
+.navtune {
+  position: fixed;
+  top: 24px; right: 24px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 218px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(12, 13, 26, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(205, 211, 255, 0.18);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(228, 233, 255, 0.85);
+}
+.navtune__title {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(157, 170, 255, 0.9);
+}
+.navtune__row {
+  display: grid;
+  grid-template-columns: 52px 1fr 30px;
+  align-items: center;
+  gap: 8px;
+}
+.navtune__row input[type='range'] { width: 100%; accent-color: #7882ff; }
+.navtune__row em { font-style: normal; text-align: right; color: rgba(255, 255, 255, 0.55); }
+.navtune__presets { display: flex; gap: 6px; margin-top: 4px; }
+.navtune__presets button {
+  flex: 1;
+  padding: 5px 0;
+  border: 1px solid rgba(205, 211, 255, 0.22);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.navtune__presets button:hover { background: rgba(120, 130, 255, 0.18); }
 
 /* =====================================================================
  *  Dock — bottom-center: shuffle · liked songs · more.
@@ -1403,6 +1462,9 @@ html, body {
 .world-genres::-webkit-scrollbar { display: none; }
 .world-genre-chip {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-align: left;
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1418,12 +1480,25 @@ html, body {
 .world-genre-chip:last-child { border-bottom: none; }
 .world-genre-chip:hover { color: #fff; background: rgba(205, 211, 255, 0.07); }
 .world-genre-chip:active { color: #fff; }
-/* Active chips take their assigned dot color (multi-select, max five);
- * dark ink so the light placeholder colors stay readable. */
+/* Every genre owns a fixed color (lib/genre-colors.ts) — shown as a small
+ * swatch at rest, filling the whole chip when selected. --chip-ink keeps
+ * the label readable on light and dark genre colors alike. */
+.world-genre-chip__swatch {
+  flex: none;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--chip-c, var(--accent));
+  box-shadow: 0 0 6px var(--chip-c, var(--accent));
+  opacity: 0.85;
+}
 .world-genre-chip[data-active="true"] {
   background: var(--chip-c, var(--accent));
-  color: #0e0f1a;
+  color: var(--chip-ink, #0e0f1a);
   font-weight: 500;
+}
+.world-genre-chip[data-active="true"] .world-genre-chip__swatch {
+  background: var(--chip-ink, #0e0f1a);
+  box-shadow: none;
 }
 
 
@@ -1543,16 +1618,61 @@ html, body {
   transition: color 140ms ease;
 }
 .wnp__learn:hover { color: #fff; }
-.globe-tip {
+/* Country hover — circular flag + name, riding the cursor. */
+.geo-tip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 13px 5px 5px;
+  border-radius: 999px;
+  background: rgba(10, 10, 18, 0.88);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: rgba(10, 10, 18, 0.9);
+  font-size: 11.5px;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
 }
-.globe-tip[data-playable="false"] { color: rgba(255, 255, 255, 0.5); }
+.geo-tip__flag {
+  display: block;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(120, 130, 255, 0.2); /* shows while the flag loads */
+}
+.geo-tip__flag--none { background: rgba(120, 130, 255, 0.25); }
+.geo-tip[data-playable="false"] .geo-tip__name { color: rgba(255, 255, 255, 0.6); }
+
+/* Song-dot hover — genre-colored dot + title / artist · country. */
+.song-tip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(10, 10, 18, 0.92);
+  border: 1px solid rgba(205, 211, 255, 0.16);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono);
+  color: #fff;
+  white-space: nowrap;
+}
+.song-tip__dot {
+  flex: none;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.song-tip__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10.5px;
+}
+.song-tip__text strong { font-size: 11.5px; }
+.song-tip__text span { color: rgba(205, 211, 255, 0.75); }
 
 /* ---------- flat origin markers (html elements layer) ---------- */
 /* The wrapper is positioned by the globe; keep it flat — a 2D pin on the
