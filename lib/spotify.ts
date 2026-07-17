@@ -117,6 +117,22 @@ export function disconnectSpotify(): void {
  * (client-credentials — works for every visitor once SPOTIFY_CLIENT_SECRET
  * is configured); falls back to a legacy user token if one exists.
  */
+/* Spotify rate-limits SEARCH per app (429 + Retry-After, sometimes HOURS).
+ * Remember the window in localStorage so reloads don't retry into it —
+ * every call made during the window can extend the penalty for everyone. */
+const RL_KEY = 'spotify_rl_until';
+
+export function isSpotifyRateLimited(): boolean {
+  try { return Date.now() < Number(window.localStorage.getItem(RL_KEY) ?? 0); }
+  catch { return false; }
+}
+
+function noteRateLimited(retryAfterSeconds: number): void {
+  const capped = Math.min(Math.max(retryAfterSeconds, 60), 86400);
+  try { window.localStorage.setItem(RL_KEY, String(Date.now() + capped * 1000)); }
+  catch { /* private mode */ }
+}
+
 // Resolve results land in the shared uriCache (see "search" below): one
 // lookup per song per session, and the prefetch below makes the NEXT
 // track's resolve instant at track change.
@@ -129,6 +145,7 @@ export async function resolveSpotifyUri(artist: string, title: string): Promise<
   const key = `${artist}|${title}`.toLowerCase();
   const hit = uriCache.get(key);
   if (hit !== undefined) return hit;
+  if (isSpotifyRateLimited()) return null;   // don't dig the hole deeper
   try {
     const res = await fetch(
       `/api/spotify-search?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}`,
@@ -139,6 +156,10 @@ export async function resolveSpotifyUri(artist: string, title: string): Promise<
       return uri;
     }
     if (res.status === 404) { uriCache.set(key, null); return null; } // definite no-match
+    if (res.status === 429) {
+      noteRateLimited(Number(res.headers.get('Retry-After') ?? 300) || 300);
+      return null;
+    }
     if (res.status === 503) return await findTrackUri(artist, title);
   } catch { /* offline etc. — don't cache transient failures */ }
   return null;

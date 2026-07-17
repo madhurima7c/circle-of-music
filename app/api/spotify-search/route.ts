@@ -43,6 +43,10 @@ async function appToken(): Promise<string | null> {
 // artist|title → id ("" = searched, no match) — saves repeat lookups.
 const matchCache = new Map<string, string>();
 
+// While Spotify has us in a 429 window, do NOT call it again (more calls
+// can extend the penalty). Answer 429 + Retry-After from memory instead.
+let limitedUntil = 0;
+
 export async function GET(req: NextRequest) {
   const artist = req.nextUrl.searchParams.get('artist')?.trim() ?? '';
   const title = req.nextUrl.searchParams.get('title')?.trim() ?? '';
@@ -58,6 +62,14 @@ export async function GET(req: NextRequest) {
       : NextResponse.json({ error: 'no match' }, { status: 404 });
   }
 
+  if (Date.now() < limitedUntil) {
+    const retry = Math.ceil((limitedUntil - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'rate limited' },
+      { status: 429, headers: { 'Retry-After': String(retry) } },
+    );
+  }
+
   const token = await appToken();
   if (!token) {
     // Not configured (no client secret) — the client falls back gracefully.
@@ -69,6 +81,15 @@ export async function GET(req: NextRequest) {
     `https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`,
     { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' },
   );
+  if (res.status === 429) {
+    // Cap the remembered window at 24h so a weird header can't wedge us.
+    const retry = Math.min(Number(res.headers.get('Retry-After') ?? 300) || 300, 86400);
+    limitedUntil = Date.now() + retry * 1000;
+    return NextResponse.json(
+      { error: 'rate limited' },
+      { status: 429, headers: { 'Retry-After': String(retry) } },
+    );
+  }
   if (!res.ok) {
     return NextResponse.json({ error: 'spotify search failed' }, { status: 502 });
   }

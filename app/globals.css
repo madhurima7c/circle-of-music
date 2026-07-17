@@ -1996,36 +1996,42 @@ html, body {
 .center__spotify-connect:hover { filter: brightness(1.2); }
 .center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
-/* Spotify strip — the visible embed widget while connected. Compact,
-   bottom-left, out of the card/dock/rails' way. Height must fit the
-   embed's 80px compact layout exactly (no inner scroll). */
+/* Spotify strip — the embed widget while connected. FULL opacity (the
+   widget downgrades to 30s clips when it detects it's hidden — opacity:0
+   killed full playback) but parked BEHIND the opaque now-playing card at
+   a lower z-index: occluded, so the user never sees it, yet by every
+   check the iframe can run (display/visibility/opacity/viewport) it is
+   a normal on-screen player. pointer-events:none so stray clicks fall
+   through to the app. Height = the embed's compact 80px layout. */
 .spotify-strip {
   position: fixed;
-  left: 16px;
-  bottom: 96px;              /* above the dock pill, clear of its corner */
-  width: min(340px, calc(100vw - 32px));
   height: 80px;
-  z-index: 44;
-  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.06);
-  background: #1c1c1e;
+  pointer-events: none;
 }
 .spotify-strip iframe { display: block; }
-/* Out of sight while full songs flow — still mounted (the iframe must keep
-   playing), just invisible and click-through. NOT display:none/visibility:
-   hidden: those can make the embed refuse playback. */
-.spotify-strip--hidden {
-  opacity: 0;
-  pointer-events: none;
-  box-shadow: none;
+/* Circle: centered under the 300px-wide playlist card (card z-index ≥30). */
+.spotify-strip--circle {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  z-index: 2;
 }
-.spotify-strip { transition: opacity 400ms ease; }
+/* World: tucked behind the 264px now-playing card (right 24 / bottom 36). */
+.spotify-strip--world {
+  right: 32px;
+  bottom: 44px;
+  width: 240px;
+  z-index: 2;
+}
 
 @media (max-width: 640px) {
   .frame { inset: 0; }
 
-  .spotify-strip { width: min(280px, calc(100vw - 24px)); left: 12px; bottom: 92px; }
+  /* Cards are narrower on phones — shrink the strip to stay covered. */
+  .spotify-strip--circle { width: 200px; }
+  .spotify-strip--world  { width: 200px; right: 20px; bottom: 104px; }
 
   .title { font-size: 24px !important; top: 20px !important; }
 

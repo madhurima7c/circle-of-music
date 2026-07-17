@@ -8,7 +8,7 @@ import { STR } from '@/lib/strings';
 import { audioBus } from '@/lib/audio-bus';
 import {
   subscribeSpotify, isSpotifyConnected, handleSpotifyCallback,
-  resolveSpotifyUri, prefetchSpotifyUri,
+  resolveSpotifyUri, prefetchSpotifyUri, isSpotifyRateLimited,
 } from '@/lib/spotify';
 import {
   embedPlay, embedPause, embedResume, embedStart, embedSeek,
@@ -71,10 +71,6 @@ export function GlobalPlayer() {
   // iframe (only a new iframe document sees a just-granted Spotify login).
   const [freshNonce, setFreshNonce] = useState(0);
   const stripRef = useRef<HTMLDivElement | null>(null);
-  // True while the embed is serving ~30s CLIPS (login not visible to the
-  // iframe). Only then is the widget shown — tapping ▶ inside it is what
-  // unlocks full songs. While full tracks flow it stays invisible.
-  const [clipLimited, setClipLimited] = useState(false);
 
   useEffect(() => { handleSpotifyCallback(); }, []);
 
@@ -129,9 +125,6 @@ export function GlobalPlayer() {
       ) {
         setIsPlaying(!s.paused);
       }
-      // Clip-length duration (~29.7s) = the iframe can't see a Spotify login;
-      // reveal the widget so its ▶ can be tapped. Full-length = hide it.
-      if (s.duration > 0) setClipLimited(s.duration <= 31500);
       const prev = embedPrev.current;
       embedPrev.current = { position: s.position, duration: s.duration };
       // Feed the card's progress bar (seconds) without store re-renders.
@@ -241,21 +234,22 @@ export function GlobalPlayer() {
   }, [track?.id, track?.preview, spotifyOn, freshNonce]);
 
   /* ---------- prefetch Spotify uris for the WHOLE queue ----------
-     Staggered sweep (batches of 4, 400ms apart), nearest tracks first, so
-     ANY row the user jumps to — not just the next one — resolves from the
-     client cache instantly. Restarts when the queue changes; the cache
-     makes overlapping sweeps free. */
+     GENTLE sweep — one lookup at a time, 1.5s apart, nearest tracks first —
+     so any row the user jumps to resolves from the client cache. The pace
+     matters: an aggressive burst rate-limited the whole app at Spotify
+     (429 with a multi-HOUR Retry-After — every user lost full songs), so
+     the sweep also hard-stops the moment a rate limit is seen. */
   useEffect(() => {
     if (!spotifyOn || tracks.length === 0) return;
     let stop = false;
     const start = Math.max(0, Math.min(trackIdx, tracks.length - 1));
     const order = [...tracks.slice(start + 1), ...tracks.slice(0, start + 1)];
     (async () => {
-      for (let i = 0; i < order.length && !stop; i += 4) {
-        await Promise.all(
-          order.slice(i, i + 4).map(t => resolveSpotifyUri(t.artist, t.title).catch(() => null)),
-        );
-        if (!stop) await new Promise(r => setTimeout(r, 400));
+      for (const t of order) {
+        if (stop || isSpotifyRateLimited()) return;
+        await resolveSpotifyUri(t.artist, t.title).catch(() => null);
+        if (stop) return;
+        await new Promise(r => setTimeout(r, 1500));
       }
     })();
     return () => { stop = true; };
@@ -358,18 +352,17 @@ export function GlobalPlayer() {
         onEnded={onEnded}
       />
 
-      {/* Spotify strip — the embed's home while connected. INVISIBLE while
-          full songs flow (the app's own card is the one player); it fades in
-          only when the embed is stuck on ~30s clips, because tapping ▶ inside
-          Spotify's own widget is the interaction browsers require before the
-          iframe may see the user's login. Once full tracks arrive it hides
-          itself again. */}
+      {/* Spotify strip — the embed's home while connected. It stays at FULL
+          opacity (the embed downgrades to 30s clips when it detects it's
+          hidden — opacity:0 broke full playback) but sits BEHIND the opaque
+          now-playing card at a lower z-index, so the user never sees it.
+          Occlusion is the one kind of hidden the widget can't detect. */}
       {spotifyOn && hasTrack && (
         <div
-          className={`spotify-strip${clipLimited ? '' : ' spotify-strip--hidden'}`}
+          className={`spotify-strip spotify-strip--${pathname === '/world' ? 'world' : 'circle'}`}
           ref={stripRef}
           aria-label="Spotify player"
-          aria-hidden={!clipLimited}
+          aria-hidden
         />
       )}
 
