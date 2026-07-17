@@ -13,6 +13,7 @@ import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind, useFinds } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
 import { audioBus } from '@/lib/audio-bus';
+import { setEmbedOpen } from '@/lib/embed-bus';
 import { LikedSongs } from '@/components/Library';
 import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
@@ -644,6 +645,12 @@ export function CenterStack() {
             <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
             <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
             <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
+            <button
+              className="listen-menu__connect"
+              onClick={() => { setEmbedOpen(true); setShareOpen(false); }}
+            >
+              {STR.spotify.embedButton}
+            </button>
             {spotifyEnabled && (
               <button
                 className="listen-menu__connect"

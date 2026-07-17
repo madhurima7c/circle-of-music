@@ -59,7 +59,7 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - [ ] Globe polish: on-demand render loop for battery; touch on a real phone.
 
 ### C. Full playback + export (Phase 3, opt-in)
-- [ ] Spotify **Embed iframe** panel (full track for Premium users, no app registration) + optional YouTube iframe.
+- [x] Spotify **Embed iframe** panel — BUILT 2026-07-16: "Full song here (Spotify player)" in both share menus opens a root-mounted panel (components/SpotifyEmbed.tsx + lib/embed-bus.ts) with Spotify's IFrame API; full songs for ANY visitor logged in to open.spotify.com (no allowlist), preview otherwise. Track ids resolve via `/api/spotify-search` (client-credentials — needs `SPOTIFY_CLIENT_SECRET` server env in .env.local + Vercel; falls back to a connected user's token until then). Optional YouTube iframe still open.
 - [ ] Library export → Spotify playlist (personal/dev-mode only; public Spotify blocked by 250k-MAU quota).
 
 ---

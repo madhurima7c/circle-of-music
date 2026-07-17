@@ -13,6 +13,7 @@ import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
 } from '@/lib/spotify';
+import { setEmbedOpen } from '@/lib/embed-bus';
 import { ProgressBar, BrandIcon } from '@/components/Overlay';
 
 /**
@@ -153,6 +154,12 @@ export function WorldNowPlaying() {
                 <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer" title="Youtube"><BrandIcon kind="youtube" /></a>
                 <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer" title="Deezer"><BrandIcon kind="deezer" /></a>
               </div>
+              <button
+                className="listen-menu__connect wnp__connect"
+                onClick={() => setEmbedOpen(true)}
+              >
+                {STR.spotify.embedButton}
+              </button>
               {spotifyEnabled && (
                 <button
                   className="listen-menu__connect wnp__connect"
