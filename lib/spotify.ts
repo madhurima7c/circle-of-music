@@ -113,20 +113,36 @@ export function disconnectSpotify(): void {
  * (client-credentials — works for every visitor once SPOTIFY_CLIENT_SECRET
  * is configured); falls back to a legacy user token if one exists.
  */
+// Resolve results land in the shared uriCache (see "search" below): one
+// lookup per song per session, and the prefetch below makes the NEXT
+// track's resolve instant at track change.
 export async function resolveSpotifyUri(artist: string, title: string): Promise<string | null> {
   if (process.env.NODE_ENV !== 'production') {
     // Dev hook: force a known uri to exercise the embed without the secret.
     const forced = (window as unknown as { __spotifyUriOverride?: string }).__spotifyUriOverride;
     if (forced) return forced;
   }
+  const key = `${artist}|${title}`.toLowerCase();
+  const hit = uriCache.get(key);
+  if (hit !== undefined) return hit;
   try {
     const res = await fetch(
       `/api/spotify-search?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}`,
     );
-    if (res.ok) return ((await res.json()) as { uri?: string }).uri ?? null;
+    if (res.ok) {
+      const uri = ((await res.json()) as { uri?: string }).uri ?? null;
+      uriCache.set(key, uri);
+      return uri;
+    }
+    if (res.status === 404) { uriCache.set(key, null); return null; } // definite no-match
     if (res.status === 503) return await findTrackUri(artist, title);
-  } catch { /* offline etc. */ }
+  } catch { /* offline etc. — don't cache transient failures */ }
   return null;
+}
+
+/** Warm the cache for an upcoming track (fire-and-forget). */
+export function prefetchSpotifyUri(artist: string, title: string): void {
+  resolveSpotifyUri(artist, title).catch(() => {});
 }
 
 function storeTokens(data: { access_token?: string; refresh_token?: string; expires_in?: number }): void {

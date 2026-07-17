@@ -7,7 +7,8 @@ import { useStore } from '@/lib/store';
 import { STR } from '@/lib/strings';
 import { audioBus } from '@/lib/audio-bus';
 import {
-  subscribeSpotify, isSpotifyConnected, handleSpotifyCallback, resolveSpotifyUri,
+  subscribeSpotify, isSpotifyConnected, handleSpotifyCallback,
+  resolveSpotifyUri, prefetchSpotifyUri,
 } from '@/lib/spotify';
 import {
   embedPlay, embedPause, embedResume, embedStart, embedSeek,
@@ -78,13 +79,19 @@ export function GlobalPlayer() {
         dur: s.duration / 1000,
         seek: (sec) => embedSeek(sec),
       };
-      // "Track finished" signature: the embed pauses at/after the end (or
-      // rewinds to 0) after having been near the end.
-      if (
+      // "Track finished" signatures (the embed is inconsistent here):
+      //  a) pause at/near the end (or rewind to 0) after having been near it;
+      //  b) position PINS at the duration while isPaused stays false —
+      //     observed live: `▶ 29.7/29.7` repeating forever, no pause event.
+      const endedByPause =
         prev && s.paused &&
         prev.duration > 0 && prev.position > prev.duration - 5000 &&
-        (s.position === 0 || s.position >= s.duration - 800)
-      ) {
+        (s.position === 0 || s.position >= s.duration - 800);
+      const endedByPin =
+        prev && !s.paused &&
+        s.duration > 0 && s.position >= s.duration - 300 &&
+        prev.position === s.position;
+      if (endedByPause || endedByPin) {
         embedPrev.current = null; // fire once per track
         onEndedRef.current();
       }
@@ -138,14 +145,17 @@ export function GlobalPlayer() {
           audioBus.ext = { pos: 0, dur: 0, seek: (sec) => embedSeek(sec) };
           // Watchdog: embedPlay "succeeding" only means the command was
           // accepted. If no playing update arrives (iframe blocked autoplay,
-          // user not logged in yet), route back to the preview — never dead air.
+          // user not logged in yet), route back to the preview — never dead
+          // air. 5s: the embed retries play() on a backoff while it loads a
+          // new uri, so give a slow load the chance to land before bailing.
           stallTimer = setTimeout(() => {
             if (cancelled || embedStarted.current) return;
+            embedPause(); // cancel retries — a late embed start must not double-play
             viaSpotify.current = false;
             embedPrev.current = null;
             audioBus.ext = null;
             playPreview();
-          }, 3000);
+          }, 5000);
         } else {
           playPreview();
         }
@@ -153,6 +163,14 @@ export function GlobalPlayer() {
       .catch(() => { if (!cancelled) playPreview(); });
     return () => { cancelled = true; if (stallTimer) clearTimeout(stallTimer); };
   }, [track?.id, track?.preview, spotifyOn]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ---------- prefetch the NEXT track's Spotify uri while this one plays,
+     so the resolve step at track change is a cache hit (instant) ---------- */
+  useEffect(() => {
+    if (!spotifyOn || tracks.length < 2) return;
+    const next = tracks[(trackIdx + 1) % tracks.length];
+    if (next) prefetchSpotifyUri(next.artist, next.title);
+  }, [spotifyOn, tracks, trackIdx]);
 
   /* ---------- sync isPlaying with whichever backend is sounding ---------- */
   useEffect(() => {
