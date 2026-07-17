@@ -157,6 +157,8 @@ export const STR = {
     playAll: 'Play all',
     export: 'Export',
     import: 'Import',
+    exportCsv: 'Export CSV',
+    exportCsvHint: 'A song list for playlist-transfer tools — import it to Spotify (or Apple/YouTube) free at tunemymusic.com or soundiiz.com.',
     remove: 'Remove',
     close: 'Close',
     imported: (n: number) => (n ? `Imported ${n} find${n === 1 ? '' : 's'}.` : 'Nothing new to import.'),

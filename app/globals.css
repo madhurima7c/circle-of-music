@@ -767,6 +767,19 @@ html, body {
   border-radius: 6px;
 }
 .liked__row-remove:hover { color: #ff5a7a; }
+/* Per-row "listen in" share — same footprint as the remove button. */
+.liked__row-share {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  border-radius: 6px;
+}
+.liked__row-share:hover { color: #9daaff; }
 
 
 
@@ -1229,6 +1242,16 @@ html, body {
 @keyframes links-in-overlay {
   from { opacity: 0; transform: translate(-50%, calc(-100% + 4px)); }
   to   { opacity: 1; transform: translate(-50%, -100%); }
+}
+/* Flipped variant — opens BELOW the anchor when there's no headroom
+   (e.g. the first rows of the Liked Songs popup). */
+.listen-menu--down {
+  transform: translate(-50%, 0);
+  animation: links-in-down 160ms ease backwards;
+}
+@keyframes links-in-down {
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 .listen-menu__head {
   padding: 2px 10px 8px;

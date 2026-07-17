@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useStore } from '@/lib/store';
 import { formatDuration } from '@/lib/data';
 import {
@@ -8,7 +9,9 @@ import {
   createPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
   type Find,
 } from '@/lib/library';
+import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
+import { BrandIcon } from '@/components/Overlay';
 
 /**
  * LikedSongs — the ♥ popup opened from the dock (Spotify-style IA):
@@ -27,6 +30,9 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
   const [newName, setNewName] = useState('');
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
+  // Per-row "listen in" popover — same menu as the player's share button.
+  // `down` flips it below the button when the row is too close to the top.
+  const [share, setShare] = useState<{ find: Find; x: number; y: number; down: boolean } | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   if (!open) return null;
@@ -68,6 +74,24 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
       setNotice(STR.library.imported(n));
       setTimeout(() => setNotice(''), 2600);
     });
+  };
+
+  /* CSV of the ACTIVE view (all liked or one playlist) — the format the
+   * playlist-transfer tools (TuneMyMusic, Soundiiz) ingest to build a real
+   * Spotify/Apple/YouTube playlist in the user's own account. */
+  const doExportCsv = () => {
+    const esc = (s: string) => `"${(s ?? '').replace(/"/g, '""')}"`;
+    const csv = [
+      'Title,Artist,Album',
+      ...rows.map(f => [esc(f.title), esc(f.artist), esc(f.album)].join(',')),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(activePlaylist?.name ?? 'liked-songs').toLowerCase().replace(/\s+/g, '-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -141,6 +165,9 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
             <div className="liked__side-actions">
               <button onClick={doExport} disabled={!finds.length}>{STR.library.export}</button>
               <button onClick={() => fileRef.current?.click()}>{STR.library.import}</button>
+              <button onClick={doExportCsv} disabled={!rows.length} title={STR.library.exportCsvHint}>
+                {STR.library.exportCsv}
+              </button>
               <input
                 ref={fileRef} type="file" accept="application/json" hidden
                 onChange={e => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ''; }}
@@ -193,6 +220,25 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
                     <span className="liked__row-dur tabular">{formatDuration(f.duration)}</span>
                   </button>
                   <button
+                    className="liked__row-share"
+                    onClick={(e) => {
+                      const r = e.currentTarget.getBoundingClientRect();
+                      const down = r.top < 220; // no headroom → open below
+                      setShare(s => (s?.find.id === f.id
+                        ? null
+                        : { find: f, x: r.left + r.width / 2, y: down ? r.bottom + 8 : r.top - 8, down }));
+                    }}
+                    title={STR.card.listenIn}
+                    aria-label={STR.card.listenIn}
+                    aria-expanded={share?.find.id === f.id}
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 15V4" />
+                      <path d="M8 8l4-4 4 4" />
+                      <path d="M5 13v6h14v-6" />
+                    </svg>
+                  </button>
+                  <button
                     className="liked__row-remove"
                     onClick={() =>
                       activePlaylist
@@ -208,6 +254,30 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
           )}
         </section>
       </div>
+
+      {/* Row share — the player's "listen in" menu, anchored to the row's
+          share button (body portal so the popup can never clip it). */}
+      {share && typeof document !== 'undefined' && (() => {
+        const links = trackLinks(share.find.artist, share.find.title, share.find.id);
+        return createPortal(
+          <>
+            <div className="listen-scrim" onClick={() => setShare(null)} />
+            <div
+              className={`listen-menu listen-menu--overlay${share.down ? ' listen-menu--down' : ''}`}
+              role="menu"
+              aria-label={STR.card.listenIn}
+              style={{ left: share.x, top: share.y }}
+            >
+              <div className="listen-menu__head">{STR.card.listenIn.toUpperCase()}</div>
+              <a role="menuitem" href={links.spotify} target="_blank" rel="noreferrer"><BrandIcon kind="spotify" />Spotify</a>
+              <a role="menuitem" href={links.appleMusic} target="_blank" rel="noreferrer"><BrandIcon kind="apple" />Apple Music</a>
+              <a role="menuitem" href={links.youtube} target="_blank" rel="noreferrer"><BrandIcon kind="youtube" />Youtube</a>
+              <a role="menuitem" href={links.deezer} target="_blank" rel="noreferrer"><BrandIcon kind="deezer" />Deezer</a>
+            </div>
+          </>,
+          document.body,
+        );
+      })()}
     </>
   );
 }
