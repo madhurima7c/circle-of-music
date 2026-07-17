@@ -164,8 +164,32 @@ export function GlobalPlayer() {
     return () => { cancelled = true; if (stallTimer) clearTimeout(stallTimer); };
   }, [track?.id, track?.preview, spotifyOn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ---------- prefetch the NEXT track's Spotify uri while this one plays,
-     so the resolve step at track change is a cache hit (instant) ---------- */
+  /* ---------- prefetch Spotify uris for the WHOLE queue ----------
+     Staggered sweep (batches of 4, 400ms apart), nearest tracks first, so
+     ANY row the user jumps to — not just the next one — resolves from the
+     client cache instantly. Restarts when the queue changes; the cache
+     makes overlapping sweeps free. */
+  useEffect(() => {
+    if (!spotifyOn || tracks.length === 0) return;
+    let stop = false;
+    const start = Math.max(0, Math.min(trackIdx, tracks.length - 1));
+    const order = [...tracks.slice(start + 1), ...tracks.slice(0, start + 1)];
+    (async () => {
+      for (let i = 0; i < order.length && !stop; i += 4) {
+        await Promise.all(
+          order.slice(i, i + 4).map(t => resolveSpotifyUri(t.artist, t.title).catch(() => null)),
+        );
+        if (!stop) await new Promise(r => setTimeout(r, 400));
+      }
+    })();
+    return () => { stop = true; };
+    // trackIdx deliberately NOT a dep: the sweep covers the full queue once —
+    // re-running it on every song change would just churn cache hits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotifyOn, tracks]);
+
+  /* ---------- also nudge the immediate next track on every change ----------
+     (cache hit if the sweep already covered it — effectively free) */
   useEffect(() => {
     if (!spotifyOn || tracks.length < 2) return;
     const next = tracks[(trackIdx + 1) % tracks.length];
