@@ -71,6 +71,10 @@ export function GlobalPlayer() {
   // iframe (only a new iframe document sees a just-granted Spotify login).
   const [freshNonce, setFreshNonce] = useState(0);
   const stripRef = useRef<HTMLDivElement | null>(null);
+  // True while the embed is serving ~30s CLIPS (login not visible to the
+  // iframe). Only then is the widget shown — tapping ▶ inside it is what
+  // unlocks full songs. While full tracks flow it stays invisible.
+  const [clipLimited, setClipLimited] = useState(false);
 
   useEffect(() => { handleSpotifyCallback(); }, []);
 
@@ -125,6 +129,9 @@ export function GlobalPlayer() {
       ) {
         setIsPlaying(!s.paused);
       }
+      // Clip-length duration (~29.7s) = the iframe can't see a Spotify login;
+      // reveal the widget so its ▶ can be tapped. Full-length = hide it.
+      if (s.duration > 0) setClipLimited(s.duration <= 31500);
       const prev = embedPrev.current;
       embedPrev.current = { position: s.position, duration: s.duration };
       // Feed the card's progress bar (seconds) without store re-renders.
@@ -351,13 +358,19 @@ export function GlobalPlayer() {
         onEnded={onEnded}
       />
 
-      {/* Spotify strip — the embed lives HERE, visible, while connected.
-          It must be real, clickable UI: the browser only lets the iframe see
-          the user's Spotify login (full songs vs 30s clips) after the user
-          has interacted with Spotify's own widget. One tap on its ▶ blesses
-          the whole session; our card controls keep driving it afterwards. */}
+      {/* Spotify strip — the embed's home while connected. INVISIBLE while
+          full songs flow (the app's own card is the one player); it fades in
+          only when the embed is stuck on ~30s clips, because tapping ▶ inside
+          Spotify's own widget is the interaction browsers require before the
+          iframe may see the user's login. Once full tracks arrive it hides
+          itself again. */}
       {spotifyOn && hasTrack && (
-        <div className="spotify-strip" ref={stripRef} aria-label="Spotify player" />
+        <div
+          className={`spotify-strip${clipLimited ? '' : ' spotify-strip--hidden'}`}
+          ref={stripRef}
+          aria-label="Spotify player"
+          aria-hidden={!clipLimited}
+        />
       )}
 
       {showMini && (

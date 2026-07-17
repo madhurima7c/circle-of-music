@@ -2012,6 +2012,15 @@ html, body {
   background: #1c1c1e;
 }
 .spotify-strip iframe { display: block; }
+/* Out of sight while full songs flow — still mounted (the iframe must keep
+   playing), just invisible and click-through. NOT display:none/visibility:
+   hidden: those can make the embed refuse playback. */
+.spotify-strip--hidden {
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
+}
+.spotify-strip { transition: opacity 400ms ease; }
 
 @media (max-width: 640px) {
   .frame { inset: 0; }
