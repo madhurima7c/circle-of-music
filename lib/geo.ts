@@ -44,6 +44,47 @@ export function countryISO(name: string): string | null {
   return iso[name] ?? iso[geoName(name)] ?? null;
 }
 
+/* ---------- nearest seed country (for unrepresented nations) ---------- */
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLng = (b.lng - a.lng) * rad;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(s));
+}
+
+// Country label points from the GeoJSON, fetched once and cached (the file
+// is already in the HTTP cache whenever the user has visited the World).
+let labelCache: Promise<Map<string, { lat: number; lng: number }>> | null = null;
+function labelPointsMap(): Promise<Map<string, { lat: number; lng: number }>> {
+  labelCache ??= fetch(GEO_URL)
+    .then(r => r.json())
+    .then((g: { features: Array<{ properties: { NAME: string; LABEL_X: number; LABEL_Y: number } }> }) =>
+      new Map(g.features.map(f => [f.properties.NAME, { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X }])))
+    .catch(() => new Map());
+  return labelCache;
+}
+
+/** Index (into COUNTRIES) of the seed country geographically nearest to the
+ *  given nation, or -1 when unknown. Used to "approximate" an unrepresented
+ *  country to one of the 20 wheel cards. */
+export async function nearestSeedIdx(countryName: string): Promise<number> {
+  const pts = await labelPointsMap();
+  const from = pts.get(geoName(countryName)) ?? pts.get(countryName);
+  if (!from) return -1;
+  let best = -1, bestD = Infinity;
+  COUNTRIES.forEach((c, i) => {
+    const p = pts.get(geoName(c));
+    if (!p) return;
+    const d = haversineKm(from, p);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
 const CONTINENT: Record<string, string> = {
   Afghanistan: 'Asia', Albania: 'Europe', Algeria: 'Africa', Angola: 'Africa',
   Argentina: 'South America', Armenia: 'Asia', Australia: 'Oceania',

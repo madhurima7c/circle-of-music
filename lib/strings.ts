@@ -47,6 +47,12 @@ export const STR = {
     title: 'Circle of Music',
     description: 'Country × Genre, on a circle.',
     backToHub: 'Back to the hub',
+    /* Arriving from the World with a nation the 20 wheel cards can't
+     * represent — the queue diverts to the nearest seed country. */
+    divert: (from: string, to: string, genre: string | null) =>
+      genre
+        ? `${from} country coming soon. Switching to ${to} ${genre.toLowerCase()}.`
+        : `${from} country coming soon. Switching to ${to}.`,
   },
 
   /* Top-center experience switcher. */

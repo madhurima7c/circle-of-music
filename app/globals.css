@@ -1996,6 +1996,19 @@ html, body {
 .center__spotify-connect:hover { filter: brightness(1.2); }
 .center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
+/* Divert toast — "Bhutan country coming soon. Switching to India jazz."
+   A canvas (particle-to-text) floating just above the now-playing card,
+   center-aligned. Size/typography are painted inside the canvas, sampled
+   from .center__album. */
+.divert-toast {
+  position: absolute;
+  bottom: calc(100% + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 6;
+}
+
 /* Spotify strip — the embed widget while connected. FULL opacity (the
    widget downgrades to 30s clips when it detects it's hidden — opacity:0
    killed full playback) but parked BEHIND the opaque now-playing card at

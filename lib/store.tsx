@@ -82,11 +82,20 @@ type StoreShape = {
   /** "Surprise me": random new pairing, respecting locked wheels. If both
    *  wheels are locked, reshuffles the current playlist instead. */
   surprise: () => void;
-  /** Play an arbitrary queue (used by the finds library) from startIdx. */
-  loadQueue: (queue: Track[], startIdx: number) => void;
-  /** The queue reached its end — a pairing playlist flips to the next genre
-   *  (same country) and rebuilds; anything else reshuffles/loops. */
+  /** Play an arbitrary queue from startIdx. kind tells end-of-queue what to
+   *  do: 'chain' (the World's dot chain) advances to the next genre like a
+   *  pairing; 'library' (liked songs) just loops. */
+  loadQueue: (queue: Track[], startIdx: number, kind?: 'chain' | 'library') => void;
+  /** The queue reached its end — pairing/chain queues flip to the NEXT GENRE
+   *  (same country) and rebuild; the library reshuffles and loops. */
   endOfQueue: () => void;
+  /** Arriving on the Circle with an unrepresented (non-seed) country playing:
+   *  flip the wheels to the given seed country NOW, let the current song
+   *  finish, and swap everything after it for that country's pipeline queue
+   *  in the current genre. Returns the labels for the divert toast. */
+  divertAfterCurrent: (seedIdx: number) => { to: string; genre: string | null };
+  /** The active custom (non-seed) globe country, if one is playing. */
+  customCountry: string | null;
   /** Append tracks to the current queue without resetting playback — the
    *  World's dot-chain feeds the next nearest song in as a rolling window. */
   appendTracks: (extra: Track[]) => void;
@@ -187,10 +196,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const anyGenreRef = useRef(false);
 
   // How the current queue was built. 'pairing' = a country×genre playlist
-  // from commit() → when it finishes, we advance to the NEXT GENRE (same
-  // country) rather than reshuffle. 'other' = a dot chain or the library
-  // queue → those manage their own end-of-queue, so we just loop.
-  const queueKindRef = useRef<'pairing' | 'other'>('other');
+  // from commit(); 'chain' = the World's dot chain; 'library' = liked songs.
+  // End-of-queue: pairing/chain advance to the NEXT GENRE (same country);
+  // only the library loops — repeating a finished run was the old bug.
+  const queueKindRef = useRef<'pairing' | 'chain' | 'library'>('library');
+
+  // Mirror of trackIdx for async queue surgery (divertAfterCurrent swaps the
+  // tail while whatever is CURRENTLY sounding keeps playing).
+  const trackIdxRef = useRef(0);
+  useEffect(() => { trackIdxRef.current = trackIdx; }, [trackIdx]);
 
   const commit = useCallback(async () => {
     const gen = ++populateGen.current;
@@ -331,14 +345,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTrackIdx(keepCurrent ? Math.max(0, shuffled.indexOf(current)) : 0);
   }, [tracks, trackIdx]);
 
-  // Called by GlobalPlayer when the queue reaches its end. A country×genre
-  // PAIRING playlist advances to the NEXT GENRE (same country) and rebuilds
-  // — flipping genre, not country, matches the World's proximity model.
-  // Any other queue (a dot chain, the library) just reshuffles/loops.
+  // Called by GlobalPlayer when the queue reaches its end. One full cycle
+  // played → advance to the NEXT GENRE (same country) and rebuild — never
+  // repeat the finished run. That holds for pairing playlists AND the
+  // World's dot chain (whose own in-country flip is the fast path; this is
+  // the guarantee when it can't extend in time). Only the liked-songs
+  // library loops, reshuffled.
   const endOfQueue = useCallback(() => {
-    if (queueKindRef.current !== 'pairing') {
+    if (queueKindRef.current === 'library') {
       shuffleTracks();
       return;
+    }
+    if (queueKindRef.current === 'chain') {
+      // The pipeline takes over — a mounted World must stop its chain so a
+      // late dot append can't land on top of the new pairing queue.
+      window.dispatchEvent(new Event('world:chain-superseded'));
     }
     const g = (genreIdxRef.current + 1) % GENRES.length;
     genreIdxRef.current = g;
@@ -347,6 +368,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     commit();                      // rebuild this country × the next genre
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commit, shuffleTracks]);
+
+  // World→Circle divert for unrepresented countries: flip the wheels to the
+  // nearest seed NOW (label returned for the toast), keep the current song
+  // sounding, and replace everything AFTER it with the seed country's
+  // pipeline queue in the current genre once it arrives.
+  const divertAfterCurrent = useCallback((seedIdx: number): { to: string; genre: string | null } => {
+    const ci = ((seedIdx % COUNTRIES.length) + COUNTRIES.length) % COUNTRIES.length;
+    const to = COUNTRIES[ci];
+    const genreLabel = anyGenreRef.current ? null : GENRES[genreIdxRef.current];
+    countryIdxRef.current = ci;
+    setCountryIdx(ci);
+    customCountryRef.current = null;
+    setCustomCountry(null);
+    window.dispatchEvent(new Event('world:chain-superseded'));  // chain is done
+    const gen = ++populateGen.current;
+    queueKindRef.current = 'pairing';
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    void (async () => {
+      const raw = await buildPlaylist({
+        country: to,
+        genre: genreLabel,
+        seeds: SEEDS,
+      }).catch(() => [] as DeezerTrack[]);
+      if (gen !== populateGen.current || !raw.length) return;
+      const mapped = raw.map(toTrack);
+      const curIdx = trackIdxRef.current;
+      setTracks(prev => {
+        const cur = prev[curIdx];
+        if (!cur) return mapped;
+        // The sounding track stays put as the head; the new pairing queue
+        // becomes its Up Next (minus a duplicate of itself, if matched).
+        return [cur, ...mapped.filter(t => t.id !== cur.id)];
+      });
+      setTrackIdx(0);
+      setStatus('ready');
+    })();
+    return { to, genre: genreLabel };
+  }, []);
 
   const surprise = useCallback(() => {
     // Pick a fresh index different from the current one so it always moves.
@@ -375,11 +434,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     scheduleAutoCommit();
   }, [scheduleAutoCommit, shuffleTracks, clearCustomCountry]);
 
-  const loadQueue = useCallback((queue: Track[], startIdx: number) => {
+  const loadQueue = useCallback((queue: Track[], startIdx: number, kind: 'chain' | 'library' = 'library') => {
     if (!queue.length) return;
     // Bump the generation so any in-flight pairing fetch can't overwrite this.
     populateGen.current++;
-    queueKindRef.current = 'other';   // dot chain / library — not a pairing
+    queueKindRef.current = kind;
     if (settleTimer.current) clearTimeout(settleTimer.current);
     setTracks(queue);
     setTrackIdx(Math.max(0, Math.min(startIdx, queue.length - 1)));
@@ -471,7 +530,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
     surprise, loadQueue, appendTracks, playPlace, playPlaceNamed,
-    setNowPlayingOrigin, endOfQueue,
+    setNowPlayingOrigin, endOfQueue, divertAfterCurrent,
+    customCountry,
     countryName: customCountry ?? COUNTRIES[countryIdx],
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
@@ -480,7 +540,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
        togglePlay, nextTrack, prevTrack, shuffleTracks,
        setVolumeClamped, setHover, flashToast,
        toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
-       appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin, endOfQueue]);
+       appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin, endOfQueue,
+       divertAfterCurrent]);
 
   return <Store.Provider value={value}>{children}</Store.Provider>;
 }

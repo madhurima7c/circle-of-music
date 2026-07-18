@@ -19,6 +19,8 @@ import {
   connectSpotify, disconnectSpotify,
 } from '@/lib/spotify';
 import { backColor } from '@/lib/covers';
+import { nearestSeedIdx } from '@/lib/geo';
+import { ParticleToast } from '@/components/ParticleToast';
 
 gsap.registerPlugin(useGSAP);
 
@@ -399,7 +401,7 @@ export function CenterStack() {
   const {
     tracks, trackIdx, status, isPlaying, countryName, genreIdx,
     togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
-    setTrackIdx, setIsPlaying,
+    setTrackIdx, setIsPlaying, customCountry, divertAfterCurrent,
   } = useStore();
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
   const country = countryName || '';
@@ -413,6 +415,28 @@ export function CenterStack() {
     const iv = setInterval(() => setEmbedActive(!!audioBus.ext), 500);
     return () => clearInterval(iv);
   }, []);
+
+  // Arriving here with an UNREPRESENTED (non-seed) country playing — e.g. a
+  // Bhutan dot from the World: approximate to the nearest seed country, let
+  // the current song finish, swap Up Next for that country's queue in the
+  // same genre, and announce it with the particle toast above the card.
+  const [divertMsg, setDivertMsg] = useState<string | null>(null);
+  const divertedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!customCountry || status !== 'ready' || !tracks.length) return;
+    if (divertedFor.current === customCountry) return;
+    divertedFor.current = customCountry;
+    const from = customCountry;
+    // One-shot fire-and-forget: no cleanup/cancellation — deps like
+    // tracks.length change while the geo lookup is in flight (the chain
+    // keeps appending), and cancelling here would kill the divert.
+    void (async () => {
+      const idx = await nearestSeedIdx(from);
+      if (idx < 0) return;
+      const { to, genre } = divertAfterCurrent(idx);
+      setDivertMsg(STR.circle.divert(from, to, genre));
+    })();
+  }, [customCountry, status, tracks.length, divertAfterCurrent]);
 
   // Share popover state (the player card no longer flips).
   const [shareOpen, setShareOpen] = useState(false);
@@ -478,6 +502,9 @@ export function CenterStack() {
 
   return (
     <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
+      {divertMsg && (
+        <ParticleToast text={divertMsg} onDone={() => setDivertMsg(null)} />
+      )}
       {status !== 'empty' && (
         <div className="center__stack" ref={stackRef}>
           <div

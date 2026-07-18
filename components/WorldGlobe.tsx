@@ -539,11 +539,24 @@ export default function WorldGlobe() {
       return;
     }
     dotByQueueIdx.current = [dot];
-    loadQueue([t], 0);
+    loadQueue([t], 0, 'chain');
     void prefetchNextRef.current();
   };
   const playDotRef = useRef(playDot);
   playDotRef.current = playDot;
+
+  // The store's pipeline can take the queue over (end-of-chain genre
+  // advance, or the Circle's divert) — the chain must stop so a late dot
+  // append can't land on top of the new pairing queue.
+  useEffect(() => {
+    const kill = () => {
+      chainActive.current = false;
+      pendingFlip.current = null;
+      dotByQueueIdx.current = [];
+    };
+    window.addEventListener('world:chain-superseded', kill);
+    return () => window.removeEventListener('world:chain-superseded', kill);
+  }, []);
 
   /* ---------- selection = zoom: whenever a NEW country becomes selected
    * (tapped, dot-clicked, or reached by the playing chain), the camera
