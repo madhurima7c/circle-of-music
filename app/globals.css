@@ -978,7 +978,7 @@ html, body {
 .center__stack {
   position: relative;
   top: 12px;   /* bias below the (enlarged) experience nav */
-  width: 300px;
+  width: 340px;  /* wide enough for the Spotify embed's logo + play button */
   /* Fill the band between nav and dock, capped: tall screens show 9+
      queue rows outright; short ones keep the queue scrollable. */
   height: min(calc(100dvh - 240px), 690px);
@@ -1996,17 +1996,50 @@ html, body {
 .center__spotify-connect:hover { filter: brightness(1.2); }
 .center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
-/* Divert toast — "Bhutan country coming soon. Switching to India jazz."
-   A canvas (particle-to-text) floating just above the now-playing card,
-   center-aligned. Size/typography are painted inside the canvas, sampled
-   from .center__album. */
+/* Divert toast — "Bhutan coming soon — brought you nearby." A canvas
+   (particle-to-text) floating just above the now-playing card, centered,
+   with an ⓘ that opens the full explanation. Typography painted inside
+   the canvas, sampled from .center__album. */
 .divert-toast {
   position: absolute;
   bottom: calc(100% + 16px);
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
   pointer-events: none;
   z-index: 6;
+}
+.divert-toast canvas { display: block; }
+.divert-toast__info {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(24, 24, 28, 0.55);
+  cursor: pointer;
+}
+.divert-toast__info:hover { color: rgba(24, 24, 28, 0.9); }
+.divert-toast__popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #1c1c1e;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-plex-sans), sans-serif;
+  font-size: 11.5px;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
 }
 
 /* Spotify strip — the embed widget while connected. FULL opacity (the
@@ -2039,22 +2072,115 @@ html, body {
   z-index: 2;
 }
 /* Seated over the card's reserved slot — real, clickable UI (its ▶ is the
-   tap that lets the iframe see the user's Spotify login = full songs). */
+   tap that lets the iframe see the user's Spotify login = full songs; the
+   + saves to Spotify likes). 152px = Spotify's layout with a usable
+   scrubber and un-clipped logo/play. */
 .spotify-strip--slot {
   z-index: 41;             /* above the card, below popups/scrims (44+) */
+  height: 152px;
   border-radius: 10px;
   pointer-events: auto;
   background: #101012;
 }
-/* The reserved row inside the card the strip seats onto (replaces the
-   progress bar while connected — the widget brings its own seek). Takes
-   the progress bar's flex slot: .center__track children are ordered. */
+/* The reserved row inside the card the strip seats onto — NESTED BELOW
+   the controls (order 4: now=1, progress=2, controls=source order after,
+   slot last), so our scrubber + transport stay visible above it. */
 .spotify-slot {
-  order: 2;                /* = .center__progress — between now and controls */
-  height: 80px;
+  order: 4;
+  height: 152px;
   margin: 2px 0;
   border-radius: 10px;
   background: #101012;
+}
+
+/* Contact popup — dock ⋮ → Contact us. Note + song-suggestion sections. */
+.contact-card {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  z-index: 45;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 120px));
+  overflow-y: auto;
+  background: #1c1c1e;
+  color: #fff;
+  border-radius: 14px;
+  padding: 16px 18px 14px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  font-family: var(--font-plex-sans), sans-serif;
+}
+.contact-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.contact-card__head h2 { font-size: 14px; font-weight: 700; margin: 0; }
+.contact-card__section {
+  padding: 10px 0 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.contact-card__section:first-of-type { border-top: none; }
+.contact-card__section h3 { font-size: 12.5px; font-weight: 600; margin: 0 0 2px; }
+.contact-card__hint {
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+}
+.contact-card textarea,
+.contact-card input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  resize: vertical;
+}
+.contact-card__row { display: flex; gap: 8px; margin-bottom: 8px; }
+.contact-card__row label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+.contact-card__row select {
+  padding: 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #26262a;
+  color: #fff;
+  font-family: var(--font-plex-sans), sans-serif;
+  font-size: 12px;
+}
+.contact-card__send {
+  margin-top: 8px;
+  padding: 7px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.contact-card__send:disabled { opacity: 0.4; cursor: default; }
+.contact-card__notice {
+  margin: 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #9be8b7;
+  text-align: center;
 }
 
 @media (max-width: 640px) {

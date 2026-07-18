@@ -108,13 +108,15 @@ export async function embedPlay(uri: string): Promise<boolean> {
           mountTarget.appendChild(host);
         } else {
           // Off-screen, NOT display:none — hidden iframes may refuse playback.
-          host.style.cssText = 'position:fixed;left:-10000px;bottom:0;width:320px;height:80px;pointer-events:none;';
+          host.style.cssText = 'position:fixed;left:-10000px;bottom:0;width:320px;height:152px;pointer-events:none;';
           document.body.appendChild(host);
         }
         const mount = document.createElement('div');
         host.appendChild(mount);
         await new Promise<void>((resolve) => {
-          api.createController(mount, { uri, width: '100%', height: 80 }, (c) => {
+          // 152px = Spotify's compact-card layout WITH a usable scrubber and
+          // un-clipped play/plus/logo (the 80px mini cut them off).
+          api.createController(mount, { uri, width: '100%', height: 152 }, (c) => {
             controller = c;
             c.addListener('playback_update', (e: never) => {
               const d = (e as { data?: { isPaused?: boolean; position?: number; duration?: number } }).data;

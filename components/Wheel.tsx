@@ -321,6 +321,11 @@ export default function Wheel({
 
   useEffect(() => {
     const handler = (e: WheelEvent) => {
+      // Scroll over overlay UI (the center card's Up Next, popups, the
+      // World card) belongs to THAT element — not the wheels. Without this
+      // the queue list could never scroll: the wheel stole every tick.
+      const el = e.target as Element | null;
+      if (el?.closest?.('.center__stack, .liked, .wnp, .dock, .about-card, .contact-card')) return;
       const half    = window.innerWidth / 2;
       const inLeft  = e.clientX <  half;
       const inRight = e.clientX >= half;

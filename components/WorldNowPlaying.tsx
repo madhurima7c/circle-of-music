@@ -13,7 +13,7 @@ import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
 } from '@/lib/spotify';
-import { ProgressBar, BrandIcon } from '@/components/Overlay';
+import { ProgressBar, BrandIcon, useEmbedActive } from '@/components/Overlay';
 
 /**
  * WorldNowPlaying — the World's single compact now-playing card
@@ -30,6 +30,7 @@ export function WorldNowPlaying() {
   const [more, setMore] = useState(false);
   const saved = useIsFind(track?.id);
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
+  const embedActive = useEmbedActive();
 
   if (status === 'empty') return null;
   const pending = status === 'populating' || status === 'error';
@@ -144,6 +145,12 @@ export function WorldNowPlaying() {
               </svg>
             </button>
           </div>
+
+          {/* Spotify embed nests BELOW the controls (interactive — the +
+              saves to Spotify likes). Scrubber + controls above stay put. */}
+          {spotifyOn && embedActive && (
+            <div className="spotify-slot" data-spotify-slot aria-hidden />
+          )}
 
           {more && links && (
             <>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * ParticleToast — a short-lived message that condenses out of particles,
@@ -9,13 +9,26 @@ import { useEffect, useRef } from 'react';
  * live from `.center__album` so it always matches the album line in the
  * now-playing section, even with next/font's hashed family names.
  *
- * Lifecycle ≈ 4.1s (0.7s in · 2.6s hold · 0.8s out), then onDone fires.
+ * Lifecycle ≈ 5s (0.7s in · 3.5s hold · 0.8s out), then onDone fires.
+ * An optional ⓘ opens a longer explanation; while it's open the toast
+ * pins (won't dissolve) so the user can read.
  * prefers-reduced-motion: a plain fade with the same timing.
  */
-export function ParticleToast({ text, onDone }: { text: string; onDone: () => void }) {
+export function ParticleToast({
+  text,
+  info,
+  onDone,
+}: {
+  text: string;
+  info?: string;
+  onDone: () => void;
+}) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
+  const [showInfo, setShowInfo] = useState(false);
+  const pinnedRef = useRef(false);
+  pinnedRef.current = showInfo;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -75,8 +88,8 @@ export function ParticleToast({ text, onDone }: { text: string; onDone: () => vo
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const INK = 'rgba(24, 24, 28,';
-    const IN = 700, HOLD = 2600, OUT = 800;
-    const t0 = performance.now();
+    const IN = 700, HOLD = 3500, OUT = 800;   // ≈5s total
+    let t0 = performance.now();
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
     let raf = 0;
 
@@ -97,6 +110,11 @@ export function ParticleToast({ text, onDone }: { text: string; onDone: () => vo
     };
 
     const draw = (now: number) => {
+      // Pinned (info open): freeze the clock at the end of the hold phase
+      // so the message stays readable for as long as the popover is up.
+      if (pinnedRef.current && now - t0 > IN + HOLD) {
+        t0 = now - (IN + HOLD);
+      }
       const t = now - t0;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
@@ -119,5 +137,27 @@ export function ParticleToast({ text, onDone }: { text: string; onDone: () => vo
     return () => cancelAnimationFrame(raf);
   }, [text]);
 
-  return <canvas ref={ref} className="divert-toast" role="status" aria-label={text} />;
+  return (
+    <div className="divert-toast" role="status" aria-label={text}>
+      <canvas ref={ref} />
+      {info && (
+        <button
+          className="divert-toast__info"
+          onClick={() => setShowInfo(s => !s)}
+          aria-expanded={showInfo}
+          aria-label={info}
+          title={info}
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="12" cy="12" r="9.2" />
+            <path d="M12 11v5" />
+            <path d="M12 7.6v.4" />
+          </svg>
+        </button>
+      )}
+      {info && showInfo && (
+        <div className="divert-toast__popover" role="note">{info}</div>
+      )}
+    </div>
+  );
 }

@@ -14,6 +14,7 @@ import { toggleFind, useIsFind, useFinds } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
 import { audioBus } from '@/lib/audio-bus';
 import { LikedSongs } from '@/components/Library';
+import { ContactPopup } from '@/components/Contact';
 import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
@@ -357,6 +358,17 @@ export function ProgressBar({ trackDuration }: { trackDuration: number | null })
   );
 }
 
+/** True while the Spotify embed is the sounding source (audioBus.ext is fed
+ *  by GlobalPlayer). Drives whether a card shows its reserved iframe slot. */
+export function useEmbedActive(): boolean {
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    const iv = setInterval(() => setActive(!!audioBus.ext), 500);
+    return () => clearInterval(iv);
+  }, []);
+  return active;
+}
+
 /* Compact brand marks for the "listen in" menu. */
 export function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'deezer' }) {
   if (kind === 'spotify') {
@@ -408,19 +420,15 @@ export function CenterStack() {
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
-  // True while the Spotify embed is the sounding source (audioBus.ext set by
-  // GlobalPlayer) — decides progress bar vs the embedded Spotify slot.
-  const [embedActive, setEmbedActive] = useState(false);
-  useEffect(() => {
-    const iv = setInterval(() => setEmbedActive(!!audioBus.ext), 500);
-    return () => clearInterval(iv);
-  }, []);
+  // True while the Spotify embed is the sounding source — the card then
+  // nests the iframe slot below the controls (scrubber + controls stay).
+  const embedActive = useEmbedActive();
 
   // Arriving here with an UNREPRESENTED (non-seed) country playing — e.g. a
   // Bhutan dot from the World: approximate to the nearest seed country, let
   // the current song finish, swap Up Next for that country's queue in the
   // same genre, and announce it with the particle toast above the card.
-  const [divertMsg, setDivertMsg] = useState<string | null>(null);
+  const [divertMsg, setDivertMsg] = useState<{ text: string; info: string } | null>(null);
   const divertedFor = useRef<string | null>(null);
   useEffect(() => {
     if (!customCountry || status !== 'ready' || !tracks.length) return;
@@ -434,7 +442,10 @@ export function CenterStack() {
       const idx = await nearestSeedIdx(from);
       if (idx < 0) return;
       const { to, genre } = divertAfterCurrent(idx);
-      setDivertMsg(STR.circle.divert(from, to, genre));
+      setDivertMsg({
+        text: STR.circle.divert(from),
+        info: STR.circle.divertInfo(from, to, genre),
+      });
     })();
   }, [customCountry, status, tracks.length, divertAfterCurrent]);
 
@@ -503,7 +514,7 @@ export function CenterStack() {
   return (
     <div className="absolute left-1/2 top-1/2 z-[5] -translate-x-1/2 -translate-y-1/2">
       {divertMsg && (
-        <ParticleToast text={divertMsg} onDone={() => setDivertMsg(null)} />
+        <ParticleToast text={divertMsg.text} info={divertMsg.info} onDone={() => setDivertMsg(null)} />
       )}
       {status !== 'empty' && (
         <div className="center__stack" ref={stackRef}>
@@ -581,16 +592,7 @@ export function CenterStack() {
                     )}
                   </div>
 
-                  {/* Connected AND the embed is the sounding source: the
-                      Spotify widget replaces the progress row (GlobalPlayer's
-                      fixed strip seats itself over this slot — the iframe
-                      itself can't live in the card, it would reload on every
-                      route change). It brings its own full-length progress +
-                      seek; our transport row keeps driving it. On preview
-                      fallback the normal progress bar stays. */}
-                  {spotifyOn && embedActive
-                    ? <div className="spotify-slot" data-spotify-slot aria-hidden />
-                    : <ProgressBar trackDuration={track?.duration ?? null} />}
+                  <ProgressBar trackDuration={track?.duration ?? null} />
 
                   <div className="center__controls">
                     <button className="ctrl ctrl--shuffle" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
@@ -634,6 +636,17 @@ export function CenterStack() {
                       </svg>
                     </button>
                   </div>
+
+                  {/* Connected AND the embed is sounding: the Spotify widget
+                      nests below the controls (GlobalPlayer's fixed strip
+                      seats itself over this slot — the iframe can't live in
+                      the card's DOM, it would reload on route changes). Our
+                      scrubber + transport above keep working and driving it;
+                      the widget adds its own full-length seek and the +
+                      (save to Spotify likes). */}
+                  {spotifyOn && embedActive && (
+                    <div className="spotify-slot" data-spotify-slot aria-hidden />
+                  )}
                 </div>
               </div>
 
@@ -1409,6 +1422,7 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [submenu, setSubmenu] = useState<null | 'lang' | 'hand'>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [lang, setLang] = useState('en');
 
   // Hand tracking makes no sense on touch-primary devices — hide the row.
@@ -1520,14 +1534,11 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
                 </button>
               )}
 
-              {/* Contact us */}
+              {/* Contact us — in-app popup (note + song suggestion). */}
               <button
                 role="menuitem"
                 className="dock-menu__row"
-                onClick={() => {
-                  window.location.href = `mailto:?subject=${encodeURIComponent(STR.menu.mailSubject)}`;
-                  closeMenu();
-                }}
+                onClick={() => { setContactOpen(true); closeMenu(); }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 5h18v12H7l-4 4z" />
@@ -1595,6 +1606,7 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
       </div>
 
       <LikedSongs open={likedOpen} onClose={() => setLikedOpen(false)} />
+      <ContactPopup open={contactOpen} onClose={() => setContactOpen(false)} />
 
       {aboutOpen && (
         <>

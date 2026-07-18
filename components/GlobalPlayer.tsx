@@ -71,6 +71,13 @@ export function GlobalPlayer() {
   // iframe (only a new iframe document sees a just-granted Spotify login).
   const [freshNonce, setFreshNonce] = useState(0);
   const stripRef = useRef<HTMLDivElement | null>(null);
+  // Connected but NOT logged in at Spotify: the embed serves ~30s clips.
+  // The user wants Deezer previews in that state (and no visible iframe),
+  // so a clip-length playing update bails the CURRENT track to the preview
+  // (via clipBail, armed per track) and remembers clip mode for the session
+  // — later tracks skip the embed entirely. Cleared by a fresh Connect.
+  const clipBail = useRef<(() => void) | null>(null);
+  const clipMode = useRef(false);
   // The Circle card renders a reserved [data-spotify-slot] row while
   // connected; the strip seats itself over it (fixed overlay — the iframe
   // itself can never move into the card's DOM without reloading). When no
@@ -115,7 +122,7 @@ export function GlobalPlayer() {
      again when focus returns from the login popup (fresh-login case). */
   useEffect(() => {
     let pendingFocus = false;
-    const rebuild = () => { destroyEmbed(); setFreshNonce(n => n + 1); };
+    const rebuild = () => { clipMode.current = false; destroyEmbed(); setFreshNonce(n => n + 1); };
     const onConnect = () => { pendingFocus = true; rebuild(); };
     const onFocus = () => { if (pendingFocus) { pendingFocus = false; rebuild(); } };
     window.addEventListener('spotify:connect-click', onConnect);
@@ -143,6 +150,12 @@ export function GlobalPlayer() {
         return;
       }
       if (!s.paused) embedStarted.current = true;
+      // Clip-length duration while sounding = the iframe can't see a Spotify
+      // login. Revert this track (and the session) to the Deezer preview.
+      if (!s.paused && s.duration > 0 && s.duration <= 31500) {
+        clipBail.current?.();
+        return;
+      }
       // The widget is visible UI now — if the user plays/pauses INSIDE it,
       // mirror that into the store (guarded so an in-flight command of our
       // own doesn't get echoed back and cancelled).
@@ -206,7 +219,9 @@ export function GlobalPlayer() {
       audio.play().catch(() => { setAutoplayBlocked(true); setIsPlaying(false); });
     };
 
-    if (!(spotifyOn && track)) {
+    // Not connected — or connected but the embed only serves 30s clips
+    // (not logged in at Spotify): Deezer previews are the sound source.
+    if (!(spotifyOn && track) || clipMode.current) {
       playPreview();
       return;
     }
@@ -221,6 +236,7 @@ export function GlobalPlayer() {
     let cancelled = false;
     let stallTimer: ReturnType<typeof setTimeout> | undefined;
     embedStarted.current = false;
+    clipBail.current = null;
     resolveSpotifyUri(track.artist, track.title)
       .then((uri) => (uri && !cancelled ? embedPlay(uri) : false))
       .then((ok) => {
@@ -239,6 +255,18 @@ export function GlobalPlayer() {
           const bail = () => {
             if (cancelled || embedStarted.current) return;
             embedPause(); // cancel retries — a late start must not double-play
+            viaSpotify.current = false;
+            embedPrev.current = null;
+            audioBus.ext = null;
+            playPreview();
+          };
+          // Clip-mode bail: the embed IS sounding but only with a ~30s clip
+          // (no login) — cut it off, remember for the session, go Deezer.
+          clipBail.current = () => {
+            clipBail.current = null;
+            if (cancelled) return;
+            clipMode.current = true;
+            embedPause();
             viaSpotify.current = false;
             embedPrev.current = null;
             audioBus.ext = null;

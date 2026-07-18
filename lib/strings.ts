@@ -48,11 +48,12 @@ export const STR = {
     description: 'Country × Genre, on a circle.',
     backToHub: 'Back to the hub',
     /* Arriving from the World with a nation the 20 wheel cards can't
-     * represent — the queue diverts to the nearest seed country. */
-    divert: (from: string, to: string, genre: string | null) =>
-      genre
-        ? `${from} country coming soon. Switching to ${to} ${genre.toLowerCase()}.`
-        : `${from} country coming soon. Switching to ${to}.`,
+     * represent — the queue diverts to the nearest seed country. Short
+     * line on screen; the ⓘ carries the full explanation. */
+    divert: (from: string) => `${from} coming soon — brought you nearby.`,
+    divertInfo: (from: string, to: string, genre: string | null) =>
+      `${from} isn't in our country list yet, so we brought you to the closest one we have: ${to}${
+        genre ? ` — now playing ${to} ${genre.toLowerCase()}` : ''}.`,
   },
 
   /* Top-center experience switcher. */
@@ -77,6 +78,25 @@ export const STR = {
       'Wander, don’t search. The world’s music, browsable by place and genre — no algorithm, no login, no destination required. 30-second tastings via Deezer; open every find in your own music app.',
     translationsSoon: 'coming soon',
     mailSubject: 'Music Exploration — hello',
+  },
+
+  /* Contact popup (dock ⋮ → Contact us). */
+  contact: {
+    title: 'Contact us',
+    noteTitle: 'Send us a note',
+    noteHint: 'Thoughts, wishes, broken things — all welcome.',
+    notePlaceholder: 'Write to us…',
+    songTitle: 'Add a song',
+    songHint: 'Know a song that belongs in a pairing? Suggest it — we verify the match before it joins the playlists.',
+    songCountry: 'Country',
+    songGenre: 'Genre',
+    songPlaceholder: 'Song name — artist',
+    send: 'Send',
+    close: 'Close',
+    sent: 'Opening your mail app…',
+    noteSubject: 'Music Exploration — a note',
+    songSubject: (country: string, genre: string) =>
+      `Music Exploration — song suggestion (${country} × ${genre})`,
   },
 
   /* Language menu — the interaction is offered in all of these; English is
