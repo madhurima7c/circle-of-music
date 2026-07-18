@@ -124,23 +124,65 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 
 ## Current status
 
-**Done:** Phase 0 (routes/hub, hand tracking, shareable URLs, persistent
-player) + Phase 1A (GSAP polish, surprise, finds library, audit) + content
-wave 1 (+80 verified seeds, fallbacks 26%→5%, 90 curated stories, origin
-line) + World Phase 2 (flat origin dots w/ avatar+ring, artists/songs filter,
-every nation tappable, 161-nation world-seeds dataset, zoom + right playlist
-panel) + **user's card art** (country/genre covers + real spines + spine-color
-backs, lit vinyl PBR shading) + **UI v2** (experience nav w/ user icons,
-dock w/ Language·Hand·Contact·About menus, LikedSongs popup w/ playlists +
-drag-drop, card flip + progress bar + share menu + rich queue rows,
-progressive edge blur, DM fonts, dial kit removed). See **`todo.md`**.
+Full detail + this-session log in **`todo.md`**; the deep history is in the
+per-file summaries above. Highlights of the current build:
 
-**Awaiting from user:** Shades experience design; translations (menu lists 19
-languages, only English live); contact email for "Contact us"; About copy;
-lightweight vector world/shades icons; Spotify client ID (after Vercel URL);
-seed-proposals.json review; axes growth decision (deferred).
+**Spotify FULL-SONG mode is wired end-to-end** (`lib/spotify-embed.ts` +
+`GlobalPlayer.tsx`): "Connect Spotify" opens a plain Spotify login popup and
+rebuilds a FRESH embed iframe (only a new iframe document sees the just-granted
+login). The embed is Spotify's 152px card, **nested BELOW our scrubber +
+transport** in both the Circle and World now-playing cards (reserved
+`[data-spotify-slot]`; the fixed strip in GlobalPlayer seats itself over it —
+the iframe can't live in the card DOM, it reloads on route change). It only
+appears while the embed is genuinely the sounding source. Reverts to Deezer
+30s previews when **not connected**, **disconnected**, **not logged in**
+(clip-length duration detected → session clip-mode), or on a lookup miss —
+never dead air. Track→id lookups go through `/api/spotify-search`
+(client-credentials, no user auth). **Rate-limit reality:** the limit is on
+that SEARCH lookup, NOT on playback (once an id is known, playback is
+unlimited). Bans escalate on repeated 429s; server + client both remember the
+`Retry-After` window (`spotify_rl_until` in localStorage) and stop calling.
+Creds live in **gitignored `.env.local`** (`NEXT_PUBLIC_SPOTIFY_CLIENT_ID` +
+server-only `SPOTIFY_CLIENT_SECRET`) and on Vercel production.
 
-**Not done / known:** seed-proposals.json review + the 19 remaining fallbacks;
-axes growth (24×24/28×28) awaiting user decision + covers; reach arcs + layer
-toggles + Circle→globe flyover; full playback + library export (Phase 3);
-real-device testing (webcam gestures, iOS background audio, origin-dot visuals).
+**Wheel cursor interaction** (`Wheel.tsx`, Spencer-Gabor-inspired,
+user-tuned): ring cards react to the cursor's angle + sweep VELOCITY (lift +
+lean, per-card springs that trail the cursor — `RIPPLE`); the active face-on
+card does a "look at cursor" tilt (`RIPPLE_ACTIVE`). Values baked in; the
+dev dial kit was removed. Spine art now reads on **all four edges** (top/bottom
+get quarter-turn-rotated clones); every card's back carries its note text
+permanently (a standing cue there's more info behind it).
+
+**Two-way World↔Circle sync**: `store.setNowPlayingOrigin` makes the "FROM"
+banner AND (on the Circle) the country/genre cards follow the CURRENTLY-PLAYING
+dot. Queue kinds `pairing | chain | library`: at end-of-queue a pairing OR
+dot-chain advances to the **NEXT GENRE, same country** (`store.endOfQueue`) —
+never repeats the finished run; only the library loops. Unrepresented (non-seed)
+nations: a country TAP with no dots snaps to the nearest seed
+(`lib/geo.nearestSeedIdx`); a World→Circle switch while a non-seed dot plays
+runs `store.divertAfterCurrent` (keeps the current song as the queue head,
+swaps Up Next for the nearest-seed pipeline in the same genre) and shows the
+**ParticleToast** ("Taiwan coming soon — brought you nearby." + ⓘ, ~5s,
+particles→text→particles).
+
+**Also live:** LikedSongs popup (Export CSV/JSON dropdown, select-all + bulk
+clear / add-to-playlist, per-row share, compact icon "listen in"); Circle
+**Up Next is scrollable** (the wheels' scroll handler ignores events over
+overlay UI); center card widened to 340px; **Contact popup**
+(`components/Contact.tsx`, dock ⋮ → Contact us): "Send us a note" + "Add a
+song" (Country×Genre dropdowns so suggestions arrive pre-tagged for
+verification) — composes a structured mailto; the `send()` seam swaps to a
+real `/api/contact` when a destination lands.
+
+**Awaiting from user:** Shades experience design; translations (19-language
+menu, only English live); **Contact destination email / endpoint** (popup
+composes a mailto for now); About copy; vector world/shades icons;
+seed-proposals.json review; axes-growth decision (deferred). **Real-device
+Spotify test** (logged-in browser at discovery-of-music.vercel.app) is the key
+open verification — headless can't log into Spotify. The app's search quota was
+rate-limited by testing (bans ~13–22h; should be clear by ~2026-07-19).
+
+**Not done / known:** accounts / cross-device library (Supabase plan in
+`todo.md`, deferred until Spotify verified); Shades; reach arcs + layer
+toggles + Circle→globe flyover; the song-suggestion verification pipeline
+(Contact "Add a song" tags the pairing; auto-verify against it is TODO).
