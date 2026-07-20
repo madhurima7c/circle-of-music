@@ -158,6 +158,14 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
+## ✅ This session (2026-07-20c, pushed) — curated Circle playlists
+
+Circle **pairing playlists now behave like a real Spotify playlist** (per user spec):
+- **Curated order** (`curatePlaylist` in `lib/store.tsx`): the fetched tracks are shuffled but artist-spread — greedy "most-remaining-first" interleave so the SAME artist never lands back-to-back when avoidable (dominant artists still spaced maximally). Applied in `commit()` and the `divertAfterCurrent` tail. Verified: India|Jazz → 68 tracks, **0 adjacent same-artist**.
+- **Fixed list** (`CenterStack` in `Overlay.tsx`): the queue is now the FULL list in a FIXED order (was a rolling `trackIdx+1…` up-next window). The sounding track is highlighted IN PLACE — Spotify green `#1ed760` + a 3-bar `EqualizerIcon` — and auto-scrolled into view (`queueRef` + `scrollIntoView('nearest')`). Clicking any row jumps without reordering. Heading renamed "Up next:" → "Playlist" (`STR.card.playlist`).
+- **Shuffle is now a TOGGLE** (controls-panel button only — NOT the dock's surprise): `store.shuffle` + `toggleShuffle` + `trackEnded` (shuffle-aware advance). ON → each advance plays a random not-yet-heard track (played-set in a ref, no repeats until the list is exhausted → then next genre / library loop); button lit in our blue (`.ctrl--shuffle[data-active="true"]`). OFF → linear from the current track. `GlobalPlayer.onEnded` (audio + Spotify-embed paths) delegates to `trackEnded`. Verified: ON → [0,31,83,124,102,98,92] non-linear no-repeat; OFF → [92,93,94,95,96] linear.
+- Note: `getComputedStyle` in the hidden preview tab falsely reported the active-shuffle blue as not applying (even injected `!important` didn't reflect) — a screenshot confirmed it renders correctly. Trust screenshots over computed styles in that tab.
+
 ## ✅ This session (2026-07-20b, pushed) — phone interface + contact fix + DB
 
 **📱 Phone interface — BUILT** (`components/PhoneIntro.tsx`, `lib/use-phone.ts`):
