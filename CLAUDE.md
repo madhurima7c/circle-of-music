@@ -165,24 +165,39 @@ swaps Up Next for the nearest-seed pipeline in the same genre) and shows the
 **ParticleToast** ("Taiwan coming soon — brought you nearby." + ⓘ, ~5s,
 particles→text→particles).
 
+**Spotify VERIFIED WORKING by the user (2026-07-20)** — full songs play on
+their logged-in browser. The search-quota rate-limit bans from testing have
+lapsed; protections (server+client Retry-After memory, gentle 1/1.5s sweep)
+prevent a repeat.
+
 **Also live:** LikedSongs popup (Export CSV/JSON dropdown, select-all + bulk
 clear / add-to-playlist, per-row share, compact icon "listen in"); Circle
 **Up Next is scrollable** (the wheels' scroll handler ignores events over
-overlay UI); center card widened to 340px; **Contact popup**
-(`components/Contact.tsx`, dock ⋮ → Contact us): "Send us a note" + "Add a
-song" (Country×Genre dropdowns so suggestions arrive pre-tagged for
-verification) — composes a structured mailto; the `send()` seam swaps to a
-real `/api/contact` when a destination lands.
+overlay UI); both now-playing cards are 340px wide; wheel cards −15%
+(`DESKTOP_TUNING.cardSize` 1.06); **World zoom pill** (bottom-left magnifier
+→ − · slider · + driving `pointOfView` altitude); **tablet preset** in
+Stage.tsx (641–900px `TABLET_CAMERA/TUNING` — desktop camera pushed the
+wheels off-canvas on portrait iPads) + window-resize fallback; **Contact
+popup v2** (`components/Contact.tsx` + `/api/contact`): two tabs (note /
+add-a-song), light-mode w/ #1d2bdf CTAs, sends REAL email via FormSubmit
+relay (destination lives server-side only), particle confirmation + "send
+another" reset, country dropdown = all 175 globe nations. **⚠️ FormSubmit's
+one-time activation link must be clicked in the destination inbox** (a test
+note triggered it) or submissions won't deliver.
+
+**NEXT UP — the PHONE interface** (full spec in `todo.md` "📱 NEXT UP"):
+same URL, phone widths get a 3-panel swipeable intro (Circle light / World
+dark / Shades gradient, morphing graphics like the desktop nav hover states,
+zoom-out + dissolve transitions, progress dots, "optimized for desktop"
+copy) instead of the squeezed tool.
 
 **Awaiting from user:** Shades experience design; translations (19-language
-menu, only English live); **Contact destination email / endpoint** (popup
-composes a mailto for now); About copy; vector world/shades icons;
-seed-proposals.json review; axes-growth decision (deferred). **Real-device
-Spotify test** (logged-in browser at discovery-of-music.vercel.app) is the key
-open verification — headless can't log into Spotify. The app's search quota was
-rate-limited by testing (bans ~13–22h; should be clear by ~2026-07-19).
+menu, only English live); About copy; vector world/shades icons;
+seed-proposals.json review; axes-growth decision (deferred); real-iPad feel
+check of the tablet preset; FormSubmit activation click.
 
 **Not done / known:** accounts / cross-device library (Supabase plan in
-`todo.md`, deferred until Spotify verified); Shades; reach arcs + layer
-toggles + Circle→globe flyover; the song-suggestion verification pipeline
-(Contact "Add a song" tags the pairing; auto-verify against it is TODO).
+`todo.md`); Shades; reach arcs + layer toggles + Circle→globe flyover; the
+song-suggestion auto-verify pipeline (suggestions arrive tagged
+Country×Genre; the Deezer/MusicBrainz cross-check like `npm run enrich` is
+TODO).
