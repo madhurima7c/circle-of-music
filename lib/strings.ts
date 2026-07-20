@@ -37,6 +37,9 @@ export const STR = {
     dotCta: 'click to play',
     filterToSongs: 'Dots show artists — switch to songs',
     filterToArtists: 'Dots show songs — switch to artists',
+    zoom: 'Zoom',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
     dotsLabel: 'What the dots represent',
     dotsArtists: 'Dots represent artists',
     dotsSongs: 'Dots represent songs',
@@ -80,7 +83,7 @@ export const STR = {
     mailSubject: 'Music Exploration — hello',
   },
 
-  /* Contact popup (dock ⋮ → Contact us). */
+  /* Contact popup (dock ⋮ → Contact us). Two tabs; sends via /api/contact. */
   contact: {
     title: 'Contact us',
     noteTitle: 'Send us a note',
@@ -92,8 +95,13 @@ export const STR = {
     songGenre: 'Genre',
     songPlaceholder: 'Song name — artist',
     send: 'Send',
+    sending: 'Sending…',
     close: 'Close',
-    sent: 'Opening your mail app…',
+    sentNote: 'Your note is on its way — thank you.',
+    sentSong: 'Suggestion received — we’ll give it a listen.',
+    againNote: 'Send another note',
+    againSong: 'Suggest another song',
+    error: 'Couldn’t send just now — please try again.',
     noteSubject: 'Music Exploration — a note',
     songSubject: (country: string, genre: string) =>
       `Music Exploration — song suggestion (${country} × ${genre})`,

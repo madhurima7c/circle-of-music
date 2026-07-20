@@ -18,10 +18,16 @@ export function ParticleToast({
   text,
   info,
   onDone,
+  inline = false,
+  hold = false,
 }: {
   text: string;
   info?: string;
-  onDone: () => void;
+  onDone?: () => void;
+  /** Render in normal flow (e.g. inside a card) instead of floating. */
+  inline?: boolean;
+  /** Converge and STAY as text — no dissolve, no onDone (confirmations). */
+  hold?: boolean;
 }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const doneRef = useRef(onDone);
@@ -118,7 +124,9 @@ export function ParticleToast({
       const t = now - t0;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      if (t >= IN + HOLD + OUT) { doneRef.current(); return; }
+      // hold mode: once converged, paint the text and stop — it stays.
+      if (hold && t >= IN) { drawText(1); return; }
+      if (t >= IN + HOLD + OUT) { doneRef.current?.(); return; }
       if (reduced) {
         const alpha = t < IN ? t / IN : t < IN + HOLD ? 1 : 1 - (t - IN - HOLD) / OUT;
         drawText(alpha);
@@ -135,10 +143,10 @@ export function ParticleToast({
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [text]);
+  }, [text, hold]);
 
   return (
-    <div className="divert-toast" role="status" aria-label={text}>
+    <div className={`divert-toast${inline ? ' divert-toast--inline' : ''}`} role="status" aria-label={text}>
       <canvas ref={ref} />
       {info && (
         <button

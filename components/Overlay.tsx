@@ -1476,10 +1476,11 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
           aria-label={STR.playlists.title}
           aria-expanded={likedOpen}
         >
+          {/* Count badge removed by request — the filled heart already says
+              "you have likes"; the red bubble read as an error state. */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill={finds.length ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
           </svg>
-          {finds.length > 0 && <span className="dock__count tabular">{finds.length}</span>}
         </button>
 
         {/* More — language, hand tracking, contact, about. */}

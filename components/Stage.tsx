@@ -20,7 +20,7 @@ const DESKTOP_CAMERA = {
 const DESKTOP_TUNING: WheelTuning = {
   /* layout */
   radius:        4.0,
-  cardSize:      1.25,
+  cardSize:      1.06,   // 1.25 × 0.85 — user asked the two big cards −15%
   cardThickness: 0.07,
   /* rotation */
   spineAngleDeg: 17,
@@ -65,6 +65,24 @@ const MOBILE_TUNING: WheelTuning = {
   paddingAmount: 0.24,
 };
 
+/* Portrait tablets (iPad, 641–900px): the desktop camera pushes the wheels
+ * fully off-canvas at these widths — pull them in so the active cards peek
+ * from the edges like they do on desktop. */
+const TABLET_CAMERA = {
+  cameraZ: 9,
+  fov: 48,
+  wheelOffsetX: 5.6,
+};
+
+const TABLET_TUNING: WheelTuning = {
+  ...DESKTOP_TUNING,
+  radius:        3.2,
+  cardSize:      0.85,
+  popZ:          1.30,
+  popScale:      1.35,
+  paddingAmount: 0.30,
+};
+
 /**
  * The 3D stage: two large card circles, mostly clipped off-canvas.
  * Wheel rotates so the selected card lands at the fixed active position
@@ -91,23 +109,34 @@ export default function Stage() {
     else setGenre(i);
   };
 
-  // Portrait/phone breakpoint — swaps in the mobile camera + wheel tuning.
-  const [isMobile, setIsMobile] = useState(false);
+  // Phone / portrait-tablet / desktop breakpoints — each swaps in its own
+  // camera + wheel tuning so the active cards always peek from the edges.
+  const [mode, setMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)');
-    const apply = () => setIsMobile(mq.matches);
+    const phone  = window.matchMedia('(max-width: 640px)');
+    const tablet = window.matchMedia('(max-width: 900px)');
+    const apply = () =>
+      setMode(phone.matches ? 'mobile' : tablet.matches ? 'tablet' : 'desktop');
     apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
+    phone.addEventListener('change', apply);
+    tablet.addEventListener('change', apply);
+    // Fallback: some embedded/emulated browsers never fire matchMedia
+    // change events — plain resize keeps the mode honest everywhere.
+    window.addEventListener('resize', apply);
+    return () => {
+      phone.removeEventListener('change', apply);
+      tablet.removeEventListener('change', apply);
+      window.removeEventListener('resize', apply);
+    };
   }, []);
 
-  const cam = isMobile ? MOBILE_CAMERA : DESKTOP_CAMERA;
-  const tun = isMobile ? MOBILE_TUNING : DESKTOP_TUNING;
+  const cam = mode === 'mobile' ? MOBILE_CAMERA : mode === 'tablet' ? TABLET_CAMERA : DESKTOP_CAMERA;
+  const tun = mode === 'mobile' ? MOBILE_TUNING : mode === 'tablet' ? TABLET_TUNING : DESKTOP_TUNING;
 
   return (
     <div className="absolute inset-0 z-[2]">
       <Canvas
-        key={isMobile ? 'mobile' : 'desktop'}
+        key={mode}
         camera={{ position: [0, 0, cam.cameraZ], fov: cam.fov, near: 0.1, far: 100 }}
         dpr={[1, 2]}
         gl={{ alpha: true, antialias: true }}

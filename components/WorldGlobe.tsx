@@ -657,6 +657,33 @@ export default function WorldGlobe() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playPlace, playPlaceNamed, features]);
 
+  /* ---------- zoom control: magnifier icon ⇄ slider with −/+ ends ----------
+   * Wheel/pinch zoom on the globe is fiddly; this drives the camera altitude
+   * directly (pointOfView keeps the current lat/lng). Slider 0 = far out,
+   * 1 = close in. Opening reads the live altitude so the thumb starts true. */
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [zoomVal, setZoomVal] = useState(0.45);
+  const ALT_MIN = 0.35, ALT_MAX = 4.0;   // within the controls' distance clamp
+  const applyZoom = useCallback((v: number) => {
+    const clamped = Math.min(1, Math.max(0, v));
+    setZoomVal(clamped);
+    const g = globeRef.current;
+    if (!g) return;
+    const pov = g.pointOfView() as { lat: number; lng: number; altitude: number };
+    g.pointOfView(
+      { lat: pov.lat, lng: pov.lng, altitude: ALT_MAX - clamped * (ALT_MAX - ALT_MIN) },
+      250,
+    );
+  }, []);
+  const toggleZoom = useCallback(() => {
+    const g = globeRef.current;
+    if (g) {
+      const { altitude } = g.pointOfView() as { altitude: number };
+      setZoomVal(Math.min(1, Math.max(0, (ALT_MAX - altitude) / (ALT_MAX - ALT_MIN))));
+    }
+    setZoomOpen(o => !o);
+  }, []);
+
   /* ---------- genre rail: multi-select, max five ---------- */
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -939,6 +966,36 @@ export default function WorldGlobe() {
             </button>
           );
         })}
+      </div>
+
+      {/* Zoom — bottom-left pill: magnifier that expands into −·slider·+ */}
+      <div className={`world-zoom${zoomOpen ? ' world-zoom--open' : ''}`}>
+        <button
+          className="world-zoom__toggle"
+          onClick={toggleZoom}
+          title={STR.world.zoom}
+          aria-label={STR.world.zoom}
+          aria-expanded={zoomOpen}
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-4.2-4.2" />
+          </svg>
+        </button>
+        {zoomOpen && (
+          <>
+            <button className="world-zoom__step" onClick={() => applyZoom(zoomVal - 0.15)} aria-label={STR.world.zoomOut}>−</button>
+            <input
+              type="range"
+              className="world-zoom__slider"
+              min={0} max={1} step={0.01}
+              value={zoomVal}
+              onChange={(e) => applyZoom(Number(e.target.value))}
+              aria-label={STR.world.zoom}
+            />
+            <button className="world-zoom__step" onClick={() => applyZoom(zoomVal + 0.15)} aria-label={STR.world.zoomIn}>+</button>
+          </>
+        )}
       </div>
 
       {toast && <div className="world-toast" role="status">{toast}</div>}

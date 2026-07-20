@@ -149,6 +149,22 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - **Contact popup** (`components/Contact.tsx`): "Send us a note" (free text) + "Add a song" (Country + Genre dropdowns + song name, pre-tagged with the pairing). Composes a structured `mailto`; `send()` is the seam for a future `/api/contact`.
 - Restored the full "listen to song in" menu (with names) on the Circle card; compact icons-only on Liked rows + World. Autoplay fix (explicit `setIsPlaying(true)` after tracks load).
 
+## ✅ Polish batch (2026-07-20, pushed)
+- **Spotify VERIFIED WORKING by the user on their real browser** (full songs play). 🎉
+- Wheel cards −15% (`DESKTOP_TUNING.cardSize` 1.25 → 1.06).
+- **World zoom control**: bottom-left magnifier pill that expands into − · slider · + (drives `pointOfView` altitude 0.35–4.0, 250ms glides; wheel/pinch zoom still works).
+- World now-playing card widened 264 → **340px** (same as Circle) so the Spotify embed isn't clipped.
+- **Contact popup v2** (`components/Contact.tsx` + new **`/api/contact`**): two TABS (Contact us / Add a song), LIGHT-mode styling, accent #1d2bdf; sends a REAL email via FormSubmit relay to the private address (server-side only, never exposed); post-send the form dissolves → particle confirmation in the same box + "Send another note/Suggest another song"; Add-a-song country dropdown = ALL 175 globe nations (geo-iso), genres = our 20. Sits above every layer (dim scrim 44 + card 46 > embed strip 41). **⚠️ ONE-TIME: FormSubmit sent an activation email to the destination inbox — click its confirm link once or submissions won't deliver.**
+- Liked-songs count badge on the dock heart removed (read as an error state).
+- **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
+
+## 📱 NEXT UP — phone interface (user spec, 2026-07-20)
+A separate PHONE experience (same URL, phone-width detection) that previews the tool instead of cramming it in:
+- 3 full-screen intro panels — Circle (light, blue card-ring), World (dark, mini globe), Shades (gradient orb + COMING SOON pill) — mirroring the user's supplied mock (each panel: big animated graphic like the desktop nav hover states, "CIRCLE / of Music" title lockup, short "optimized for desktop, switch to a computer" message).
+- Swipe/drag between panels with smooth morph transitions (zoom-out + dissolve + smart-animate feel: the circle graphic morphs card-ring → globe → orb; background cross-fades light → dark → gradient).
+- Progress dots under the text (3 dots, active state) showing position.
+- The desktop site remains at ≥ tablet widths; phones get this instead of the current squeezed mobile layout.
+
 ## ⏳ Waiting on user (blocks next steps)
 - [ ] **Shades** experience design (nav slot exists, marked coming soon).
 - [ ] **Translations** for the 19 listed languages (only `en` is `ready` in `lib/strings.ts`); countries/genres too.
