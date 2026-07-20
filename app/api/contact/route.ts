@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { storeSubmission } from '@/lib/db';
+import { sendEmail } from '@/lib/email';
 
 /**
  * Contact relay — every submission is (1) stored in the Neon Postgres
- * `submissions` table and (2) emailed via FormSubmit's AJAX API. The
- * destination address lives HERE, server-side only — it is never shipped
- * to the browser or shown to users.
+ * `submissions` table and (2) emailed via Resend. The destination address
+ * lives HERE, server-side only — it is never shipped to the browser.
  *
- * FormSubmit gotchas learned the hard way:
- * - It REQUIRES Origin/Referer headers or it returns HTTP 200 with
- *   success:"false" ("open this page through a web server") — so res.ok is
- *   meaningless; the JSON `success` field is the real verdict.
- * - One-time activation: the first accepted submission emails an
- *   'Activate Form' link to the address below; until it's clicked every
- *   send returns success:"false" ("This form needs Activation").
+ * Why Resend and not FormSubmit: FormSubmit sits behind Cloudflare, which
+ * bot-challenges Vercel's datacenter IPs (verified 403 "Just a moment…"), so
+ * it can't be called from a serverless function. Resend's REST API is built
+ * for exactly this. Both the API key and the destination are server-only.
  */
 
 const TO = 'chandanasmekala@gmail.com';
-const SITE = 'https://discovery-of-music.vercel.app';
 
 export async function POST(req: NextRequest) {
   let body: {
@@ -54,32 +50,9 @@ export async function POST(req: NextRequest) {
     song: field(body.song),
   });
 
-  // 2) Email relay.
-  let sent = false;
-  try {
-    const res = await fetch(`https://formsubmit.co/ajax/${TO}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Origin: SITE,
-        Referer: `${SITE}/`,
-      },
-      body: JSON.stringify({
-        _subject: subject || 'Music Exploration — message',
-        message,
-      }),
-    });
-    if (res.ok) {
-      const out = (await res.json().catch(() => null)) as { success?: unknown } | null;
-      sent = String(out?.success) === 'true';
-    }
-  } catch {
-    sent = false;
-  }
+  // 2) Email notification via Resend (best-effort; DB is the record of truth).
+  const sent = await sendEmail(TO, subject || 'Music Exploration — message', message);
 
-  // The submission "succeeds" for the user if EITHER channel took it —
-  // the DB is the source of truth once provisioned; email is a courtesy copy.
   if (!stored && !sent) {
     return NextResponse.json({ error: 'send failed' }, { status: 502 });
   }
