@@ -409,10 +409,20 @@ export function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'd
   );
 }
 
+/** Tiny 3-bar equalizer marking the sounding row in the playlist. Bars
+ *  animate while playing and freeze when paused (CSS `.eq[data-playing]`). */
+function EqualizerIcon({ playing }: { playing: boolean }) {
+  return (
+    <span className="eq" data-playing={playing ? 'true' : 'false'} aria-hidden>
+      <span /><span /><span />
+    </span>
+  );
+}
+
 export function CenterStack() {
   const {
     tracks, trackIdx, status, isPlaying, countryName, genreIdx,
-    togglePlay, nextTrack, prevTrack, shuffleTracks, autoplayBlocked,
+    togglePlay, nextTrack, prevTrack, shuffle, toggleShuffle, autoplayBlocked,
     setTrackIdx, setIsPlaying, customCountry, divertAfterCurrent,
   } = useStore();
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
@@ -478,8 +488,16 @@ export function CenterStack() {
 
   /* ---------- GSAP polish (scoped to the card) ---------- */
   const stackRef  = useRef<HTMLDivElement | null>(null);
+  const queueRef  = useRef<HTMLUListElement | null>(null);
   const pairingKey = `${country}|${genre}`;
   const lastPairing = useRef(pairingKey);
+
+  // Keep the sounding row visible as the highlight moves down the fixed list
+  // (Spotify-style). 'nearest' scrolls only when the row is off-screen.
+  useEffect(() => {
+    const row = queueRef.current?.querySelector('[data-current="true"]') as HTMLElement | null;
+    row?.scrollIntoView({ block: 'nearest', behavior: canAnimate() ? 'smooth' : 'auto' });
+  }, [trackIdx, hasTrack]);
 
   // Fresh pairing / track → close the share menu.
   useEffect(() => { setShareOpen(false); }, [pairingKey]);
@@ -595,7 +613,14 @@ export function CenterStack() {
                   <ProgressBar trackDuration={track?.duration ?? null} />
 
                   <div className="center__controls">
-                    <button className="ctrl ctrl--shuffle" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
+                    <button
+                      className="ctrl ctrl--shuffle"
+                      data-active={shuffle ? 'true' : 'false'}
+                      aria-pressed={shuffle}
+                      onClick={toggleShuffle}
+                      title={shuffle ? STR.card.shuffleOn : STR.card.shuffleOff}
+                      aria-label={shuffle ? STR.card.shuffleOn : STR.card.shuffleOff}
+                    >
                       {/* Lucide "shuffle" (MIT) */}
                       <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                         <polyline points="16 3 21 3 21 8" />
@@ -650,29 +675,28 @@ export function CenterStack() {
                 </div>
               </div>
 
-            {/* Up Next — same card, hairline partition.
-                Scrolls; shows 9+ rows on tall screens. */}
+            {/* Playlist — the FULL curated list in a FIXED order (it never
+                reorders as songs play); the sounding track is highlighted in
+                place and auto-scrolled into view, Spotify-style. */}
             <div className="center__up-next" hidden={!hasTrack}>
-              <h3 className="center__up-next-title">{STR.card.upNext}</h3>
-              <ul className="center__queue" aria-label="Queued tracks">
-                {tracks.length <= 1 ? (
-                  <li className="center__queue-empty">
-                    {tracks.length === 0 ? STR.card.noTracks : STR.card.noOtherTracks}
-                  </li>
+              <h3 className="center__up-next-title">{STR.card.playlist}</h3>
+              <ul className="center__queue" ref={queueRef} aria-label="Playlist">
+                {tracks.length === 0 ? (
+                  <li className="center__queue-empty">{STR.card.noTracks}</li>
                 ) : (
-                  Array.from({ length: tracks.length - 1 }, (_, step) => {
-                    const j = (trackIdx + 1 + step) % tracks.length;
-                    const t = tracks[j];
-                    // Key includes the queue position: if the pool ever holds
-                    // two entries of one track, keys stay unique — duplicate
-                    // keys made React recycle rows with stale click handlers
-                    // (click played a different song) and stranded opacity.
+                  tracks.map((t, j) => {
+                    const isCurrent = j === trackIdx;
+                    // Key includes the position: if the pool ever holds two
+                    // entries of one track, keys stay unique — duplicate keys
+                    // made React recycle rows with stale click handlers.
                     return (
                       <li
                         key={`${j}-${t.id}`}
                         className="center__queue-item"
+                        data-current={isCurrent ? 'true' : 'false'}
                         role="button"
                         tabIndex={0}
+                        aria-current={isCurrent ? 'true' : undefined}
                         onClick={() => { setTrackIdx(j); setIsPlaying(true); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { setTrackIdx(j); setIsPlaying(true); } }}
                       >
@@ -680,7 +704,10 @@ export function CenterStack() {
                           ? <img className="qrow__img" src={t.image} alt="" loading="lazy" />
                           : <span className="qrow__img" />}
                         <span className="qrow__main">
-                          <span className="qrow__title">{t.title}</span>
+                          <span className="qrow__title">
+                            {isCurrent && <EqualizerIcon playing={isPlaying} />}
+                            {t.title}
+                          </span>
                           <span className="qrow__artist">{t.artist}</span>
                         </span>
                         <span className="qrow__album">{t.album}</span>

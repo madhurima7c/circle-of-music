@@ -46,6 +46,11 @@ type StoreShape = {
   tracks: Track[];
   trackIdx: number;
   isPlaying: boolean;
+  /** Shuffle toggle (the controls-panel button, NOT the dock's surprise). ON
+   *  → next/auto-advance plays a random not-yet-played track (Spotify-style,
+   *  no repeats until the whole list is heard); the visible list never
+   *  reorders. OFF → plain linear advance from the current track. */
+  shuffle: boolean;
   volume: number;          // 0..100
   hoverLeft:  HoverTarget;
   hoverRight: HoverTarget;
@@ -70,8 +75,15 @@ type StoreShape = {
   setIsPlaying:(p: boolean) => void;
   nextTrack:   () => void;
   prevTrack:   () => void;
-  /** keepCurrent: re-order the queue but keep playing the same track (Maddy's shuffle button). */
+  /** keepCurrent: re-order the queue but keep playing the same track. Used by
+   *  the library loop + the both-wheels-locked surprise (NOT the shuffle
+   *  toggle, which no longer reorders). */
   shuffleTracks: (keepCurrent?: boolean) => void;
+  /** Flip the shuffle toggle. */
+  toggleShuffle: () => void;
+  /** The sounding track ended — advance honoring the shuffle toggle, or hand
+   *  off to endOfQueue when the run is exhausted. Called by GlobalPlayer. */
+  trackEnded: () => void;
   setVolume:   (v: number) => void;
   setHover:    (left: HoverTarget, right: HoverTarget) => void;
   flashToast:  (t: GestureToast) => void;
@@ -141,6 +153,61 @@ export function toTrack(d: DeezerTrack): Track {
   };
 }
 
+/** Fisher–Yates in place. */
+function shuffleInPlace<T>(a: T[]): T[] {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const artistKey = (t: Track) => (t.artistId ? String(t.artistId) : t.artist.toLowerCase());
+
+/**
+ * Curate a pairing playlist into a pleasant fixed order:
+ *  - shuffled (each run is different — not the artist-clustered order Deezer
+ *    returns), but
+ *  - spread so the SAME artist never lands back-to-back when it can be
+ *    avoided (greedy "most-remaining-first" interleave, provably minimal
+ *    adjacency; if one artist dominates the pool, its unavoidable repeats are
+ *    still spaced as far apart as possible).
+ * The result is stable — it does NOT change as tracks play; playback just
+ * moves a highlight down it (Spotify-style).
+ */
+export function curatePlaylist(tracks: Track[]): Track[] {
+  if (tracks.length < 3) return shuffleInPlace([...tracks]);
+
+  // Bucket by artist; shuffle within each bucket and the bucket order so ties
+  // break randomly (that's where the run-to-run variety comes from).
+  const byArtist = new Map<string, Track[]>();
+  for (const t of tracks) {
+    const k = artistKey(t);
+    (byArtist.get(k) ?? byArtist.set(k, []).get(k)!).push(t);
+  }
+  const buckets = shuffleInPlace(
+    [...byArtist.entries()].map(([key, items]) => ({ key, items: shuffleInPlace(items) })),
+  );
+
+  const out: Track[] = [];
+  let lastKey: string | null = null;
+  while (out.length < tracks.length) {
+    // Largest remaining bucket whose artist isn't the one we just placed;
+    // fall back to the largest if the only tracks left are that same artist.
+    let best: (typeof buckets)[number] | null = null;
+    for (const b of buckets) {
+      if (!b.items.length) continue;
+      if (b.key === lastKey) continue;
+      if (!best || b.items.length > best.items.length) best = b;
+    }
+    if (!best) best = buckets.find(b => b.items.length > 0) ?? null;
+    if (!best) break;
+    out.push(best.items.shift()!);
+    lastKey = best.key;
+  }
+  return out;
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Default seeds: pick something with rich curated artists so the first
   // playlist call returns real music.
@@ -152,6 +219,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [tracks,     setTracks]     = useState<Track[]>([]);
   const [trackIdx,   setTrackIdx]   = useState(0);
   const [isPlaying,  setIsPlaying]  = useState(false);
+  const [shuffle,    setShuffle]    = useState(false);
   const [volume,     setVolume]     = useState(70);
   const [hoverLeft,  setHoverLeftState]  = useState<HoverTarget>(null);
   const [hoverRight, setHoverRightState] = useState<HoverTarget>(null);
@@ -206,6 +274,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const trackIdxRef = useRef(0);
   useEffect(() => { trackIdxRef.current = trackIdx; }, [trackIdx]);
 
+  // Shuffle plumbing. Refs so the advance logic (fired from an <audio> ended
+  // event, well outside React's render) always reads the live values without
+  // rebuilding callbacks — the same discipline as the wheel-index refs.
+  const shuffleRef = useRef(false);
+  const tracksRef  = useRef<Track[]>([]);
+  useEffect(() => { tracksRef.current = tracks; }, [tracks]);
+  // Indices already heard in the CURRENT shuffle cycle. A track joins it when
+  // we advance away from it; when nothing's left the cycle is complete (loop
+  // or advance genre). Reset on every new queue and on toggling shuffle.
+  const playedRef = useRef<Set<number>>(new Set());
+  const resetPlayed = () => { playedRef.current = new Set(); };
+
+  // Pick a random index not yet played and not the current one; -1 when the
+  // shuffle cycle is exhausted.
+  const pickShuffleNext = (fromIdx: number, len: number): number => {
+    playedRef.current.add(fromIdx);
+    const remaining: number[] = [];
+    for (let i = 0; i < len; i++) {
+      if (i !== fromIdx && !playedRef.current.has(i)) remaining.push(i);
+    }
+    return remaining.length ? remaining[Math.floor(Math.random() * remaining.length)] : -1;
+  };
+
   const commit = useCallback(async () => {
     const gen = ++populateGen.current;
     queueKindRef.current = 'pairing';
@@ -213,6 +304,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTracks([]);
     setTrackIdx(0);
     setIsPlaying(false);
+    resetPlayed();
 
     const country = customCountryRef.current ?? COUNTRIES[countryIdxRef.current];
     const genre   = anyGenreRef.current ? null : GENRES[genreIdxRef.current];
@@ -228,8 +320,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         raw = await buildPlaylist({ country, genre, seeds: SEEDS });
       }
       if (gen !== populateGen.current) return;
-      const mapped = raw.map(toTrack);
+      // Curate into a fixed, artist-spread order (Spotify-style — the list
+      // then stays put; playback only moves a highlight down it).
+      const mapped = curatePlaylist(raw.map(toTrack));
       setTracks(mapped);
+      resetPlayed();
       setStatus(mapped.length ? 'ready' : 'error');
       if (mapped.length) setIsPlaying(true);
     } catch (e) {
@@ -320,11 +415,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const nextTrack = useCallback(() => {
-    setTrackIdx(i => {
-      if (tracks.length === 0) return i;
-      return (i + 1) % tracks.length;
+    const len = tracksRef.current.length;
+    if (len === 0) return;
+    const cur = trackIdxRef.current;
+    if (shuffleRef.current && len > 1) {
+      let nxt = pickShuffleNext(cur, len);
+      if (nxt < 0) {
+        // Cycle done — the manual Next button loops (never jumps genre), so
+        // start a fresh cycle and pick any other track.
+        resetPlayed();
+        const pool: number[] = [];
+        for (let i = 0; i < len; i++) if (i !== cur) pool.push(i);
+        nxt = pool.length ? pool[Math.floor(Math.random() * pool.length)] : cur;
+      }
+      setTrackIdx(nxt);
+      return;
+    }
+    setTrackIdx((cur + 1) % len);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleShuffle = useCallback(() => {
+    setShuffle(prev => {
+      const next = !prev;
+      shuffleRef.current = next;
+      resetPlayed();   // either direction starts a clean cycle from here
+      return next;
     });
-  }, [tracks.length]);
+  }, []);
 
   const prevTrack = useCallback(() => {
     setTrackIdx(i => {
@@ -352,6 +470,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // the guarantee when it can't extend in time). Only the liked-songs
   // library loops, reshuffled.
   const endOfQueue = useCallback(() => {
+    resetPlayed();
     if (queueKindRef.current === 'library') {
       shuffleTracks();
       return;
@@ -368,6 +487,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     commit();                      // rebuild this country × the next genre
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commit, shuffleTracks]);
+
+  // The sounding preview/track ended. Shuffle ON → next unplayed track, or
+  // hand off to endOfQueue when the whole list has been heard. Shuffle OFF →
+  // linear advance, endOfQueue at the tail. (GlobalPlayer handles the
+  // single-track replay case before calling this.)
+  const trackEnded = useCallback(() => {
+    const len = tracksRef.current.length;
+    if (len === 0) return;
+    const cur = trackIdxRef.current;
+    if (shuffleRef.current && len > 1) {
+      const nxt = pickShuffleNext(cur, len);
+      if (nxt >= 0) { setTrackIdx(nxt); setIsPlaying(true); }
+      else endOfQueue();   // shuffle cycle complete → advance genre / loop
+      return;
+    }
+    if (cur >= len - 1) { endOfQueue(); return; }
+    setTrackIdx(cur + 1);
+    setIsPlaying(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endOfQueue]);
 
   // World→Circle divert for unrepresented countries: flip the wheels to the
   // nearest seed NOW (label returned for the toast), keep the current song
@@ -399,8 +538,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!cur) return mapped;
         // The sounding track stays put as the head; the new pairing queue
         // becomes its Up Next (minus a duplicate of itself, if matched).
-        return [cur, ...mapped.filter(t => t.id !== cur.id)];
+        return [cur, ...curatePlaylist(mapped.filter(t => t.id !== cur.id))];
       });
+      resetPlayed();
       setTrackIdx(0);
       setStatus('ready');
     })();
@@ -441,6 +581,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     queueKindRef.current = kind;
     if (settleTimer.current) clearTimeout(settleTimer.current);
     setTracks(queue);
+    resetPlayed();
     setTrackIdx(Math.max(0, Math.min(startIdx, queue.length - 1)));
     setStatus('ready');
     setIsPlaying(true);
@@ -522,22 +663,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo<StoreShape>(() => ({
-    countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
+    countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, shuffle, volume,
     hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
     autoplayBlocked,
     spinLeft, spinRight, setCountry, setGenre, commit, setTrackIdx,
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
+    toggleShuffle, trackEnded,
     setVolume: setVolumeClamped, setHover, flashToast,
     toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
     surprise, loadQueue, appendTracks, playPlace, playPlaceNamed,
     setNowPlayingOrigin, endOfQueue, divertAfterCurrent,
     customCountry,
     countryName: customCountry ?? COUNTRIES[countryIdx],
-  }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, volume,
+  }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, shuffle, volume,
        hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
        autoplayBlocked, customCountry,
        spinLeft, spinRight, setCountry, setGenre, commit,
-       togglePlay, nextTrack, prevTrack, shuffleTracks,
+       togglePlay, nextTrack, prevTrack, shuffleTracks, toggleShuffle, trackEnded,
        setVolumeClamped, setHover, flashToast,
        toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
        appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin, endOfQueue,

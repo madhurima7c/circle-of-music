@@ -174,6 +174,7 @@ export const STR = {
     populating: 'Populating music...',
     noResults: 'Could not find music\nfrom these pairing,\ntry something different.',
     upNext: 'Up next:',
+    playlist: 'Playlist',
     noTracks: 'No tracks.',
     noOtherTracks: 'No other tracks in this queue.',
     openIn: 'open in',
@@ -181,6 +182,8 @@ export const STR = {
     playPause: 'Play / pause',
     next: 'Next',
     shuffle: 'Shuffle',
+    shuffleOn: 'Shuffle: on',
+    shuffleOff: 'Shuffle: off',
     save: 'Save to your finds',
     unsave: 'Remove from your finds',
     aboutFallback: (genre: string, country: string, year: string | null) =>

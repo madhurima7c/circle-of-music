@@ -1473,6 +1473,44 @@ html, body {
 .center__queue-item:last-child {
   border-bottom: none;
 }
+/* The sounding row — Spotify's green, in place (the list never reorders). */
+.center__queue-item[data-current="true"] {
+  background: rgba(29, 185, 84, 0.12);
+}
+.center__queue-item[data-current="true"] .qrow__title {
+  color: #1ed760;
+  font-weight: 600;
+}
+.center__queue-item[data-current="true"] .qrow__artist { color: rgba(30, 215, 96, 0.75); }
+
+/* 3-bar equalizer beside the sounding title. */
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 10px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.eq > span {
+  width: 2px;
+  height: 100%;
+  background: #1ed760;
+  transform-origin: bottom;
+  border-radius: 1px;
+  animation: eq-bounce 0.9s ease-in-out infinite;
+}
+.eq > span:nth-child(2) { animation-delay: 0.3s; }
+.eq > span:nth-child(3) { animation-delay: 0.15s; }
+/* Paused → bars hold a low, still level. */
+.eq[data-playing="false"] > span { animation-play-state: paused; transform: scaleY(0.35); }
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eq > span { animation: none; transform: scaleY(0.6); }
+}
 .qrow__img {
   width: 28px; height: 28px;
   border-radius: 4px;
@@ -1547,6 +1585,10 @@ html, body {
 .ctrl:active { transform: scale(0.94); }
 /* Shuffle press feedback: the circle-icon blue from the top nav. */
 .ctrl--shuffle:active { background: #1d2bdf; color: #fff; }
+/* Shuffle ON: our blue, so the toggle state reads at a glance (Spotify-style,
+   but in the app's accent instead of green — green marks the sounding row). */
+.ctrl--shuffle[data-active="true"] { background: #1d2bdf; color: #fff; }
+.ctrl--shuffle[data-active="true"]:hover { background: #2536e6; }
 .ctrl svg { width: 16px; height: 16px; display: block; }
 .ctrl:not(.ctrl--lg) svg { fill: none; }
 .ctrl__icon-shuffle {

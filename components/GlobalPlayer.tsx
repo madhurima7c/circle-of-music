@@ -41,8 +41,8 @@ const serverFalse = () => false;
 export function GlobalPlayer() {
   const {
     tracks, trackIdx, isPlaying, status,
-    togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
-    setAutoplayBlocked, endOfQueue,
+    togglePlay, setIsPlaying, nextTrack, prevTrack,
+    setAutoplayBlocked, trackEnded,
   } = useStore();
   const track = tracks[trackIdx];
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -386,14 +386,9 @@ export function GlobalPlayer() {
       }
       return;
     }
-    if (trackIdx >= tracks.length - 1) {
-      // Whole queue played through. A pairing playlist flips to the next
-      // genre (same country) and rebuilds; a dot chain / library queue loops.
-      endOfQueue();
-      return;
-    }
-    nextTrack();
-    setIsPlaying(true);
+    // The store decides the next index (shuffle-aware) or hands off to the
+    // end-of-queue behavior (next genre for a pairing, loop for the library).
+    trackEnded();
   };
   onEndedRef.current = onEnded;
 
