@@ -158,6 +158,12 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
+## ✅ This session (2026-07-20d, pushed) — iframe float fix + World shuffle
+
+- **Spotify iframe floating on shuffle — FIXED** (`GlobalPlayer.tsx`): after shuffling to a Deezer-preview track the embed stopped being the sounding source, the card's `[data-spotify-slot]` unmounted, but `slotRect` was only re-measured on an 800ms interval — so the strip lingered in `--slot` mode (z-41, on top) at the STALE coordinates, floating over the playlist (user's screenshots). Fix: new reactive `embedLive` state; every `audioBus.ext` change routes through `setExt()` which keeps `embedLive` in lockstep. The measure effect gates on `embedLive` and re-runs the instant it flips → `slotRect` clears immediately when the embed stops sounding → strip drops to its occluded-behind-the-card fallback (verified: `--circle` fallback is hit-tested occluded, not floating) instead of floating. Interval 800→300ms; `useEmbedActive` poll 500→200ms so the slot never lags as an empty gap. (Full embed re-seat during real full-song playback needs the user's Spotify login to verify end-to-end.)
+- **World shuffle button** (`WorldNowPlaying.tsx`): was still the old `shuffleTracks(true)` reorder — now the same TOGGLE as the Circle (`toggleShuffle` + `data-active` blue). Verified: toggles false→true, "Shuffle: on", blue.
+- Note: a `useEffect changed size 3→4` console error appeared while iterating — it's a STALE MCP console-buffer entry from the live HMR dep-add (stayed at exactly 2 through ~12 forced re-renders + clean restart + hard reload; the shipped 4-dep array can't produce it). Not a real bug.
+
 ## ✅ This session (2026-07-20c, pushed) — curated Circle playlists
 
 Circle **pairing playlists now behave like a real Spotify playlist** (per user spec):
