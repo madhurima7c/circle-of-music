@@ -183,13 +183,20 @@ add-a-song), light-mode w/ #1d2bdf CTAs, sends REAL email via FormSubmit
 relay (destination lives server-side only), particle confirmation + "send
 another" reset, country dropdown = all 175 globe nations.
 
-**Contact pipeline (2026-07-20b):** `/api/contact` now (1) STORES every
-submission in **Neon Postgres** (`lib/db.ts` — lazy client, build-safe
-without `DATABASE_URL`, idempotent `submissions` table, soft-fail) and
-(2) emails via FormSubmit — which **requires Origin/Referer headers** or it
-returns HTTP 200 + `success:"false"` (the old silent failure; the real
-verdict is the JSON `success` field, never `res.ok`). Route returns ok if
-either channel took it.
+**Contact pipeline (2026-07-20b):** `/api/contact` (1) STORES every submission
+in **Neon Postgres** (`lib/db.ts` — lazy client, build-safe without
+`DATABASE_URL`, idempotent `submissions` table, soft-fail) — LIVE + verified
+in prod (rows confirmed via SQL) — and (2) emails via **Resend**
+(`lib/email.ts`, Vercel Marketplace). **FormSubmit was dropped**: it sits
+behind Cloudflare, which 403s Vercel's datacenter IPs ("Just a moment…"), so
+it can't send from a serverless function (works only from a browser/
+residential IP). Resend's REST API is serverless-native; key + destination
+stay server-side; `from` = `onboarding@resend.dev` until a domain is verified.
+Route returns ok if either channel took it. ⚠️ Email is pending the user
+accepting Resend marketplace terms + re-running `vercel integration add
+resend` (provisions `RESEND_API_KEY`). Gotcha logged: a Neon dev-env `env
+pull` overwrites `.env.local` and drops prod-only vars (Spotify creds) —
+re-append them from a `--environment=production` pull.
 
 **PHONE interface is BUILT** (`components/PhoneIntro.tsx` + `lib/use-phone.ts`,
 2026-07-20b): ≤640px gets 3 swipeable full-screen panels (Circle light
@@ -200,12 +207,12 @@ click-to-jump progress dots (root pointer-capture must skip the dots), copy
 in `STR.phone`. `/` opens on the Circle panel, `/world` on World. Desktop
 ≥641px unchanged. Real-phone feel check on the user.
 
-**Awaiting from user:** TWO one-time clicks — (1) FormSubmit activation link
-(now really in the inbox; check spam) or emails won't deliver; (2) Neon
-marketplace-terms acceptance (vercel.com → integrations → accept-terms/neon),
-then `vercel integration add neon` finishes the submissions DB. Plus: Shades
-design; translations; About copy; vector icons; seed-proposals.json review;
-axes-growth decision; real-iPad tablet-preset check; real-phone intro check.
+**Awaiting from user:** accept **Resend** marketplace terms (vercel.com →
+integrations → accept-terms/resend), then re-run `vercel integration add
+resend` + redeploy → contact email goes live (Neon DB already done). Plus:
+Shades design; translations; About copy; vector icons; seed-proposals.json
+review; axes-growth decision; real-iPad tablet-preset check; real-phone intro
+check.
 
 **Not done / known:** accounts / cross-device library (Supabase plan in
 `todo.md`); Shades; reach arcs + layer toggles + Circle→globe flyover; the
