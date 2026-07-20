@@ -363,7 +363,10 @@ export function ProgressBar({ trackDuration }: { trackDuration: number | null })
 export function useEmbedActive(): boolean {
   const [active, setActive] = useState(false);
   useEffect(() => {
-    const iv = setInterval(() => setActive(!!audioBus.ext), 500);
+    // Poll briskly: this gates the slot's mount/unmount, and it should track
+    // the embed becoming/ceasing to be the sounding source closely so the
+    // reserved slot never lingers as an empty gap (or lags the seated strip).
+    const iv = setInterval(() => setActive(!!audioBus.ext), 200);
     return () => clearInterval(iv);
   }, []);
   return active;

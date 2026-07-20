@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -83,11 +83,25 @@ export function GlobalPlayer() {
   // itself can never move into the card's DOM without reloading). When no
   // slot exists (World, hub), the strip tucks behind the now-playing card.
   const [slotRect, setSlotRect] = useState<{ left: number; top: number; width: number } | null>(null);
+  // Reactive mirror of "the embed is the sounding source" (audioBus.ext). The
+  // slot only exists in the card while this is true, so the strip must stop
+  // using the (now-stale) slot position the MOMENT this flips false — else it
+  // floats at the last slot coordinates over the card (the shuffle bug). Every
+  // audioBus.ext change goes through setExt so this stays in lockstep.
+  const [embedLive, setEmbedLive] = useState(false);
+  const setExt = useCallback((val: typeof audioBus.ext) => {
+    audioBus.ext = val;
+    setEmbedLive(!!val);
+  }, []);
 
   useEffect(() => { handleSpotifyCallback(); }, []);
 
   useEffect(() => {
-    if (!(spotifyOn && !!track)) { setSlotRect(null); return; }
+    // Only seat on the slot while the embed is genuinely the sounding source;
+    // the instant it isn't (embedLive false), drop the rect so the strip falls
+    // back to its occluded-behind-the-card position instead of floating at the
+    // last slot coordinates. Re-runs on embedLive so there's no interval lag.
+    if (!(spotifyOn && !!track && embedLive)) { setSlotRect(null); return; }
     const measure = () => {
       const el = document.querySelector('[data-spotify-slot]');
       if (!el) { setSlotRect(r => (r === null ? r : null)); return; }
@@ -103,11 +117,11 @@ export function GlobalPlayer() {
     };
     measure();
     // The card animates in and layouts shift — keep the seat re-measured.
-    const iv = setInterval(measure, 800);
+    const iv = setInterval(measure, 300);
     window.addEventListener('resize', measure);
     return () => { clearInterval(iv); window.removeEventListener('resize', measure); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotifyOn, !!track, pathname]);
+  }, [spotifyOn, !!track, pathname, embedLive]);
 
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
@@ -137,7 +151,7 @@ export function GlobalPlayer() {
     if (!spotifyOn) {
       setEmbedStateListener(null);
       destroyEmbed();
-      audioBus.ext = null;
+      setExt(null);
       return;
     }
     setEmbedStateListener((s) => {
@@ -169,11 +183,11 @@ export function GlobalPlayer() {
       const prev = embedPrev.current;
       embedPrev.current = { position: s.position, duration: s.duration };
       // Feed the card's progress bar (seconds) without store re-renders.
-      audioBus.ext = {
+      setExt({
         pos: s.position / 1000,
         dur: s.duration / 1000,
         seek: (sec) => embedSeek(sec),
-      };
+      });
       // "Track finished" signatures (the embed is inconsistent here):
       //  a) pause at/near the end (or rewind to 0) after having been near it;
       //  b) position PINS at the duration while isPaused stays false —
@@ -202,7 +216,7 @@ export function GlobalPlayer() {
     if (viaSpotify.current) embedPause(); // old song must not keep sounding
     viaSpotify.current = false;
     embedPrev.current = null;
-    audioBus.ext = null;
+    setExt(null);   // embed is no longer the source → strip leaves the slot NOW
 
     const playPreview = () => {
       if (!track?.preview) {
@@ -245,7 +259,7 @@ export function GlobalPlayer() {
           viaSpotify.current = true;
           lastCmd.current = Date.now();
           setIsPlaying(true);
-          audioBus.ext = { pos: 0, dur: 0, seek: (sec) => embedSeek(sec) };
+          setExt({ pos: 0, dur: 0, seek: (sec) => embedSeek(sec) });
           // Watchdog: embedPlay "succeeding" only means the command was
           // accepted — the iframe may still refuse (no gesture yet) or just
           // be slow (full tracks init DRM and can take >5s). LIVENESS-aware:
@@ -257,7 +271,7 @@ export function GlobalPlayer() {
             embedPause(); // cancel retries — a late start must not double-play
             viaSpotify.current = false;
             embedPrev.current = null;
-            audioBus.ext = null;
+            setExt(null);
             playPreview();
           };
           // Clip-mode bail: the embed IS sounding but only with a ~30s clip
@@ -269,7 +283,7 @@ export function GlobalPlayer() {
             embedPause();
             viaSpotify.current = false;
             embedPrev.current = null;
-            audioBus.ext = null;
+            setExt(null);
             playPreview();
           };
           stallTimer = setTimeout(() => {

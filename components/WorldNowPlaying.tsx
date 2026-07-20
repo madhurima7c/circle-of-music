@@ -24,7 +24,7 @@ import { ProgressBar, BrandIcon, useEmbedActive } from '@/components/Overlay';
 export function WorldNowPlaying() {
   const {
     tracks, trackIdx, status, isPlaying, autoplayBlocked,
-    togglePlay, nextTrack, prevTrack, shuffleTracks, countryName, genreIdx,
+    togglePlay, nextTrack, prevTrack, shuffle, toggleShuffle, countryName, genreIdx,
   } = useStore();
   const track = tracks[trackIdx];
   const [more, setMore] = useState(false);
@@ -119,7 +119,14 @@ export function WorldNowPlaying() {
           <ProgressBar trackDuration={track.duration ?? null} />
 
           <div className="wnp__controls">
-            <button className="ctrl ctrl--shuffle" onClick={() => shuffleTracks(true)} title={STR.card.shuffle} aria-label={STR.card.shuffle}>
+            <button
+              className="ctrl ctrl--shuffle"
+              data-active={shuffle ? 'true' : 'false'}
+              aria-pressed={shuffle}
+              onClick={toggleShuffle}
+              title={shuffle ? STR.card.shuffleOn : STR.card.shuffleOff}
+              aria-label={shuffle ? STR.card.shuffleOn : STR.card.shuffleOff}
+            >
               <svg className="ctrl__icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <polyline points="16 3 21 3 21 8" />
                 <line x1="4" y1="20" x2="21" y2="3" />
