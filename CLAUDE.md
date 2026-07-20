@@ -192,11 +192,11 @@ behind Cloudflare, which 403s Vercel's datacenter IPs ("Just a moment…"), so
 it can't send from a serverless function (works only from a browser/
 residential IP). Resend's REST API is serverless-native; key + destination
 stay server-side; `from` = `onboarding@resend.dev` until a domain is verified.
-Route returns ok if either channel took it. ⚠️ Email is pending the user
-accepting Resend marketplace terms + re-running `vercel integration add
-resend` (provisions `RESEND_API_KEY`). Gotcha logged: a Neon dev-env `env
-pull` overwrites `.env.local` and drops prod-only vars (Spotify creds) —
-re-append them from a `--environment=production` pull.
+Route returns ok if either channel took it. **Both channels VERIFIED LIVE in
+prod** (note + song POSTs → `stored:true, sent:true`). `RESEND_API_KEY` is in
+Vercel Production+Development + local `.env.local`. Gotcha logged: a Neon
+dev-env `env pull` overwrites `.env.local` and drops prod-only vars (Spotify
+creds) — re-append them from a `--environment=production` pull.
 
 **PHONE interface is BUILT** (`components/PhoneIntro.tsx` + `lib/use-phone.ts`,
 2026-07-20b): ≤640px gets 3 swipeable full-screen panels (Circle light
@@ -207,12 +207,10 @@ click-to-jump progress dots (root pointer-capture must skip the dots), copy
 in `STR.phone`. `/` opens on the Circle panel, `/world` on World. Desktop
 ≥641px unchanged. Real-phone feel check on the user.
 
-**Awaiting from user:** accept **Resend** marketplace terms (vercel.com →
-integrations → accept-terms/resend), then re-run `vercel integration add
-resend` + redeploy → contact email goes live (Neon DB already done). Plus:
-Shades design; translations; About copy; vector icons; seed-proposals.json
-review; axes-growth decision; real-iPad tablet-preset check; real-phone intro
-check.
+**Awaiting from user:** Shades design; translations; About copy; vector icons;
+seed-proposals.json review; axes-growth decision; real-iPad tablet-preset
+check; real-phone intro check. (Contact DB + email both DONE + verified live;
+optional later — verify a Resend domain for a branded `from`.)
 
 **Not done / known:** accounts / cross-device library (Supabase plan in
 `todo.md`); Shades; reach arcs + layer toggles + Circle→globe flyover; the
