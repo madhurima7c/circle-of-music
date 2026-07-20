@@ -89,11 +89,12 @@ function NavTuner({ target }: { target: React.RefObject<HTMLElement | null> }) {
 
 /* The card-ring mark, inlined so the cards can take the per-theme ink
  * (#767DEC on the dark World stage, the darker accent on Circle's light
- * stage) via currentColor. Source: public/icons/nav-circle.svg. */
-function CircleIcon() {
+ * stage) via currentColor. Source: public/icons/nav-circle.svg.
+ * Exported for reuse at panel scale in the PhoneIntro. */
+export function CircleIcon({ className = 'xnav__icon xnav__icon--circle' }: { className?: string }) {
   return (
     <svg
-      className="xnav__icon xnav__icon--circle"
+      className={className}
       viewBox="0 0 34 34"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

@@ -181,20 +181,31 @@ wheels off-canvas on portrait iPads) + window-resize fallback; **Contact
 popup v2** (`components/Contact.tsx` + `/api/contact`): two tabs (note /
 add-a-song), light-mode w/ #1d2bdf CTAs, sends REAL email via FormSubmit
 relay (destination lives server-side only), particle confirmation + "send
-another" reset, country dropdown = all 175 globe nations. **⚠️ FormSubmit's
-one-time activation link must be clicked in the destination inbox** (a test
-note triggered it) or submissions won't deliver.
+another" reset, country dropdown = all 175 globe nations.
 
-**NEXT UP — the PHONE interface** (full spec in `todo.md` "📱 NEXT UP"):
-same URL, phone widths get a 3-panel swipeable intro (Circle light / World
-dark / Shades gradient, morphing graphics like the desktop nav hover states,
-zoom-out + dissolve transitions, progress dots, "optimized for desktop"
-copy) instead of the squeezed tool.
+**Contact pipeline (2026-07-20b):** `/api/contact` now (1) STORES every
+submission in **Neon Postgres** (`lib/db.ts` — lazy client, build-safe
+without `DATABASE_URL`, idempotent `submissions` table, soft-fail) and
+(2) emails via FormSubmit — which **requires Origin/Referer headers** or it
+returns HTTP 200 + `success:"false"` (the old silent failure; the real
+verdict is the JSON `success` field, never `res.ok`). Route returns ok if
+either channel took it.
 
-**Awaiting from user:** Shades experience design; translations (19-language
-menu, only English live); About copy; vector world/shades icons;
-seed-proposals.json review; axes-growth decision (deferred); real-iPad feel
-check of the tablet preset; FormSubmit activation click.
+**PHONE interface is BUILT** (`components/PhoneIntro.tsx` + `lib/use-phone.ts`,
+2026-07-20b): ≤640px gets 3 swipeable full-screen panels (Circle light
+card-ring / World dark NavGlobe at size 480 / Shades gradient orb + COMING
+SOON) instead of the tool — heavy canvases never mount; continuous drag with
+cross-fade/zoom-dissolve morphs, flick detection, rubber-band ends,
+click-to-jump progress dots (root pointer-capture must skip the dots), copy
+in `STR.phone`. `/` opens on the Circle panel, `/world` on World. Desktop
+≥641px unchanged. Real-phone feel check on the user.
+
+**Awaiting from user:** TWO one-time clicks — (1) FormSubmit activation link
+(now really in the inbox; check spam) or emails won't deliver; (2) Neon
+marketplace-terms acceptance (vercel.com → integrations → accept-terms/neon),
+then `vercel integration add neon` finishes the submissions DB. Plus: Shades
+design; translations; About copy; vector icons; seed-proposals.json review;
+axes-growth decision; real-iPad tablet-preset check; real-phone intro check.
 
 **Not done / known:** accounts / cross-device library (Supabase plan in
 `todo.md`); Shades; reach arcs + layer toggles + Circle→globe flyover; the

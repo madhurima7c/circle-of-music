@@ -58,7 +58,16 @@ function buildTexture(): Promise<HTMLCanvasElement> {
   return texturePromise;
 }
 
-export function NavGlobe({ spinning, className }: { spinning: boolean; className?: string }) {
+export function NavGlobe({
+  spinning,
+  className,
+  size = 56,
+}: {
+  spinning: boolean;
+  className?: string;
+  /** Backing-store pixel size — bump for large renders (phone intro). */
+  size?: number;
+}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const spinRef = useRef(spinning);
   spinRef.current = spinning;
@@ -80,7 +89,7 @@ export function NavGlobe({ spinning, className }: { spinning: boolean; className
 
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setSize(56, 56, false); // CSS scales it down — stays crisp on hover pop
+      renderer.setSize(size, size, false); // CSS scales it — stays crisp on hover pop
 
       const texture = new THREE.CanvasTexture(texCanvas);
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -122,7 +131,7 @@ export function NavGlobe({ spinning, className }: { spinning: boolean; className
       cancelAnimationFrame(raf);
       cleanupGL?.();
     };
-  }, []);
+  }, [size]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden />;
 }

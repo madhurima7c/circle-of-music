@@ -40,14 +40,18 @@ export function ContactPopup({ open, onClose }: { open: boolean; onClose: () => 
 
   if (!open) return null;
 
-  const submit = async (subject: string, message: string) => {
+  const submit = async (
+    subject: string,
+    message: string,
+    extra?: { country: string; genre: string; song: string },
+  ) => {
     setPhase('sending');
     setError('');
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, message }),
+        body: JSON.stringify({ subject, message, kind: tab, ...extra }),
       });
       if (!res.ok) throw new Error('send failed');
       setPhase('sent');
@@ -69,6 +73,7 @@ export function ContactPopup({ open, onClose }: { open: boolean; onClose: () => 
       void submit(
         STR.contact.songSubject(country, genre),
         `Song suggestion\n\nCountry: ${country}\nGenre: ${genre}\nSong: ${name}\n`,
+        { country, genre, song: name },
       );
     }
   };

@@ -2268,6 +2268,181 @@ html, body {
   justify-content: center;
 }
 
+/* =====================================================================
+ *  Phone intro — the 3 swipeable panels phones see instead of the tool.
+ *  All motion between panels is driven inline from PhoneIntro (opacity /
+ *  transform per drag frame); this block is layout + the idle animations
+ *  (ring turn, orb hue drift).
+ * ===================================================================== */
+.pintro {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow: hidden;
+  touch-action: none;              /* we own the horizontal drag */
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.pintro:active { cursor: grabbing; }
+
+.pintro__bg { position: absolute; inset: 0; }
+.pintro__bg--circle { background: var(--bg-stage); }
+.pintro__bg--world  { background: #0e0f1a; }
+.pintro__bg--shades {
+  background: linear-gradient(160deg, #f7edf4 0%, #e9ecfb 48%, #eaf6ef 100%);
+}
+
+.pintro__panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 0 34px 96px;            /* clear the dots row */
+  text-align: center;
+  will-change: transform, opacity;
+}
+
+.pintro__art {
+  width: min(58vw, 230px);
+  height: min(58vw, 230px);
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+}
+.pintro__ring {
+  width: 100%;
+  height: 100%;
+  color: var(--circle-ink, #1d2bdf);
+  animation: pintro-turn 26s linear infinite;
+}
+.pintro__globe {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 34px rgba(118, 125, 236, 0.45));
+}
+.pintro__orb {
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffe29a 0%, #ff7ac3 46%, #7a83ec 82%);
+  filter: blur(0.5px);
+  box-shadow: 0 18px 60px rgba(122, 131, 236, 0.35);
+  animation: pintro-hue 9s linear infinite;
+}
+
+.pintro__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 34px;
+  letter-spacing: 0.14em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.pintro__panel--world .pintro__title { color: #eef0ff; }
+.pintro__of {
+  display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 24px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin-top: 6px;
+}
+
+.pintro__blurb {
+  margin: 0;
+  max-width: 30ch;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(10, 10, 10, 0.72);
+}
+.pintro__panel--world .pintro__blurb { color: rgba(238, 240, 255, 0.75); }
+
+.pintro__desk {
+  margin: 4px 0 0;
+  max-width: 30ch;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(10, 10, 10, 0.45);
+}
+.pintro__panel--world .pintro__desk { color: rgba(238, 240, 255, 0.45); }
+
+.pintro__soonpill {
+  margin-top: 4px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(12, 13, 26, 0.9);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.pintro__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 64px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(10, 10, 10, 0.4);
+  transition: opacity 400ms ease;
+  animation: pintro-hint 2.2s ease-in-out infinite;
+}
+.pintro__hint[data-dark="true"] { color: rgba(238, 240, 255, 0.4); }
+.pintro__hint[data-gone="true"] { opacity: 0; animation: none; }
+
+.pintro__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.pintro__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.22);
+  transition: background 200ms ease, transform 200ms ease;
+  cursor: pointer;
+}
+.pintro__dots[data-dark="true"] .pintro__dot { background: rgba(238, 240, 255, 0.28); }
+.pintro__dot[data-active="true"] {
+  background: var(--accent);
+  transform: scale(1.25);
+}
+.pintro__dots[data-dark="true"] .pintro__dot[data-active="true"] { background: #9daaff; }
+
+@keyframes pintro-turn { to { transform: rotate(360deg); } }
+@keyframes pintro-hue { to { filter: blur(0.5px) hue-rotate(360deg); } }
+@keyframes pintro-hint {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pintro__ring, .pintro__orb, .pintro__hint { animation: none; }
+}
+
 @media (max-width: 640px) {
   .frame { inset: 0; }
 

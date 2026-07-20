@@ -17,16 +17,21 @@ import {
   GestureToast,
 } from '@/components/Overlay';
 import { ExperienceNav } from '@/components/ExperienceNav';
+import { PhoneIntro } from '@/components/PhoneIntro';
+import { usePhone } from '@/lib/use-phone';
 
 const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
 
 export default function CirclePage() {
+  const phone = usePhone();
   const {
     commit, tracks, handMode, status,
     countryIdx, genreIdx, setCountry, setGenre, countryName,
   } = useStore();
 
   useEffect(() => {
+    // Phones get the intro panels — don't kick off the pairing fetch.
+    if (window.matchMedia('(max-width: 640px)').matches) return;
     if (tracks.length > 0) return;
     const params = new URLSearchParams(window.location.search);
     const ci = COUNTRIES.findIndex(c => coverSlug(c) === params.get('country'));
@@ -47,6 +52,8 @@ export default function CirclePage() {
     const url = `/?country=${coverSlug(COUNTRIES[countryIdx])}&genre=${coverSlug(GENRES[genreIdx])}`;
     window.history.replaceState(null, '', url);
   }, [status, countryIdx, genreIdx, countryName]);
+
+  if (phone) return <PhoneIntro initial={0} />;
 
   return (
     <main className="frame">

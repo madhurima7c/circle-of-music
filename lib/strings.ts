@@ -67,6 +67,21 @@ export const STR = {
     shadesSoon: 'Shades — a color-first way into music. Coming soon.',
   },
 
+  /* Phone intro — the 3 swipeable preview panels phones get instead of
+   * the desktop tool. */
+  phone: {
+    ofMusic: 'of Music',
+    circle: 'CIRCLE',
+    world: 'WORLD',
+    shades: 'SHADES',
+    circleBlurb: 'Spin a wheel of countries against a wheel of genres — and listen to where they meet.',
+    worldBlurb: 'A planet of music. Tap any country and hear what it sounds like.',
+    shadesBlurb: 'A color-first way into music.',
+    desktop: 'Optimized for desktop — open this address on a computer to play.',
+    soon: '👀 COMING SOON',
+    hint: 'swipe',
+  },
+
   /* Dock "more" menu. */
   menu: {
     more: 'More options',
