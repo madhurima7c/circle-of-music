@@ -17,6 +17,14 @@
   --bg-stage: #efefee;
   --ink: #0a0a0a;
   --accent: #1f2bd6;
+  /* The dark brand surface — cards, popovers, and (as ink) the dock icons and
+     letter ladder. Replaces the old neutral #2a2a2a / #111 greys so every
+     dark plane in the app is the same blue-leaning charcoal. */
+  --surface: #10111D;
+  /* Now playing. Was Spotify's green, which read as Spotify branding; this is
+     our own periwinkle, bright enough to hold contrast on --surface. */
+  --playing: #9daaff;
+  --playing-bg: rgba(115, 124, 244, 0.16);
 }
 
 @theme inline {
@@ -141,7 +149,7 @@ html, body {
   gap: 10px;
   padding: 8px 12px 8px 8px;
   max-width: min(420px, calc(100vw - 48px));
-  background: #2a2a2a;
+  background: var(--surface);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 6px;
@@ -400,9 +408,17 @@ html, body {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: #fff;
+  /* Same frosted glass as the Circle/World/Shades nav, so the two bars read as
+     a pair top and bottom instead of a solid white slab against the stage. */
+  background: rgba(255, 255, 255, var(--glass-frost, 0.14));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 170%));
+  backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 170%));
   border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  border: 1px solid rgba(255, 255, 255, var(--glass-border, 0.28));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 0 1px rgba(15, 18, 60, 0.05),
+    0 10px 34px rgba(0, 0, 0, var(--glass-shadow, 0.22));
 }
 /* Dock buttons: quiet ink icons at rest; hovering brings back the circle
  * highlight AND turns the stroke accent-blue (blue alone was too subtle).
@@ -416,10 +432,17 @@ html, body {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: #262626;
+  color: var(--surface);
   cursor: pointer;
   transition: color 140ms ease, background 140ms ease, transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
 }
+/* On the World the dock floats over the dark globe — white icons, matching the
+   search and zoom controls on that side. */
+.dock[data-theme="dark"] .dock__btn { color: #fff; }
+@media (hover: hover) and (pointer: fine) {
+  .dock[data-theme="dark"] .dock__btn:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
+}
+.dock[data-theme="dark"] .dock__btn:active { color: #fff; background: rgba(255, 255, 255, 0.26); }
 @media (hover: hover) and (pointer: fine) {
   .dock__btn:hover { color: var(--accent); background: rgba(31, 43, 214, 0.08); }
 }
@@ -813,7 +836,7 @@ html, body {
 .letter-ladder {
   --ladder-w: 34px;
   --ladder-row: 11px;
-  --dial-stroke: #111111;
+  --dial-stroke: var(--surface);
   --dial-line: 1px;
   position: absolute;
   top: 50%;
@@ -865,8 +888,10 @@ html, body {
   opacity: 0;
 }
 /* Letters with no wheel item: shown (the rail is always A–Z) but faint. */
+/* Every letter carries the same weight. Dimming the empty ones read as a
+   fault rather than a state, and the gaps fill in as countries/genres are
+   added anyway. */
 .letter-ladder__tick[data-empty="true"] {
-  opacity: 0.22;
   cursor: default;
 }
 /* Lock toggle above each ladder — same square language as the letter chip.
@@ -883,16 +908,16 @@ html, body {
   cursor: pointer;
   z-index: 31;
   box-sizing: border-box;
-  border: 1px solid #111111;
+  border: 1px solid var(--surface);
   border-radius: 0;
   background: var(--bg-stage);
-  color: #111111;
+  color: var(--surface);
   transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
 .wheel-lock--left  { left: 21px; }
 .wheel-lock--right { right: 21px; }
 .wheel-lock svg { width: 15px; height: 15px; display: block; }
-.wheel-lock:hover { box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.18); }
+.wheel-lock:hover { box-shadow: 0 0 0 2px rgba(16, 17, 29, 0.18); }
 .wheel-lock:active { transform: scale(0.94); }
 /* Locked = filled, so a held wheel is obvious at a glance. */
 .wheel-lock[data-locked="true"] {
@@ -984,12 +1009,12 @@ html, body {
 .center__card {
   position: relative;
   border-radius: 4px;
-  background: #2a2a2a;
+  background: var(--surface);
   box-shadow: none;
 }
 .center__card--main {
   flex: 1 1 auto;
-  background: #2a2a2a;
+  background: var(--surface);
   color: #fff;
   font-family: var(--font-plex-sans), sans-serif;
   padding: 14px 14px 12px;
@@ -1478,6 +1503,7 @@ html, body {
   list-style: none;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;   /* the rows' -8px bleed must not create a scrollbar */
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -1491,7 +1517,11 @@ html, body {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 5px 2px;
+  /* Pull 8px wider than the content on each side, then pad it back, so the
+     highlight and divider extend past the artwork / duration while the text
+     stays exactly where it was. The card's 14px padding absorbs the bleed. */
+  margin: 0 -8px;
+  padding: 5px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   border-radius: 6px;
@@ -1501,15 +1531,18 @@ html, body {
 .center__queue-item:last-child {
   border-bottom: none;
 }
-/* The sounding row — Spotify's green, in place (the list never reorders). */
+/* The sounding row — our periwinkle, in place (the list never reorders).
+   The tint bleeds 8px past the artwork and the duration (see the negative
+   margins on .center__queue-item) so it reads as a band around the row
+   rather than a block cut flush to its contents. */
 .center__queue-item[data-current="true"] {
-  background: rgba(29, 185, 84, 0.12);
+  background: var(--playing-bg);
 }
 .center__queue-item[data-current="true"] .qrow__title {
-  color: #1ed760;
+  color: var(--playing);
   font-weight: 600;
 }
-.center__queue-item[data-current="true"] .qrow__artist { color: rgba(30, 215, 96, 0.75); }
+.center__queue-item[data-current="true"] .qrow__artist { color: rgba(157, 170, 255, 0.75); }
 
 /* 3-bar equalizer beside the sounding title. */
 .eq {
@@ -1523,7 +1556,7 @@ html, body {
 .eq > span {
   width: 2px;
   height: 100%;
-  background: #1ed760;
+  background: var(--playing);
   transform-origin: bottom;
   border-radius: 1px;
   animation: eq-bounce 0.9s ease-in-out infinite;
@@ -1780,7 +1813,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #2a2a2a;
+  background: var(--surface);
   color: #fff;
   font-family: var(--font-plex-sans), sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -2003,7 +2036,7 @@ html, body {
   gap: 10px;
   width: 238px;
   padding: 9px 11px;
-  background: #2a2a2a;
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useStore } from '@/lib/store';
@@ -901,6 +902,7 @@ export function WheelLock({ side }: { side: 'left' | 'right' }) {
 export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
   const { surprise, lockedLeft, lockedRight } = useStore();
   const finds = useFinds();
+  const dockTheme = usePathname() === '/world' ? 'dark' : 'light';
 
   const [likedOpen, setLikedOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -927,7 +929,9 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
           translateX(-50%) transform would trap a position:fixed child. */}
       {menuOpen && <div className="dock-scrim" onClick={closeMenu} />}
 
-      <div className="dock">
+      {/* Same per-stage ink as the top nav: dark icons on the Circle's light
+          stage, white on the World's globe. */}
+      <div className="dock" data-theme={dockTheme}>
         {/* Shuffle — the primary discovery verb. Single-press action. */}
         <button
           onClick={onSurprise ?? surprise}
