@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { DM_Mono, DM_Sans } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { StoreProvider } from '@/lib/store';
 import { GlobalPlayer } from '@/components/GlobalPlayer';
 import { STR } from '@/lib/strings';
@@ -56,6 +57,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <GlobalPlayer />
         </StoreProvider>
+        {/* Vercel Web Analytics — anonymous page views, no cookies, no
+            cross-site tracking (in keeping with the app being account-free).
+            Only records on Vercel deployments; a no-op locally. */}
+        <Analytics />
       </body>
     </html>
   );
