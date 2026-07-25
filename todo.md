@@ -158,7 +158,84 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
-## 🔴 PICK UP HERE (handoff, 2026-07-25)
+## 🔴 PICK UP HERE (handoff, 2026-07-25b) — Kaggle pass 1
+
+### A background job is RUNNING
+`npm run mine:charts` — verifying 4,278 chart-nominated artists against
+MusicBrainz + Deezer. Log `/tmp/mine-charts.log`, cache
+`lib/.chart-verify-cache.json` (gitignored, written every 25). **~0.5 artists/s,
+ETA ~2.4h.** Safe to interrupt: re-running skips everything cached.
+
+**When it finishes:** it writes `chart-proposals.json` (gitignored, reviewable
+like `seed-proposals.json`). Review `artists[]` with the user, then
+`npm run mine:charts -- --apply` to merge into `lib/world-seeds.json`
+(accepted artists join `top`; only genre-bucketed ones join a genre list).
+Then `npm run features` again (the index scopes to known artists, so new
+artists need a rebuild) and `npm run origins` / `origins:mb` for their dots.
+
+### What shipped (commit `9fda653`, both remotes)
+
+**Playlist ordering — `lib/sequence.ts` (new).** `curatePlaylist` now delegates
+to a cost-based greedy sequencer + repair pass. Familiar opener (Deezer `rank`,
+newly kept on `Track`), artists spread, eras interleaved, and where audio
+features exist, smooth tempo/key along an energy arc (`arcTarget`, Camelot
+`keyClash`). **The never-back-to-back-artist guarantee is now exact** — verified
+over 10 distributions x 400 runs, adjacency never exceeds the mathematical
+minimum, no track lost or duplicated. Live-verified on India x Jazz: Trilok
+Gurtu at positions 2/6/10, Louiz Banks at 3/7.
+
+**Audio features — `npm run features` → `lib/track-features.json` (7.6MB,
+committed) + `POST /api/track-features`.** 157,427 tracks over 5,149 artists,
+scoped to artists we can play. Client primes once per pairing
+(`lib/track-features.ts`) and fails soft — sequencing can never stall playback.
+
+**Chart mining — `npm run mine:charts`.** Charts nominate, MusicBrainz confirms
+origin + genre, Deezer confirms playability + adds its own genre labels.
+
+**Genre rules — `lib/genre-rules.ts`,** extracted from `build-world-seeds.ts` so
+the two builders cannot drift. Weighted scoring (`bucketsScored`) + word-boundary
+keyword matching by default.
+
+### 🔬 What the datasets can and cannot do (measured, do not re-litigate)
+
+- **`spotify_songs.csv` / `high_/low_popularity` `playlist_genre` is UNUSABLE as
+  a genre source.** It labels the PLAYLIST, not the track. Seyi Vibez and Young
+  Jonn — Nigerian Afrobeats — carry a dozen `arabic` labels each because their
+  songs sit on a playlist called "Arab X". No majority rule survives it; the
+  wrong label IS the majority. Given zero weight, recorded in proposals for
+  human eyes only. Their audio-feature columns are per-track and still trusted.
+- **Chart country != origin, and MusicBrainz alone is not better.** The two
+  agree ~81% of the time and those are reliably right. Of 5 sampled
+  disagreements, MusicBrainz was wrong on at least 3 (Seyi Vibez→Ghana,
+  Stormy→Japan, Mirella→Netherlands — all correct in the chart) via exact-name
+  homonyms. **Accept only on agreement**; disagreements → `needsReview`, no dot.
+- **Audio-feature coverage is 33% overall but wildly uneven**: UK x Rock 80%,
+  Nigeria x Afrobeats 49%, Brazil x Bossa Nova 2%, Argentina x Folk 4%,
+  Ghana x Funk 7%. Sequencing on features alone would flow for Anglophone rock
+  and be noise for exactly the music this product exists to surface — hence
+  features-as-refinement, never as spine.
+- **`Data/` (GTZAN) was NOT used.** 1,000 clips, 10 coarse genres, ~70%
+  ceiling, and it needs a raw-audio pipeline over Deezer previews. Tag data
+  beats audio classification for genre at every point on that curve.
+
+### ⛔ MISSING FILE the user should download
+`music-production-across-the-world.Rmd` is only the analysis notebook — it reads
+`../input/artists.csv`, which is **not in the drop**. That is the Kaggle
+["Music Artists Popularity"](https://www.kaggle.com/datasets/pieca111/music-artists-popularity)
+set: ~1.4M artists with `country_mb` (MusicBrainz country), `country_lastfm`,
+`tags_mb`, `tags_lastfm`, and listener/scrobble counts. It is the single
+highest-value missing input — it would give an independent third origin source
+(breaking the chart/MusicBrainz ties currently sent to `needsReview`) and real
+per-artist genre tags at a scale that would raise genre bucketing well past the
+~50-80% the current sources reach. Ask the user to add it as
+`kaggle_datasets/artists.csv`.
+
+### Content problems noticed in passing (seed data, not code)
+- Coldplay's "WE PRAY" opens **Nigeria x Afrobeats**, and Shakira and Frank
+  Sinatra surface in Nigeria/Brazil pairings — features and covers pulling
+  non-local artists into country seed lists. Worth an `npm run audit` pass.
+
+## 🟡 Previous handoff (2026-07-25a) — globe dots
 
 ### A background job is RUNNING — check it first
 `npm run origins:mb` (pid was 54989) is enriching `lib/origins.json` from
