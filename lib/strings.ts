@@ -14,11 +14,10 @@ export const STR = {
     name: 'Music Exploration',
     tagline: 'Wander, don’t search — discover the world’s music by place and genre.',
     /* How the site introduces itself when a link is shared (browser tab,
-     * iMessage/WhatsApp/Slack unfurls, search results). The description is
-     * the About copy boiled down to one line. */
+     * iMessage/WhatsApp/Slack unfurls, search results). */
     shareTitle: 'Discover Music',
     shareDescription:
-      'Streaming algorithms trap us in echo chambers. Explore music hands-on by country and genre — step outside your comfort zone and discover the world’s sound.',
+      'Chan 🌻 and Maddy 🌷 built this space to break us out of the endless loops of mainstream streaming apps. Instead of letting computers decide what you hear, this platform lets you take the wheel to explore new cultures and discover global sounds.',
   },
 
   world: {

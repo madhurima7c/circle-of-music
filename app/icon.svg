@@ -1,21 +1,16 @@
-<svg width="64" height="64" viewBox="-3 -3 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-<!-- Circle of Music mark (public/icons/nav-circle.svg) as the site favicon.
-     The viewBox is padded 3 units on each side so the ring doesn't touch the
-     edges of a browser tab's rounded crop. -->
-<rect x="15" width="4" height="4" fill="#1D2BDF"/>
-<rect x="8.56134" y="2.10742" width="4" height="4" transform="rotate(-22.8275 8.56134 2.10742)" fill="#1D2BDF"/>
-<rect x="27.6066" y="3.56494" width="4" height="4" transform="rotate(45 27.6066 3.56494)" fill="#1D2BDF"/>
-<rect x="21.5636" y="0.502319" width="4" height="4" transform="rotate(22.1725 21.5636 0.502319)" fill="#1D2BDF"/>
-<rect y="19" width="4" height="4" transform="rotate(-90 0 19)" fill="#1D2BDF"/>
-<rect x="2.10742" y="25.4387" width="4" height="4" transform="rotate(-112.828 2.10742 25.4387)" fill="#1D2BDF"/>
-<rect x="3.56494" y="6.39343" width="4" height="4" transform="rotate(-45 3.56494 6.39343)" fill="#1D2BDF"/>
-<rect x="0.502258" y="12.4364" width="4" height="4" transform="rotate(-67.8275 0.502258 12.4364)" fill="#1D2BDF"/>
-<rect x="15" y="30" width="4" height="4" fill="#1D2BDF"/>
-<rect x="20.2001" y="29.7578" width="4" height="4" transform="rotate(-22.8275 20.2001 29.7578)" fill="#1D2BDF"/>
-<rect x="6.39337" y="24.7782" width="4" height="4" transform="rotate(45 6.39337 24.7782)" fill="#1D2BDF"/>
-<rect x="10.2418" y="28.2838" width="4" height="4" transform="rotate(22.1725 10.2418 28.2838)" fill="#1D2BDF"/>
-<rect x="30" y="19" width="4" height="4" transform="rotate(-90 30 19)" fill="#1D2BDF"/>
-<rect x="29.7577" y="13.7998" width="4" height="4" transform="rotate(-112.828 29.7577 13.7998)" fill="#1D2BDF"/>
-<rect x="24.7782" y="27.6066" width="4" height="4" transform="rotate(-45 24.7782 27.6066)" fill="#1D2BDF"/>
-<rect x="28.2839" y="23.7583" width="4" height="4" transform="rotate(-67.8275 28.2839 23.7583)" fill="#1D2BDF"/>
+<svg width="96" height="96" viewBox="-70 -70 1078 1078" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Circle of Music mark — the 8-square version supplied by the user.
+     Fewer, larger squares than the 16-square nav ring, which is exactly what
+     a favicon needs: at 16px the old ring's squares fused into a dotted blur.
+     No background plate: the mark stands on its own, so it sits cleanly on a
+     light or dark tab strip. viewBox is padded 70 units all round so the
+     squares don't touch a rounded tab crop. -->
+<rect x="379" width="180" height="180" fill="#737CF4"/>
+<rect x="726.994" y="77.8695" width="180" height="180" transform="rotate(45 726.994 77.8695)" fill="#737CF4"/>
+<rect x="379" y="758" width="180" height="180" fill="#737CF4"/>
+<rect x="191.006" y="613.856" width="180" height="180" transform="rotate(45 191.006 613.856)" fill="#737CF4"/>
+<rect x="758" y="379" width="180" height="180" fill="#737CF4"/>
+<rect x="726.994" y="613.856" width="180" height="180" transform="rotate(45 726.994 613.856)" fill="#737CF4"/>
+<rect y="379" width="180" height="180" fill="#737CF4"/>
+<rect x="191.006" y="77.8694" width="180" height="180" transform="rotate(45 191.006 77.8694)" fill="#737CF4"/>
 </svg>
