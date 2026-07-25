@@ -14,7 +14,8 @@
     "origins": "tsx scripts/build-origins.ts",
     "enrich": "tsx scripts/enrich-seeds.ts",
     "world-seeds": "tsx scripts/build-world-seeds.ts",
-    "world-songs": "tsx scripts/build-world-songs.ts"
+    "world-songs": "tsx scripts/build-world-songs.ts",
+    "recoord": "tsx scripts/recoord-world-songs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

@@ -1,8 +1,14 @@
 /**
- * Resolve every seeds.json artist to a geographic origin point.
+ * Resolve every artist we can place to a geographic origin point.
  *
  *   npm run origins              # only artists not yet in lib/origins.json
  *   npm run origins -- --retry   # also re-attempt previous misses
+ *   npm run origins -- --seeds   # seeds.json only (the original behaviour)
+ *
+ * SCOPE: seeds.json (the Circle's curated artists) AND every artist in
+ * public/world-songs/*.json (the World's dot dataset). The World set was
+ * previously excluded, which is why 99% of globe dots fell back to a country
+ * centroid instead of a city — the audit that caught it is in todo.md.
  *
  * Source: Wikidata public API (no key).
  *   1. wbsearchentities on the artist name → candidate items
@@ -18,14 +24,16 @@
  * precision: "city" (P19/P740 hit) vs "country" (country centroid only).
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const SEEDS_PATH = path.join(__dirname, '..', 'lib', 'seeds.json');
+const WORLD_SONGS_DIR = path.join(__dirname, '..', 'public', 'world-songs');
 const OUT_PATH = path.join(__dirname, '..', 'lib', 'origins.json');
 const API = 'https://www.wikidata.org/w/api.php';
 const UA = 'MusicExploration/0.1 ( https://github.com/madhurima7c/circle-of-music )';
 const RETRY_MISSES = process.argv.includes('--retry');
+const SEEDS_ONLY = process.argv.includes('--seeds');
 
 /** Same normalization as lib/stories.ts normKey / lib/deezer.ts normName. */
 const FOLD: Record<string, string> = {
@@ -176,6 +184,24 @@ async function main() {
       for (const n of list) names.set(normKey(n), n);
     }
   }
+  const seedCount = names.size;
+
+  // Every artist the globe actually plots. Seeds are queued first (they drive
+  // the Circle), then the long tail from the World dataset.
+  if (!SEEDS_ONLY && existsSync(WORLD_SONGS_DIR)) {
+    for (const file of readdirSync(WORLD_SONGS_DIR).filter((f) => f.endsWith('.json'))) {
+      const data = JSON.parse(
+        readFileSync(path.join(WORLD_SONGS_DIR, file), 'utf8'),
+      ) as Record<string, Array<{ a?: string }> | string[]>;
+      for (const [country, songs] of Object.entries(data)) {
+        if (country === '__done' || !Array.isArray(songs)) continue;
+        for (const song of songs) {
+          const a = (song as { a?: string })?.a;
+          if (a) names.set(normKey(a), a);
+        }
+      }
+    }
+  }
 
   const existing: Record<string, Origin | null> = existsSync(OUT_PATH)
     ? JSON.parse(readFileSync(OUT_PATH, 'utf8'))
@@ -184,7 +210,10 @@ async function main() {
   const todo = [...names.entries()].filter(([key]) =>
     RETRY_MISSES ? !(key in existing) || existing[key] === null : !(key in existing),
   );
-  console.log(`${names.size} unique seed artists, ${todo.length} to resolve`);
+  console.log(
+    `${names.size} unique artists (${seedCount} seed, ${names.size - seedCount} world), ` +
+    `${todo.length} to resolve`,
+  );
 
   let done = 0;
   for (const [key, display] of todo) {
