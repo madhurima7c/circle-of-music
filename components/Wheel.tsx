@@ -57,6 +57,9 @@ type WheelProps = WheelTuning & {
   flipped?: boolean;
 };
 
+/** Mouse-wheel travel (px) required to advance one card. */
+const WHEEL_PX_PER_STEP = 48;
+
 /* ---------- reusable math objects ---------- */
 const _qX      = new THREE.Quaternion();
 const _qY      = new THREE.Quaternion();
@@ -333,8 +336,10 @@ export default function Wheel({
       if ((meLeft && !inLeft) || (!meLeft && !inRight)) return;
       e.preventDefault();
       wheelAccum.current += e.deltaY * facing;
-      while (wheelAccum.current >  24) { onSpin(1);  wheelAccum.current -= 24; }
-      while (wheelAccum.current < -24) { onSpin(-1); wheelAccum.current += 24; }
+      // Scroll distance required per card step. Raised 24 → 48 to halve the
+      // scroll speed (twice the travel for the same one-card advance).
+      while (wheelAccum.current >  WHEEL_PX_PER_STEP) { onSpin(1);  wheelAccum.current -= WHEEL_PX_PER_STEP; }
+      while (wheelAccum.current < -WHEEL_PX_PER_STEP) { onSpin(-1); wheelAccum.current += WHEEL_PX_PER_STEP; }
     };
     window.addEventListener('wheel', handler, { passive: false });
     return () => window.removeEventListener('wheel', handler);

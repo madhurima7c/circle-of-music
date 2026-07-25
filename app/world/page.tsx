@@ -1,8 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useStore } from '@/lib/store';
-import { Dock, HandTracking, GestureToast } from '@/components/Overlay';
+import { Dock } from '@/components/Overlay';
 import { ExperienceNav } from '@/components/ExperienceNav';
 import { WorldNowPlaying } from '@/components/WorldNowPlaying';
 import { PhoneIntro } from '@/components/PhoneIntro';
@@ -16,7 +15,6 @@ const WorldGlobe = dynamic(() => import('@/components/WorldGlobe'), {
 
 export default function WorldPage() {
   const phone = usePhone();
-  const { handMode } = useStore();
   if (phone) return <PhoneIntro initial={1} />;
   return (
     <main className="world-frame">
@@ -30,11 +28,6 @@ export default function WorldPage() {
       {/* Shared dock — shuffle routes to the globe's own random-country
           spin (it owns the fly-to camera), via a window event. */}
       <Dock onSurprise={() => window.dispatchEvent(new Event('world:shuffle'))} />
-
-      {/* Hand tracking is the same opt-in VR-cursor system as the Circle —
-          toggled from the dock menu; pinch-drag rotates the globe. */}
-      {handMode && <HandTracking />}
-      <GestureToast />
     </main>
   );
 }

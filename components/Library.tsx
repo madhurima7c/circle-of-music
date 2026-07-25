@@ -124,9 +124,12 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
     setExportOpen(false);
   };
 
-  return (
+  // Portaled to <body>: the page frames set `isolation: isolate`, which traps
+  // anything rendered inside them below the root-level Spotify strip no matter
+  // their z-index. At body level the z-index applies as intended.
+  return createPortal(
     <>
-      <div className="dock-scrim" onClick={onClose} />
+      <div className="dock-scrim liked-scrim" onClick={onClose} />
       <div className="liked" role="dialog" aria-label={STR.playlists.title}>
         {/* Sidebar */}
         <aside className="liked__side">
@@ -365,6 +368,7 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
           document.body,
         );
       })()}
-    </>
+    </>,
+    document.body,
   );
 }

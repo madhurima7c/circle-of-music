@@ -661,7 +661,6 @@ export default function WorldGlobe() {
    * Wheel/pinch zoom on the globe is fiddly; this drives the camera altitude
    * directly (pointOfView keeps the current lat/lng). Slider 0 = far out,
    * 1 = close in. Opening reads the live altitude so the thumb starts true. */
-  const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomVal, setZoomVal] = useState(0.45);
   const ALT_MIN = 0.35, ALT_MAX = 4.0;   // within the controls' distance clamp
   const applyZoom = useCallback((v: number) => {
@@ -675,14 +674,92 @@ export default function WorldGlobe() {
       250,
     );
   }, []);
-  const toggleZoom = useCallback(() => {
+  /** Step the zoom relative to the LIVE camera altitude — the +/− pill has no
+   *  slider to read from, and wheel/pinch move the camera behind our back. */
+  const stepZoom = useCallback((delta: number) => {
     const g = globeRef.current;
-    if (g) {
-      const { altitude } = g.pointOfView() as { altitude: number };
-      setZoomVal(Math.min(1, Math.max(0, (ALT_MAX - altitude) / (ALT_MAX - ALT_MIN))));
+    if (!g) return;
+    const { altitude } = g.pointOfView() as { altitude: number };
+    const live = Math.min(1, Math.max(0, (ALT_MAX - altitude) / (ALT_MAX - ALT_MIN)));
+    applyZoom(live + delta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applyZoom]);
+
+  /* ---------- country search ----------
+   * Collapsed to a circular magnifier; clicking expands it into a field with a
+   * live dropdown of matching nations. Choosing one (click or Enter) runs the
+   * SAME path as tapping that country on the globe — highlight, camera glide,
+   * and play — so the selection is switched to the search query. */
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [activeMatch, setActiveMatch] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const searchWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const countryNames = useMemo(
+    () => features.map(f => f.properties.NAME).sort((a, b) => a.localeCompare(b)),
+    [features],
+  );
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [] as string[];
+    const starts: string[] = [], contains: string[] = [];
+    for (const n of countryNames) {
+      const l = n.toLowerCase();
+      if (l.startsWith(q)) starts.push(n);
+      else if (l.includes(q)) contains.push(n);
     }
-    setZoomOpen(o => !o);
-  }, []);
+    return [...starts, ...contains].slice(0, 8);
+  }, [query, countryNames]);
+
+  useEffect(() => { setActiveMatch(0); }, [query]);
+
+  // Focus on open; close on Escape or an outside click.
+  useEffect(() => {
+    if (!searchOpen) return;
+    searchInputRef.current?.focus();
+    const onDown = (e: MouseEvent) => {
+      if (!searchWrapRef.current?.contains(e.target as Node)) {
+        setSearchOpen(false);
+        setQuery('');
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setSearchOpen(false); setQuery(''); }
+    };
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [searchOpen]);
+
+  /** Commit a search choice — identical to tapping that nation on the globe. */
+  const pickCountry = (name: string) => {
+    const f = features.find(x => x.properties.NAME === name);
+    if (!f) return;
+    onClick(f);
+    setQuery('');
+    setSearchOpen(false);
+  };
+
+  const onSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveMatch(i => Math.min(matches.length - 1, i + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveMatch(i => Math.max(0, i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      // Enter takes the highlighted row; failing that, an exact name match.
+      const exact = countryNames.find(n => n.toLowerCase() === query.trim().toLowerCase());
+      const pick = matches[activeMatch] ?? exact;
+      if (pick) pickCountry(pick);
+    }
+  };
 
   /* ---------- genre rail: multi-select, max five ---------- */
   const [toast, setToast] = useState<string | null>(null);
@@ -968,34 +1045,85 @@ export default function WorldGlobe() {
         })}
       </div>
 
-      {/* Zoom — bottom-left pill: magnifier that expands into −·slider·+ */}
-      <div className={`world-zoom${zoomOpen ? ' world-zoom--open' : ''}`}>
-        <button
-          className="world-zoom__toggle"
-          onClick={toggleZoom}
-          title={STR.world.zoom}
-          aria-label={STR.world.zoom}
-          aria-expanded={zoomOpen}
-        >
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-4.2-4.2" />
+      {/* Search — collapsed circle, expands into a country field with a live
+          dropdown. Picking a nation switches the highlighted country. */}
+      <div
+        ref={searchWrapRef}
+        className={`world-search${searchOpen ? ' world-search--open' : ''}`}
+      >
+        {searchOpen ? (
+          <div className="world-search__field">
+            <svg className="world-search__icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4.2-4.2" />
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="world-search__input"
+              placeholder={STR.world.searchPlaceholder}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={onSearchKey}
+              aria-label={STR.world.search}
+              role="combobox"
+              aria-expanded={matches.length > 0}
+              aria-autocomplete="list"
+            />
+          </div>
+        ) : (
+          <button
+            className="world-search__toggle"
+            onClick={() => setSearchOpen(true)}
+            title={STR.world.search}
+            aria-label={STR.world.search}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4.2-4.2" />
+            </svg>
+          </button>
+        )}
+
+        {searchOpen && matches.length > 0 && (
+          <ul className="world-search__list" role="listbox" aria-label={STR.world.search}>
+            {matches.map((name, i) => {
+              const iso = (GEO_ISO as Record<string, string>)[name];
+              return (
+                <li key={name}>
+                  <button
+                    role="option"
+                    aria-selected={i === activeMatch}
+                    data-active={i === activeMatch ? 'true' : 'false'}
+                    className="world-search__opt"
+                    onMouseEnter={() => setActiveMatch(i)}
+                    onClick={() => pickCountry(name)}
+                  >
+                    {iso
+                      ? <img className="world-search__flag" src={`https://flagcdn.com/w40/${iso.toLowerCase()}.png`} alt="" />
+                      : <span className="world-search__flag world-search__flag--none" />}
+                    <span className="world-search__name">{name}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Zoom — vertical +/− pill under the search. */}
+      <div className="world-zoom">
+        <button className="world-zoom__step" onClick={() => stepZoom(0.15)} title={STR.world.zoomIn} aria-label={STR.world.zoomIn}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M12 5v14M5 12h14" />
           </svg>
         </button>
-        {zoomOpen && (
-          <>
-            <button className="world-zoom__step" onClick={() => applyZoom(zoomVal - 0.15)} aria-label={STR.world.zoomOut}>−</button>
-            <input
-              type="range"
-              className="world-zoom__slider"
-              min={0} max={1} step={0.01}
-              value={zoomVal}
-              onChange={(e) => applyZoom(Number(e.target.value))}
-              aria-label={STR.world.zoom}
-            />
-            <button className="world-zoom__step" onClick={() => applyZoom(zoomVal + 0.15)} aria-label={STR.world.zoomIn}>+</button>
-          </>
-        )}
+        <span className="world-zoom__rule" aria-hidden />
+        <button className="world-zoom__step" onClick={() => stepZoom(-0.15)} title={STR.world.zoomOut} aria-label={STR.world.zoomOut}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M5 12h14" />
+          </svg>
+        </button>
       </div>
 
       {toast && <div className="world-toast" role="status">{toast}</div>}

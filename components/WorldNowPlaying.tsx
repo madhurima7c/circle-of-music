@@ -13,7 +13,7 @@ import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
 } from '@/lib/spotify';
-import { ProgressBar, BrandIcon, useEmbedActive } from '@/components/Overlay';
+import { ProgressBar, BrandIcon, useEmbedActive, RoundPlay } from '@/components/Overlay';
 
 /**
  * WorldNowPlaying — the World's single compact now-playing card
@@ -31,6 +31,8 @@ export function WorldNowPlaying() {
   const saved = useIsFind(track?.id);
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
   const embedActive = useEmbedActive();
+  // Embed sounding → it IS the now-playing header; ours steps aside.
+  const embedMode = spotifyOn && embedActive;
 
   if (status === 'empty') return null;
   const pending = status === 'populating' || status === 'error';
@@ -76,6 +78,8 @@ export function WorldNowPlaying() {
               </div>
             );
           })()}
+          {!embedMode && (
+          <>
           <div className="wnp__now">
             {track.image
               ? <img className="wnp__cover" src={track.image} alt="" />
@@ -94,29 +98,14 @@ export function WorldNowPlaying() {
                      )}
               </div>
             </div>
-            <button
-              className="center__heart"
-              data-saved={saved ? 'true' : 'false'}
-              onClick={() => toggleFind({
-                id: track.id, title: track.title, artist: track.artist,
-                album: track.album, image: track.image, preview: track.preview,
-                country: countryName, genre, savedAt: Date.now(),
-                releaseDate: track.releaseDate ?? null,
-                duration: track.duration ?? null,
-              })}
-              title={saved ? STR.card.unsave : STR.card.save}
-              aria-label={saved ? STR.card.unsave : STR.card.save}
-              aria-pressed={saved}
-            >
-              <svg viewBox="0 0 24 24" width="15" height="15"
-                fill={saved ? 'currentColor' : 'none'}
-                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-              </svg>
-            </button>
+            {/* Play sits where the ♥ used to; the ♥ is now the center of
+                the control strip (identical in both Spotify states). */}
+            <RoundPlay playing={isPlaying} onClick={togglePlay} blocked={autoplayBlocked} />
           </div>
 
           <ProgressBar trackDuration={track.duration ?? null} />
+          </>
+          )}
 
           <div className="wnp__controls">
             <button
@@ -141,9 +130,27 @@ export function WorldNowPlaying() {
                 <path d="M19 6L9 12l10 6V6z" />
               </svg>
             </button>
-            <button className="ctrl ctrl--lg" onClick={togglePlay} title={STR.card.playPause} aria-label={STR.card.playPause}>
-              <svg className="ctrl__play" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>
-              <svg className="ctrl__pause" viewBox="0 0 24 24" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
+            {/* ♥ is the center of the strip — like it here, or save it to
+                Spotify from the embed. Playback lives in the round button. */}
+            <button
+              className="ctrl ctrl--lg ctrl--heart"
+              data-saved={saved ? 'true' : 'false'}
+              onClick={() => toggleFind({
+                id: track.id, title: track.title, artist: track.artist,
+                album: track.album, image: track.image, preview: track.preview,
+                country: countryName, genre, savedAt: Date.now(),
+                releaseDate: track.releaseDate ?? null,
+                duration: track.duration ?? null,
+              })}
+              title={saved ? STR.card.unsave : STR.card.save}
+              aria-label={saved ? STR.card.unsave : STR.card.save}
+              aria-pressed={saved}
+            >
+              <svg viewBox="0 0 24 24" width="17" height="17"
+                fill={saved ? 'currentColor' : 'none'}
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+              </svg>
             </button>
             <button className="ctrl" onClick={nextTrack} title={STR.card.next} aria-label={STR.card.next}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -151,11 +158,26 @@ export function WorldNowPlaying() {
                 <path d="M19 6v12" />
               </svg>
             </button>
+            {/* Share — same 5th control as the Circle, so both cards read the
+                same. Opens the "listen in" links (and the Connect entry). */}
+            <button
+              className="ctrl"
+              onClick={() => setMore(m => !m)}
+              title={STR.card.share}
+              aria-label={STR.card.share}
+              aria-expanded={more}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 15V4" />
+                <path d="M8 8l4-4 4 4" />
+                <path d="M5 13v6h14v-6" />
+              </svg>
+            </button>
           </div>
 
-          {/* Spotify embed nests BELOW the controls (interactive — the +
-              saves to Spotify likes). Scrubber + controls above stay put. */}
-          {spotifyOn && embedActive && (
+          {/* The embed IS the now-playing header while it sounds (CSS order),
+              carrying art, title, scrubber, play and "Save on Spotify". */}
+          {embedMode && (
             <div className="spotify-slot" data-spotify-slot aria-hidden />
           )}
 
@@ -179,9 +201,6 @@ export function WorldNowPlaying() {
             </>
           )}
 
-          <button className="wnp__learn" onClick={() => setMore(m => !m)} aria-expanded={more}>
-            {STR.world.learnMore}
-          </button>
         </>
       )}
     </div>

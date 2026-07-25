@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GENRES } from '@/lib/data';
 import GEO_ISO from '@/lib/geo-iso.json';
 import { STR } from '@/lib/strings';
@@ -84,7 +85,9 @@ export function ContactPopup({ open, onClose }: { open: boolean; onClose: () => 
     setError('');
   };
 
-  return (
+  // Portaled to <body> — the page frames use `isolation: isolate`, so a card
+  // rendered inside them can never paint above the root-level Spotify strip.
+  return createPortal(
     <>
       <div className="dock-scrim dock-scrim--dim" onClick={onClose} />
       <div className="contact-card" role="dialog" aria-label={STR.contact.title}>
@@ -177,6 +180,7 @@ export function ContactPopup({ open, onClose }: { open: boolean; onClose: () => 
 
         {error && <p className="contact-card__error">{error}</p>}
       </div>
-    </>
+    </>,
+    document.body,
   );
 }

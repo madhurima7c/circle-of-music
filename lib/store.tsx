@@ -58,9 +58,6 @@ type StoreShape = {
   /** Locked wheels ignore all spin input (drag, scroll, gestures, ladder). */
   lockedLeft:  boolean;
   lockedRight: boolean;
-  /** Hand tracking is a delight layer, not a gate — OFF by default,
-   *  toggled by the user, persisted in localStorage. */
-  handMode: boolean;
   /** True when the browser refused autoplay — the play button pulses
    *  until the user clicks once. Owned by GlobalPlayer, read by the card. */
   autoplayBlocked: boolean;
@@ -89,7 +86,6 @@ type StoreShape = {
   flashToast:  (t: GestureToast) => void;
   toggleLockLeft:  () => void;
   toggleLockRight: () => void;
-  toggleHandMode:  () => void;
   setAutoplayBlocked: (b: boolean) => void;
   /** "Surprise me": random new pairing, respecting locked wheels. If both
    *  wheels are locked, reshuffles the current playlist instead. */
@@ -226,12 +222,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [toast,      setToast]      = useState<GestureToast | null>(null);
   const [lockedLeft,  setLockedLeft]  = useState(false);
   const [lockedRight, setLockedRight] = useState(false);
-  // Starts false on server AND first client render (hydration-safe), then
-  // syncs from localStorage after mount.
-  const [handMode, setHandMode] = useState(false);
-  useEffect(() => {
-    if (window.localStorage.getItem('handMode') === 'on') setHandMode(true);
-  }, []);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
   // Refs mirror the lock state so the spin guards always read the latest
@@ -395,14 +385,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const next = !lockedRightRef.current;
     lockedRightRef.current = next;
     setLockedRight(next);
-  }, []);
-
-  const toggleHandMode = useCallback(() => {
-    setHandMode(prev => {
-      const next = !prev;
-      window.localStorage.setItem('handMode', next ? 'on' : 'off');
-      return next;
-    });
   }, []);
 
   // NOTE: the initial auto-commit (first playlist fetch) now lives in the
@@ -664,24 +646,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<StoreShape>(() => ({
     countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, shuffle, volume,
-    hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
+    hoverLeft, hoverRight, toast, lockedLeft, lockedRight,
     autoplayBlocked,
     spinLeft, spinRight, setCountry, setGenre, commit, setTrackIdx,
     togglePlay, setIsPlaying, nextTrack, prevTrack, shuffleTracks,
     toggleShuffle, trackEnded,
     setVolume: setVolumeClamped, setHover, flashToast,
-    toggleLockLeft, toggleLockRight, toggleHandMode, setAutoplayBlocked,
+    toggleLockLeft, toggleLockRight, setAutoplayBlocked,
     surprise, loadQueue, appendTracks, playPlace, playPlaceNamed,
     setNowPlayingOrigin, endOfQueue, divertAfterCurrent,
     customCountry,
     countryName: customCountry ?? COUNTRIES[countryIdx],
   }), [countryIdx, genreIdx, status, tracks, trackIdx, isPlaying, shuffle, volume,
-       hoverLeft, hoverRight, toast, lockedLeft, lockedRight, handMode,
+       hoverLeft, hoverRight, toast, lockedLeft, lockedRight,
        autoplayBlocked, customCountry,
        spinLeft, spinRight, setCountry, setGenre, commit,
        togglePlay, nextTrack, prevTrack, shuffleTracks, toggleShuffle, trackEnded,
        setVolumeClamped, setHover, flashToast,
-       toggleLockLeft, toggleLockRight, toggleHandMode, surprise, loadQueue,
+       toggleLockLeft, toggleLockRight, surprise, loadQueue,
        appendTracks, playPlace, playPlaceNamed, setNowPlayingOrigin, endOfQueue,
        divertAfterCurrent]);
 

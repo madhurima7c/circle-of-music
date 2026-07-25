@@ -13,8 +13,6 @@ import {
   Dial,
   WheelLock,
   Dock,
-  HandTracking,
-  GestureToast,
 } from '@/components/Overlay';
 import { ExperienceNav } from '@/components/ExperienceNav';
 import { PhoneIntro } from '@/components/PhoneIntro';
@@ -25,7 +23,7 @@ const Stage = dynamic(() => import('@/components/Stage'), { ssr: false });
 export default function CirclePage() {
   const phone = usePhone();
   const {
-    commit, tracks, handMode, status,
+    commit, tracks, status,
     countryIdx, genreIdx, setCountry, setGenre, countryName,
   } = useStore();
 
@@ -79,8 +77,6 @@ export default function CirclePage() {
       <WheelLock side="right" />
 
       <Dock />
-      {handMode && <HandTracking />}
-      <GestureToast />
     </main>
   );
 }

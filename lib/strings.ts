@@ -38,12 +38,13 @@ export const STR = {
     filterToSongs: 'Dots show artists — switch to songs',
     filterToArtists: 'Dots show songs — switch to artists',
     zoom: 'Zoom',
+    search: 'Search for a country',
+    searchPlaceholder: 'Search for a country...',
     zoomIn: 'Zoom in',
     zoomOut: 'Zoom out',
     dotsLabel: 'What the dots represent',
     dotsArtists: 'Dots represent artists',
     dotsSongs: 'Dots represent songs',
-    handToggle: 'Hand control (webcam)',
   },
 
   circle: {
@@ -86,14 +87,20 @@ export const STR = {
   menu: {
     more: 'More options',
     language: 'Language',
-    handTracking: 'Hand tracking',
-    on: 'On',
-    off: 'Off',
     contact: 'Contact us',
     about: 'About us',
     aboutTitle: 'Music Exploration',
+    /* Split around the two names so each can carry its own LinkedIn link. */
+    aboutIntro: 'This platform was created by ',
+    aboutChan: 'Chan 🌻',
+    aboutAnd: ' and ',
+    aboutMaddy: 'Maddy 🌷',
     aboutBody:
-      'Wander, don’t search. The world’s music, browsable by place and genre — no algorithm, no login, no destination required. 30-second tastings via Deezer; open every find in your own music app.',
+      ' to change how people discover new music. Mainstream streaming algorithms often trap us in echo chambers, endlessly serving up the same styles we already know. Instead, our platform offers a hands-on, interactive way to step outside your comfort zone, dive into diverse cultures, and truly learn about global music. We want this to be an open, evolving experience. If you have suggestions for new features or content, click the contact button and let us know!',
+    aboutChanUrl: 'https://www.linkedin.com/in/chandanalovesdesign/',
+    aboutMaddyUrl: 'https://www.linkedin.com/in/madhurima-c/',
+    aboutApis: 'Music served through Deezer and MusicBrainz APIs',
+    aboutMade: 'Made with 💙 in Seattle',
     translationsSoon: 'coming soon',
     mailSubject: 'Music Exploration — hello',
   },
@@ -244,9 +251,7 @@ export const STR = {
 
   hints: {
     mouse:
-      '↕ drag or scroll a wheel to spin it · click a letter to jump · ✋ hand control available in the dock below',
-    hand:
-      '👆 move your hand to aim the cursor · 🤏 pinch & hold ~1s on a button to press it · pinch over a wheel and move up/down to spin it',
+      '↕ drag or scroll a wheel to spin it · click a letter to jump',
   },
 
   dock: {
@@ -254,27 +259,10 @@ export const STR = {
     surpriseCountryOnly: 'Surprise me — random country (genre locked)',
     surpriseGenreOnly: 'Surprise me — random genre (country locked)',
     surpriseBothLocked: 'Both wheels locked — reshuffle this playlist',
-    handOn:  'Turn on hand control',
-    handOff: 'Turn off hand control',
-    handTitleOn:  'Control with your hands (webcam)',
-    handTitleOff: 'Turn off hand control',
     info: 'info',
     recommend: 'recommend',
     mailSubject: 'Circle of Music recommendation',
     mailBody: "Add an artist or album you'd recommend: ",
   },
 
-  camera: {
-    inUseHeadline: 'Camera in use',
-    deniedHeadline: 'Camera blocked',
-    noDeviceHeadline: 'No camera found',
-    errorHeadline: 'Camera unavailable',
-    inUseDetail:
-      'Another app (Zoom, Meet, FaceTime…) is using it. Use the mouse to scroll the wheels.',
-    deniedDetail: 'Grant camera permission in your browser, then refresh.',
-    noDeviceDetail:
-      'Plug in a webcam, then refresh. The wheels still respond to mouse scroll & drag.',
-    errorDetail: 'Use the mouse to scroll the wheels.',
-    hands: (n: number) => `${n} hand${n === 1 ? '' : 's'}`,
-  },
 } as const;

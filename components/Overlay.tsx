@@ -412,6 +412,30 @@ export function BrandIcon({ kind }: { kind: 'spotify' | 'apple' | 'youtube' | 'd
   );
 }
 
+/**
+ * Round white play/pause button, styled after the one inside Spotify's embed.
+ * Used when Spotify ISN'T the sounding source: playback control lives here, in
+ * the now-playing row, so the main control strip can keep ♥ at its center in
+ * BOTH states and the two layouts stay visually consistent.
+ */
+export function RoundPlay({ playing, onClick, blocked }: {
+  playing: boolean; onClick: () => void; blocked?: boolean;
+}) {
+  return (
+    <button
+      className="round-play"
+      data-blocked={blocked ? 'true' : 'false'}
+      onClick={onClick}
+      title={STR.card.playPause}
+      aria-label={STR.card.playPause}
+    >
+      {playing
+        ? <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
+        : <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>}
+    </button>
+  );
+}
+
 /** Tiny 3-bar equalizer marking the sounding row in the playlist. Bars
  *  animate while playing and freeze when paused (CSS `.eq[data-playing]`). */
 function EqualizerIcon({ playing }: { playing: boolean }) {
@@ -433,9 +457,11 @@ export function CenterStack() {
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
 
-  // True while the Spotify embed is the sounding source — the card then
-  // nests the iframe slot below the controls (scrubber + controls stay).
+  // True while the Spotify embed is the sounding source. In that state the
+  // embed IS the now-playing header (art, title, scrubber, play, save) and our
+  // own row + scrubber step aside, so the card never shows two players at once.
   const embedActive = useEmbedActive();
+  const embedMode = spotifyOn && embedActive;
 
   // Arriving here with an UNREPRESENTED (non-seed) country playing — e.g. a
   // Bhutan dot from the World: approximate to the nearest seed country, let
@@ -569,51 +595,42 @@ export function CenterStack() {
             {/* Player — now row, progress, transport. Content-sized. */}
             <div className="center__player" hidden={!hasTrack}>
                 <div className="center__track">
-                  <div className="center__now">
-                    <div className="center__cover-wrap">
-                      {track?.image
-                        ? <img className="center__cover" src={track.image} alt="" />
-                        : <div className="center__cover" />}
-                    </div>
-                    <div className="center__meta">
-                      <h2 className="center__title">{track?.title}</h2>
-                      <p className="center__album">
-                        {track ? `${track.album} — ${track.artist}` : ''}
-                      </p>
-                      {/* Origin line: curated story when we have one, otherwise a
-                          grounded facts fallback (genre · country · year). */}
-                      {track && (
-                        <p className="center__about">
-                          {storyFor(track.artist, country, genre)
-                            ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))}
-                        </p>
-                      )}
-                    </div>
-                    {track && (
-                      <button
-                        className="center__heart"
-                        data-saved={saved ? 'true' : 'false'}
-                        onClick={() => toggleFind({
-                          id: track.id, title: track.title, artist: track.artist,
-                          album: track.album, image: track.image, preview: track.preview,
-                          country, genre, savedAt: Date.now(),
-                          releaseDate: track.releaseDate ?? null,
-                          duration: track.duration ?? null,
-                        })}
-                        title={saved ? STR.card.unsave : STR.card.save}
-                        aria-label={saved ? STR.card.unsave : STR.card.save}
-                        aria-pressed={saved}
-                      >
-                        <svg viewBox="0 0 24 24" width="17" height="17"
-                          fill={saved ? 'currentColor' : 'none'}
-                          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+                  {/* Our own now-playing row + scrubber. While the Spotify embed
+                      is the sounding source it OWNS this job (cover, title,
+                      scrubber, play, save-to-Spotify), so we hide ours rather
+                      than stack two players in one card. */}
+                  {!embedMode && (
+                    <>
+                      <div className="center__now">
+                        <div className="center__cover-wrap">
+                          {track?.image
+                            ? <img className="center__cover" src={track.image} alt="" />
+                            : <div className="center__cover" />}
+                        </div>
+                        <div className="center__meta">
+                          <h2 className="center__title">{track?.title}</h2>
+                          <p className="center__album">
+                            {track ? `${track.album} — ${track.artist}` : ''}
+                          </p>
+                          {/* Origin line: curated story when we have one, otherwise a
+                              grounded facts fallback (genre · country · year). */}
+                          {track && (
+                            <p className="center__about">
+                              {storyFor(track.artist, country, genre)
+                                ?? STR.card.aboutFallback(genre, country, releaseYear(track.releaseDate))}
+                            </p>
+                          )}
+                        </div>
+                        {/* Play sits where the ♥ used to — the ♥ has moved to the
+                            center of the control strip (same in both states). */}
+                        {track && (
+                          <RoundPlay playing={isPlaying} onClick={togglePlay} blocked={autoplayBlocked} />
+                        )}
+                      </div>
 
-                  <ProgressBar trackDuration={track?.duration ?? null} />
+                      <ProgressBar trackDuration={track?.duration ?? null} />
+                    </>
+                  )}
 
                   <div className="center__controls">
                     <button
@@ -639,9 +656,30 @@ export function CenterStack() {
                         <path d="M19 6L9 12l10 6V6z" />
                       </svg>
                     </button>
-                    <button className="ctrl ctrl--lg" onClick={togglePlay} title={STR.card.playPause} aria-label={STR.card.playPause}>
-                      <svg className="ctrl__play" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>
-                      <svg className="ctrl__pause" viewBox="0 0 24 24" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
+                    {/* ♥ is the CENTER of the strip in both states — like it
+                        here on our platform, or save it to Spotify from the
+                        embed above. Playback lives in the round button (or in
+                        the embed), never here. */}
+                    <button
+                      className="ctrl ctrl--lg ctrl--heart"
+                      data-saved={saved ? 'true' : 'false'}
+                      disabled={!track}
+                      onClick={() => track && toggleFind({
+                        id: track.id, title: track.title, artist: track.artist,
+                        album: track.album, image: track.image, preview: track.preview,
+                        country, genre, savedAt: Date.now(),
+                        releaseDate: track.releaseDate ?? null,
+                        duration: track.duration ?? null,
+                      })}
+                      title={saved ? STR.card.unsave : STR.card.save}
+                      aria-label={saved ? STR.card.unsave : STR.card.save}
+                      aria-pressed={saved}
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18"
+                        fill={saved ? 'currentColor' : 'none'}
+                        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                      </svg>
                     </button>
                     <button className="ctrl" onClick={nextTrack} title={STR.card.next} aria-label={STR.card.next}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -665,14 +703,13 @@ export function CenterStack() {
                     </button>
                   </div>
 
-                  {/* Connected AND the embed is sounding: the Spotify widget
-                      nests below the controls (GlobalPlayer's fixed strip
-                      seats itself over this slot — the iframe can't live in
-                      the card's DOM, it would reload on route changes). Our
-                      scrubber + transport above keep working and driving it;
-                      the widget adds its own full-length seek and the +
-                      (save to Spotify likes). */}
-                  {spotifyOn && embedActive && (
+                  {/* The Spotify widget is the card's HEADER while it sounds —
+                      it replaces our now-row (CSS `order`), carrying the art,
+                      title, full-length scrubber, play and "Save on Spotify".
+                      GlobalPlayer's fixed strip seats itself over this slot;
+                      the iframe can't live in the card's DOM or it would
+                      reload on every route change. */}
+                  {embedMode && (
                     <div className="spotify-slot" data-spotify-slot aria-hidden />
                   )}
                 </div>
@@ -855,610 +892,24 @@ export function WheelLock({ side }: { side: 'left' | 'right' }) {
   );
 }
 
-/* ============================================================
- *  HandTracking — gesture input layer over the existing wheels.
- *
- *  This component does NOT modify the wheels. It is a pure input
- *  bridge that translates webcam hand gestures into the same
- *  `spinLeft` / `spinRight` / `commit` calls that mouse + scroll
- *  use. All wheels' existing behavior is preserved.
- *
- *  Pipeline per frame:
- *    1. Detect hands with MediaPipe HandLandmarker.
- *    2. Match each detected hand to a persistent tracked hand by
- *       nearest-neighbor wrist position. Stale tracked hands age out.
- *    3. EMA-smooth every landmark (never use raw values for logic).
- *    4. Compute palm center (avg of landmarks 0,5,9,13,17) and its
- *       per-frame screen-pixel velocity.
- *    5. Decide which wheel this hand controls from wrist X zone
- *       (left 35% / right 35% / middle 30%), with 300ms hysteresis
- *       before re-assigning to a new zone.
- *    6. Scroll: if palm Y velocity exceeds the dead zone, throttle
- *       by distance (50px per step) and emit spinLeft/spinRight.
- *       A flick (high peak velocity then drop) fires up to 3 steps.
- *    7. Select: thumb/index pinch distance < 0.045 (normalized) AND
- *       not scrolling AND palm velocity within dead zone starts a
- *       350ms dwell. On full dwell, fire `commit` and toast. Release
- *       early cancels. 500ms cooldown after a successful select.
- *
- *  All thresholds live in CFG so they can be tuned in one place.
- * ============================================================ */
-
-type CameraStatus = 'connecting' | 'ok' | 'in-use' | 'denied' | 'no-device' | 'error';
-
-/** All gesture-input thresholds, isolated for easy tuning. */
-const CFG = {
-  /* MediaPipe model */
-  numHands: 2,
-  minDetectionConfidence: 0.6,
-  minTrackingConfidence:  0.5,
-
-  /* EMA on every landmark.  smoothed = α·current + (1−α)·previous  */
-  smoothAlpha: 0.4,
-
-  /* Cursor mapping — a VR-style pointer driven by the index fingertip.
-   * Hand position in the camera frame maps to a screen cursor; gain
-   * amplifies movement around center so the screen edges are reachable
-   * without moving the hand to the edge of the camera's view. */
-  cursorGain:   1.7,   // movement amplification around frame center (0.5)
-  cursorSmooth: 0.45,  // extra EMA on the cursor pixel position (0..1, higher = snappier)
-
-  /* Pinch = click / grab. Hysteresis: engage below ON, release above OFF,
-   * so a held pinch doesn't flicker. Normalized thumb-tip↔index-tip dist. */
-  pinchOnNorm:  0.055,
-  pinchOffNorm: 0.085,
-
-  /* Wheel drag — while pinched over a wheel, this much cursor-Y travel
-   * spins it one step (like grabbing and turning a physical wheel). */
-  dragPxPerStep: 42,
-
-  /* A button fires only after the pinch is HELD on it this long — a
-   * deliberate "pinch and hold ~1s" so a stray quick pinch can't misfire.
-   * Drifting off the button, or releasing early, cancels it. */
-  clickDwellMs: 1000,
-
-  /* Hand identity */
-  handMatchMaxNormDistance: 0.25,  // wrist-to-wrist threshold for matching across frames
-  handStaleMs:              250,   // tracked hand expires if not seen for this long
-} as const;
-
-type Landmark = { x: number; y: number; z: number };
-
-type TrackedHand = {
-  /** EMA-smoothed landmarks (normalized coords from MediaPipe).      */
-  smoothed: Landmark[] | null;
-
-  /** VR-style cursor position in viewport px (extra-smoothed). null
-   *  until the hand is first seen.                                   */
-  cursor: { x: number; y: number } | null;
-
-  /** Pinch state with hysteresis — true while thumb+index held shut. */
-  pinching: boolean;
-
-  /** When pinching over a wheel: which side, and the cursor-Y anchor
-   *  the next spin step is measured from. dragSide null = not grabbing.*/
-  dragSide:    'left' | 'right' | null;
-  dragAnchorY: number;
-
-  /** Pinch-and-hold on a button: the target, and when the hold began.
-   *  Fires the button once the hold reaches CFG.clickDwellMs.         */
-  dwellTarget: HTMLElement | null;
-  dwellStart:  number | null;
-
-  /** Used by the matcher to expire stale tracks.                     */
-  lastSeenAt: number;
-};
-
-function newTrackedHand(): TrackedHand {
-  return {
-    smoothed: null,
-    cursor: null,
-    pinching: false,
-    dragSide: null,
-    dragAnchorY: 0,
-    dwellTarget: null,
-    dwellStart: null,
-    lastSeenAt: 0,
-  };
-}
-
-function distNorm(a: Landmark, b: Landmark): number {
-  const dx = a.x - b.x, dy = a.y - b.y;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
-
-export function HandTracking() {
-  const [cameraStatus, setCameraStatus] = useState<CameraStatus>('connecting');
-  /* React state purely for the preview's hand-count badge. All gesture logic
-   * runs off refs / direct DOM, never React state, to avoid per-frame renders. */
-  const [handCount, setHandCount] = useState(0);
-
-  // Spinning a wheel is the one action with no DOM button to click, so we keep
-  // these as refs for the rAF loop. Everything else (play/pause, next, prev,
-  // shuffle, lock, ladder snap) is a real <button> the cursor clicks directly.
-  const { spinLeft, spinRight } = useStore();
-  const spinLeftRef  = useRef(spinLeft);  spinLeftRef.current  = spinLeft;
-  const spinRightRef = useRef(spinRight); spinRightRef.current = spinRight;
-
-  useEffect(() => {
-    let raf = 0;
-    let stopped = false;
-    let stream: MediaStream | null = null;
-
-    const HAND_CONNECTIONS: [number, number][] = [
-      [0, 1], [1, 2], [2, 3], [3, 4],
-      [0, 5], [5, 6], [6, 7], [7, 8],
-      [5, 9], [9, 10], [10, 11], [11, 12],
-      [9, 13], [13, 14], [14, 15], [15, 16],
-      [13, 17], [0, 17], [17, 18], [18, 19], [19, 20],
-    ];
-
-    /* Persistent tracked hands (up to CFG.numHands). Indexed slots — when a
-     * detected hand matches an existing slot we update it; otherwise we fill
-     * an empty slot or replace the stalest one. */
-    const tracked: TrackedHand[] = Array.from(
-      { length: CFG.numHands },
-      () => newTrackedHand(),
-    );
-
-    const run = async () => {
-      const video  = document.getElementById('webcam')      as HTMLVideoElement | null;
-      const canvas = document.getElementById('hand-canvas') as HTMLCanvasElement | null;
-      if (!video || !canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480, facingMode: 'user' },
-          audio: false,
-        });
-        if (stopped) return;
-        video.srcObject = stream;
-        await new Promise<void>(r => (video.onloadedmetadata = () => r()));
-        await video.play();
-        video.style.display = 'block';
-        canvas.width  = video.videoWidth  || 640;
-        canvas.height = video.videoHeight || 480;
-      } catch (err: unknown) {
-        const name = (err as { name?: string } | null)?.name;
-        if      (name === 'NotReadableError') setCameraStatus('in-use');
-        else if (name === 'NotAllowedError')  setCameraStatus('denied');
-        else if (name === 'NotFoundError')    setCameraStatus('no-device');
-        else                                  setCameraStatus('error');
-        return;
-      }
-
-      let HandLandmarker, FilesetResolver;
-      try {
-        ({ HandLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision'));
-      } catch {
-        setCameraStatus('error');
-        return;
-      }
-
-      // The VR-cursor model is purely landmark-driven (cursor from the index
-      // fingertip, pinch from thumb↔index distance) — no canned-pose
-      // classification — so the lighter HandLandmarker is all we need.
-      let landmarker;
-      try {
-        const vision = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm',
-        );
-        landmarker = await HandLandmarker.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath:
-              'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-            delegate: 'GPU',
-          },
-          numHands:                CFG.numHands,
-          runningMode:             'VIDEO',
-          minHandDetectionConfidence: CFG.minDetectionConfidence,
-          minHandPresenceConfidence:  CFG.minDetectionConfidence,
-          minTrackingConfidence:      CFG.minTrackingConfidence,
-        });
-      } catch {
-        setCameraStatus('error');
-        return;
-      }
-
-      setCameraStatus('ok');
-
-      let lastVideoTime = -1;
-      let lastHandCount  = -1;
-      // Elements the cursor is currently hovering, so we can clear the highlight
-      // when it moves off. Lives across frames.
-      let hoveredEls = new Set<Element>();
-
-      const tick = () => {
-        if (stopped) return;
-        if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
-          lastVideoTime = video.currentTime;
-          const result = landmarker.detectForVideo(video, performance.now());
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-          const now    = performance.now();
-          const detected = result.landmarks ?? [];
-
-          /* --------------------------------------------------------
-           *  1. Match each detected hand to a tracked slot (nearest
-           *     wrist position). Empty / stale slots can be claimed.
-           * -------------------------------------------------------- */
-          const claimed = new Array<boolean>(tracked.length).fill(false);
-          const assignments: Array<{ detIdx: number; trackIdx: number }> = [];
-          for (let d = 0; d < detected.length; d++) {
-            const wrist = detected[d][0];
-            // Find best free slot — either prior position is null (free), or
-            // wrist-distance from prior smoothed wrist is below the match
-            // threshold, or the slot is stale.
-            let bestIdx = -1;
-            let bestDist = Infinity;
-            for (let t = 0; t < tracked.length; t++) {
-              if (claimed[t]) continue;
-              const th = tracked[t];
-              const isStale = !th.smoothed || (now - th.lastSeenAt) > CFG.handStaleMs;
-              if (isStale) {
-                // Stale slots are claimed only if nothing closer exists.
-                if (bestIdx === -1) bestIdx = t;
-                continue;
-              }
-              const prevWrist = th.smoothed![0];
-              const dN = distNorm(wrist, prevWrist);
-              if (dN < CFG.handMatchMaxNormDistance && dN < bestDist) {
-                bestDist = dN;
-                bestIdx  = t;
-              }
-            }
-            if (bestIdx === -1) {
-              // No usable slot — pick the slot that was seen longest ago.
-              let oldest = 0;
-              for (let t = 1; t < tracked.length; t++) {
-                if (claimed[t]) continue;
-                if (tracked[t].lastSeenAt < tracked[oldest].lastSeenAt) oldest = t;
-              }
-              bestIdx = oldest;
-              // Reset its smoothing so EMA starts fresh from this hand.
-              tracked[bestIdx] = newTrackedHand();
-            }
-            claimed[bestIdx] = true;
-            assignments.push({ detIdx: d, trackIdx: bestIdx });
-          }
-
-          /* --------------------------------------------------------
-           *  2. Process each assigned hand as a VR-style cursor:
-           *     smooth → cursor position → pinch (click / grab).
-           * -------------------------------------------------------- */
-          const nextHovered = new Set<Element>();
-          const activeSlots = new Set<number>();
-
-          for (const { detIdx, trackIdx } of assignments) {
-            const lmRaw = detected[detIdx];
-            const th    = tracked[trackIdx];
-
-            /* 2a. EMA on every landmark. Init from raw on first sight. */
-            if (!th.smoothed) {
-              th.smoothed = lmRaw.map((p): Landmark => ({ x: p.x, y: p.y, z: p.z ?? 0 }));
-            } else {
-              const a = CFG.smoothAlpha;
-              for (let i = 0; i < lmRaw.length; i++) {
-                const cur  = lmRaw[i];
-                const prev = th.smoothed[i];
-                prev.x = a * cur.x       + (1 - a) * prev.x;
-                prev.y = a * cur.y       + (1 - a) * prev.y;
-                prev.z = a * (cur.z ?? 0) + (1 - a) * prev.z;
-              }
-            }
-            const sm = th.smoothed;
-            th.lastSeenAt = now;
-            activeSlots.add(trackIdx);
-
-            /* 2b. Draw the 21-point skeleton on the preview, colored per hand. */
-            const stroke = trackIdx === 0
-              ? 'rgba(60,220,130,0.95)'   // hand 0 — green
-              : 'rgba(80,160,255,0.95)';  // hand 1 — blue
-            ctx.lineWidth = 2.2;
-            ctx.strokeStyle = stroke;
-            for (const [a, b] of HAND_CONNECTIONS) {
-              ctx.beginPath();
-              ctx.moveTo(sm[a].x * canvas.width, sm[a].y * canvas.height);
-              ctx.lineTo(sm[b].x * canvas.width, sm[b].y * canvas.height);
-              ctx.stroke();
-            }
-            ctx.fillStyle = stroke;
-            for (const p of sm) {
-              ctx.beginPath();
-              ctx.arc(p.x * canvas.width, p.y * canvas.height, 2.4, 0, Math.PI * 2);
-              ctx.fill();
-            }
-
-            /* 2c. Cursor position — index fingertip (landmark 8), mirrored,
-             * amplified around frame center so the screen edges are reachable,
-             * then extra-smoothed for a steady pointer. */
-            const tipX = 1 - sm[8].x;  // mirror X to match the mirrored video
-            const tipY = sm[8].y;
-            const gx = clamp01(0.5 + (tipX - 0.5) * CFG.cursorGain);
-            const gy = clamp01(0.5 + (tipY - 0.5) * CFG.cursorGain);
-            const targetX = gx * window.innerWidth;
-            const targetY = gy * window.innerHeight;
-            if (!th.cursor) {
-              th.cursor = { x: targetX, y: targetY };
-            } else {
-              th.cursor.x += (targetX - th.cursor.x) * CFG.cursorSmooth;
-              th.cursor.y += (targetY - th.cursor.y) * CFG.cursorSmooth;
-            }
-            const cx = th.cursor.x, cy = th.cursor.y;
-
-            /* 2d. Pinch with hysteresis (engage below ON, release above OFF). */
-            const wasPinching = th.pinching;
-            const pinchDist   = distNorm(sm[4], sm[8]);
-            const nowPinching = wasPinching
-              ? pinchDist <= CFG.pinchOffNorm
-              : pinchDist <  CFG.pinchOnNorm;
-            th.pinching = nowPinching;
-            const justPinched  = nowPinching && !wasPinching;
-            const justReleased = !nowPinching && wasPinching;
-
-            /* 2e. What's under the cursor? `elementFromPoint` ignores our
-             * pointer-events:none cursor + glass overlays and returns the real
-             * button or the wheel <canvas> beneath. */
-            const el  = document.elementFromPoint(cx, cy);
-            const btn = el instanceof Element
-              ? (el.closest('button') as HTMLElement | null)
-              : null;
-            // Highlight a hoverable button (but not while grabbing a wheel).
-            if (btn && !th.dragSide) nextHovered.add(btn);
-
-            // Releasing the pinch cancels everything — nothing fires unless the
-            // pinch is actively held (and, for buttons, held long enough).
-            if (justReleased) {
-              th.dragSide    = null;
-              th.dwellTarget = null;
-              th.dwellStart  = null;
-            }
-
-            if (nowPinching && th.dragSide) {
-              // Grabbing a wheel: vertical cursor travel turns it, like
-              // grabbing and spinning a physical wheel. Continues only while
-              // pinched. Locked wheels ignore this via the store guard.
-              const dy = cy - th.dragAnchorY;
-              if (Math.abs(dy) >= CFG.dragPxPerStep) {
-                const dir = dy > 0 ? 1 : -1;
-                (th.dragSide === 'left' ? spinLeftRef : spinRightRef).current(dir);
-                th.dragAnchorY = cy;
-              }
-            } else if (justPinched) {
-              // Decide what this pinch is, from what's under the cursor when it
-              // closes: a button → start a pinch-and-hold dwell; the wheel
-              // canvas → grab it for dragging; anything else → nothing.
-              if (btn) {
-                th.dwellTarget = btn;
-                th.dwellStart  = now;
-              } else if (el && el.tagName === 'CANVAS' && el.id !== 'hand-canvas') {
-                th.dragSide    = cx < window.innerWidth / 2 ? 'left' : 'right';
-                th.dragAnchorY = cy;
-              }
-            } else if (nowPinching && th.dwellTarget) {
-              // Pinch held on a button: it must stay on that same button for
-              // the full dwell, then fires once (its real .click() handler).
-              if (btn === th.dwellTarget) {
-                if (th.dwellStart !== null && now - th.dwellStart >= CFG.clickDwellMs) {
-                  th.dwellTarget.click();
-                  th.dwellTarget = null;
-                  th.dwellStart  = null;
-                }
-              } else {
-                // Drifted off the button — cancel the hold.
-                th.dwellTarget = null;
-                th.dwellStart  = null;
-              }
-            }
-
-            /* 2f. Move this hand's on-screen cursor + dwell-fill progress. */
-            const dwellProg = (th.dwellTarget && th.dwellStart !== null)
-              ? clamp01((now - th.dwellStart) / CFG.clickDwellMs)
-              : 0;
-            const cursorEl = document.getElementById('gesture-cursor-' + trackIdx);
-            if (cursorEl) {
-              cursorEl.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
-              cursorEl.style.opacity = '1';
-              cursorEl.style.setProperty('--dwell', String(dwellProg));
-              cursorEl.dataset.pinch = nowPinching ? 'true' : 'false';
-              cursorEl.dataset.grab  = th.dragSide ? 'true' : 'false';
-            }
-          }
-
-          /* --------------------------------------------------------
-           *  3. Hover highlight reconcile + hide idle cursors + decay.
-           * -------------------------------------------------------- */
-          for (const elPrev of hoveredEls) {
-            if (!nextHovered.has(elPrev)) elPrev.classList.remove('gesture-hover');
-          }
-          for (const elNew of nextHovered) {
-            if (!hoveredEls.has(elNew)) elNew.classList.add('gesture-hover');
-          }
-          hoveredEls = nextHovered;
-
-          for (let t = 0; t < tracked.length; t++) {
-            if (activeSlots.has(t)) continue;
-            const cursorEl = document.getElementById('gesture-cursor-' + t);
-            if (cursorEl) cursorEl.style.opacity = '0';
-            if (claimed[t]) continue;
-            const th = tracked[t];
-            if (th.smoothed && (now - th.lastSeenAt) > CFG.handStaleMs) {
-              // Stale — wipe state so this slot is reusable.
-              th.smoothed    = null;
-              th.cursor      = null;
-              th.pinching    = false;
-              th.dragSide    = null;
-              th.dwellTarget = null;
-              th.dwellStart  = null;
-            }
-          }
-
-          /* --------------------------------------------------------
-           *  4. Publish UI-visible state (hand-count badge).
-           * -------------------------------------------------------- */
-          const visibleCount = detected.length;
-          if (visibleCount !== lastHandCount) {
-            lastHandCount = visibleCount;
-            setHandCount(visibleCount);
-          }
-        }
-        raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-    };
-
-    run();
-    return () => {
-      stopped = true;
-      cancelAnimationFrame(raf);
-      stream?.getTracks().forEach(t => t.stop());
-      // Clear any lingering hover highlight on buttons outside this component.
-      document.querySelectorAll('.gesture-hover')
-        .forEach(el => el.classList.remove('gesture-hover'));
-    };
-  }, []);  // eslint-disable-line react-hooks/exhaustive-deps  — store dispatch is read via refs
-
-  return (
-    <>
-      {/* Two VR-style cursors (one per hand), floating over the whole screen.
-       * pointer-events:none so they don't block elementFromPoint hit-testing. */}
-      <div id="gesture-cursor-0" className="gesture-cursor" data-hand="0" style={{ opacity: 0 }} />
-      <div id="gesture-cursor-1" className="gesture-cursor" data-hand="1" style={{ opacity: 0 }} />
-
-      {cameraStatus !== 'ok' && cameraStatus !== 'connecting' ? (
-        <CameraUnavailable status={cameraStatus} />
-      ) : (
-        /* Webcam preview: 150 × 100, bottom-right, rounded, with the 21-point
-         * hand skeleton drawn on it and a hand-count badge. */
-        <div
-          className="absolute z-20 overflow-hidden rounded-xl bg-neutral-100"
-          style={{
-            right: 24,
-            bottom: 24,
-            width: 150,
-            height: 100,
-            boxShadow:
-              '0 1px 2px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.18)',
-          }}
-        >
-          <video
-            id="webcam"
-            autoPlay
-            playsInline
-            muted
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)', display: 'none' }}
-          />
-          <canvas
-            id="hand-canvas"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', transform: 'scaleX(-1)' }}
-          />
-
-          {/* Hand-count indicator */}
-          <div
-            className="tabular absolute left-1.5 top-1.5 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-medium"
-            style={{
-              background:
-                handCount === 0 ? 'rgba(0,0,0,0.55)' :
-                handCount === 1 ? 'rgba(60,220,130,0.90)' :
-                                  'rgba(60,160,255,0.90)',
-              color: 'white',
-            }}
-          >
-            <span
-              className="inline-block size-1.5 rounded-full"
-              style={{
-                background: 'white',
-                opacity: handCount > 0 ? 1 : 0.5,
-              }}
-            />
-            {STR.camera.hands(handCount)}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-/** Placeholder shown in the camera-frame slot when the webcam can't be used. */
-function CameraUnavailable({ status }: { status: CameraStatus }) {
-  const headline =
-    status === 'in-use'    ? STR.camera.inUseHeadline    :
-    status === 'denied'    ? STR.camera.deniedHeadline   :
-    status === 'no-device' ? STR.camera.noDeviceHeadline :
-                             STR.camera.errorHeadline;
-  const detail =
-    status === 'in-use'    ? STR.camera.inUseDetail    :
-    status === 'denied'    ? STR.camera.deniedDetail   :
-    status === 'no-device' ? STR.camera.noDeviceDetail :
-                             STR.camera.errorDetail;
-  return (
-    <div
-      className="absolute z-20 flex flex-col items-center justify-center overflow-hidden rounded-lg bg-neutral-100 px-3 text-center"
-      style={{
-        right: 28,
-        bottom: 28,
-        width: 220,
-        height: 150,
-        boxShadow:
-          '0 1px 2px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.18)',
-        fontFamily: 'var(--font-sans)',
-      }}
-    >
-      <svg
-        width="32" height="32" viewBox="0 0 24 24" fill="none"
-        stroke="rgba(0,0,0,0.42)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-      >
-        <path d="M2 6h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2z" />
-        <path d="M22 8l-5 4 5 4z" />
-        <line x1="3" y1="3" x2="21" y2="21" stroke="rgba(180,30,30,0.85)" strokeWidth="1.8" />
-      </svg>
-      <div className="mt-2 text-[12px] font-medium text-neutral-800">{headline}</div>
-      <div className="mt-0.5 text-[10px] leading-[1.35] text-neutral-500" style={{ textWrap: 'pretty' as 'pretty' }}>
-        {detail}
-      </div>
-    </div>
-  );
-}
-
-/** Tiny floating toast that confirms a recognized player gesture. */
-export function GestureToast() {
-  const { toast } = useStore();
-  if (!toast) return null;
-  const text = STR.toasts[toast.kind] ?? toast.kind;
-  return (
-    <div
-      className="pointer-events-none absolute left-1/2 top-[15%] z-40 -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-[13px] text-white"
-      style={{ fontFamily: 'var(--font-mono)' }}
-    >
-      {text}
-    </div>
-  );
-}
 
 /**
  * Bottom-center dock — the three verbs of the app:
  *   shuffle (surprise) · liked songs (popup with playlists) · more (menu).
- * The more menu holds Language, Hand tracking (On/Off), Contact us, About us.
+ * The more menu holds Language, Contact us, About us.
  */
 export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
-  const { handMode, toggleHandMode, surprise, lockedLeft, lockedRight } = useStore();
+  const { surprise, lockedLeft, lockedRight } = useStore();
   const finds = useFinds();
 
   const [likedOpen, setLikedOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [submenu, setSubmenu] = useState<null | 'lang' | 'hand'>(null);
+  const [submenu, setSubmenu] = useState<null | 'lang'>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [lang, setLang] = useState('en');
 
-  // Hand tracking makes no sense on touch-primary devices — hide the row.
-  const [coarse, setCoarse] = useState(false);
   useEffect(() => {
-    setCoarse(window.matchMedia('(pointer: coarse)').matches);
     const l = window.localStorage.getItem('lang');
     if (l) setLang(l);
   }, []);
@@ -1546,25 +997,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
                 <span className="dock-menu__chev">▸</span>
               </button>
 
-              {/* Hand tracking */}
-              {!coarse && (
-                <button
-                  role="menuitem"
-                  className="dock-menu__row"
-                  aria-expanded={submenu === 'hand'}
-                  onClick={() => setSubmenu(s => (s === 'hand' ? null : 'hand'))}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 11V6a2 2 0 0 0-4 0v5" />
-                    <path d="M14 10V4a2 2 0 0 0-4 0v6" />
-                    <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
-                    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
-                  </svg>
-                  {STR.menu.handTracking}
-                  <span className="dock-menu__chev">▸</span>
-                </button>
-              )}
-
               {/* Contact us — in-app popup (note + song suggestion). */}
               <button
                 role="menuitem"
@@ -1611,26 +1043,6 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
                   ))}
                 </div>
               )}
-              {submenu === 'hand' && (
-                <div className="dock-submenu" role="menu" aria-label={STR.menu.handTracking}>
-                  <button
-                    role="menuitemradio"
-                    aria-checked={handMode}
-                    className="dock-menu__row dock-menu__row--sub"
-                    onClick={() => { if (!handMode) toggleHandMode(); closeMenu(); }}
-                  >
-                    <span className="dock-menu__check">{handMode ? '✓' : ''}</span>{STR.menu.on}
-                  </button>
-                  <button
-                    role="menuitemradio"
-                    aria-checked={!handMode}
-                    className="dock-menu__row dock-menu__row--sub"
-                    onClick={() => { if (handMode) toggleHandMode(); closeMenu(); }}
-                  >
-                    <span className="dock-menu__check">{!handMode ? '✓' : ''}</span>{STR.menu.off}
-                  </button>
-                </div>
-              )}
             </div>
           </>
         )}
@@ -1639,15 +1051,31 @@ export function Dock({ onSurprise }: { onSurprise?: () => void } = {}) {
       <LikedSongs open={likedOpen} onClose={() => setLikedOpen(false)} />
       <ContactPopup open={contactOpen} onClose={() => setContactOpen(false)} />
 
-      {aboutOpen && (
+      {/* About — portaled to <body>: the page frames set `isolation: isolate`,
+          so anything rendered inside them is trapped in that stacking context
+          and can never paint above the Spotify strip (a root-level fixed
+          overlay). Portaling puts this at the same level, where its z-index
+          actually wins. */}
+      {aboutOpen && typeof document !== 'undefined' && createPortal(
         <>
           <div className="dock-scrim dock-scrim--dim" onClick={() => setAboutOpen(false)} />
           <div className="about-card" role="dialog" aria-label={STR.menu.about}>
             <h2>{STR.menu.aboutTitle}</h2>
-            <p>{STR.menu.aboutBody}</p>
+            <p>
+              {STR.menu.aboutIntro}
+              <a href={STR.menu.aboutChanUrl} target="_blank" rel="noreferrer">{STR.menu.aboutChan}</a>
+              {STR.menu.aboutAnd}
+              <a href={STR.menu.aboutMaddyUrl} target="_blank" rel="noreferrer">{STR.menu.aboutMaddy}</a>
+              {STR.menu.aboutBody}
+            </p>
             <button onClick={() => setAboutOpen(false)}>{STR.library.close}</button>
+            <footer className="about-card__foot">
+              <p className="about-card__apis">{STR.menu.aboutApis}</p>
+              <p className="about-card__made">{STR.menu.aboutMade}</p>
+            </footer>
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </>
   );

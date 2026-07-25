@@ -55,3 +55,6 @@ next-env.d.ts
 # generated audit output
 audit-report.md
 /menu icons/
+
+# graphify knowledge-graph output (regenerate with /graphify)
+graphify-out/
