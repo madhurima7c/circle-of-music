@@ -141,7 +141,7 @@ export function ExperienceNav() {
     {tune && <NavTuner target={navRef} />}
     <nav ref={navRef} className="xnav" data-theme={theme} aria-label="Experiences">
       <Link
-        href="/"
+        href="/circle"
         className="xnav__item"
         data-active={isCircle ? 'true' : 'false'}
       >

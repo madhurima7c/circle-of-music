@@ -31,7 +31,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: STR.app.name,
   description: STR.app.tagline,
-  alternates: { canonical: '/' },
+  // No blanket `alternates.canonical` here: it would stamp every route with
+  // the same URL, telling crawlers /world is a duplicate of the root. Each
+  // instrument owns its own address (/circle, /world).
   openGraph: {
     type: 'website',
     url: SITE_URL,
