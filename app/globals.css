@@ -1873,6 +1873,38 @@ html, body {
 .wnp .ctrl svg { width: 14px; height: 14px; }
 .wnp .ctrl--lg { width: 34px; height: 34px; }
 .wnp .ctrl--lg svg { width: 18px; height: 18px; }
+
+/* =====================================================================
+ *  ♥ (center control) and the round play button.
+ *  Declared AFTER the .ctrl/.wnp size rules above so these win on both
+ *  instruments without !important (equal specificity → later wins, and
+ *  the doubled selectors out-rank `.wnp .ctrl--lg svg`).
+ * ===================================================================== */
+/* The heart matches the dock's: a 16px OUTLINE that fills when active.
+   White by default; the app accent blue (same as shuffle-on) once liked.
+   `.ctrl--lg svg { fill: currentColor }` above would otherwise force it
+   permanently solid — that's why it always looked filled. */
+.ctrl--lg.ctrl--heart svg,
+.wnp .ctrl--lg.ctrl--heart svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.7;
+}
+.ctrl--lg.ctrl--heart[data-saved="true"] svg,
+.wnp .ctrl--lg.ctrl--heart[data-saved="true"] svg {
+  fill: #1d2bdf;
+  stroke: #1d2bdf;
+}
+.ctrl--heart[data-saved="true"] { color: #1d2bdf; }
+
+/* Round play/pause — the glyph was far too small inside the disc, so both
+   icons are drawn at roughly double their previous footprint. */
+.round-play { width: 40px; height: 40px; }
+.round-play svg { width: 20px; height: 20px; display: block; }
+.wnp .round-play { width: 38px; height: 38px; }
+.wnp .round-play svg { width: 19px; height: 19px; }
 .wnp__links {
   display: flex;
   align-items: center;
@@ -2184,9 +2216,16 @@ html, body {
   align-items: center;
   padding: 2px;
   border-radius: 999px;
-  background: rgba(24, 24, 34, 0.82);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
+  /* Same glass as the Circle/World/Shades nav, with the frost 15% stronger
+     (0.14 → 0.161) so these read clearly over the bright globe. */
+  background: rgba(255, 255, 255, 0.161);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 0 1px rgba(15, 18, 60, 0.05),
+    0 10px 34px rgba(0, 0, 0, 0.22);
 }
 .world-zoom__step {
   flex: 0 0 auto;
@@ -2196,17 +2235,17 @@ html, body {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   cursor: pointer;
   transition: background 140ms ease, color 140ms ease;
 }
-.world-zoom__step:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
+.world-zoom__step:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
 .world-zoom__step:active { background: rgba(255, 255, 255, 0.2); }
 /* Hairline between + and − */
 .world-zoom__rule {
   width: 18px;
   height: 1px;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* World search — a circular magnifier that expands into a country field with
@@ -2226,14 +2265,21 @@ html, body {
   width: 42px; height: 42px;
   border: none;
   border-radius: 50%;
-  background: rgba(24, 24, 34, 0.82);
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
+  /* Same glass as the Circle/World/Shades nav, with the frost 15% stronger
+     (0.14 → 0.161) so these read clearly over the bright globe. */
+  background: rgba(255, 255, 255, 0.161);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 0 1px rgba(15, 18, 60, 0.05),
+    0 10px 34px rgba(0, 0, 0, 0.22);
   transition: background 140ms ease, transform 140ms ease;
 }
-.world-search__toggle:hover { background: rgba(38, 38, 52, 0.9); transform: scale(1.05); }
+.world-search__toggle:hover { background: rgba(255, 255, 255, 0.22); transform: scale(1.05); }
 .world-search__field {
   display: flex;
   align-items: center;
@@ -2242,15 +2288,22 @@ html, body {
   padding: 0 16px;
   height: 42px;
   border-radius: 999px;
-  background: rgba(24, 24, 34, 0.92);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(6px);
+  /* Same glass as the Circle/World/Shades nav, with the frost 15% stronger
+     (0.14 → 0.161) so these read clearly over the bright globe. */
+  background: rgba(255, 255, 255, 0.161);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 0 1px rgba(15, 18, 60, 0.05),
+    0 10px 34px rgba(0, 0, 0, 0.22);
   animation: world-search-open 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 @keyframes world-search-open {
   from { width: 42px; opacity: 0.4; }
 }
-.world-search__icon { flex: 0 0 auto; color: rgba(255, 255, 255, 0.55); }
+.world-search__icon { flex: 0 0 auto; color: rgba(255, 255, 255, 0.75); }
 .world-search__input {
   flex: 1;
   min-width: 0;
@@ -2261,7 +2314,7 @@ html, body {
   font-family: var(--font-plex-sans), sans-serif;
   font-size: 13px;
 }
-.world-search__input::placeholder { color: rgba(255, 255, 255, 0.4); }
+.world-search__input::placeholder { color: rgba(255, 255, 255, 0.6); }
 /* Dropdown of matching nations */
 .world-search__list {
   list-style: none;

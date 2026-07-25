@@ -429,9 +429,11 @@ export function RoundPlay({ playing, onClick, blocked }: {
       title={STR.card.playPause}
       aria-label={STR.card.playPause}
     >
+      {/* Glyphs span 11×14 of the 24 viewBox (was 6.5×9) — about double the
+          drawn size, with the pause bars matched to the triangle's footprint. */}
       {playing
-        ? <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 7h3v10H8zm5 0h3v10h-3z" /></svg>
-        : <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9.5 7.5v9L16 12 9.5 7.5z" /></svg>}
+        ? <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M6.5 5h4v14h-4zm7 0h4v14h-4z" /></svg>
+        : <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>}
     </button>
   );
 }
@@ -675,9 +677,7 @@ export function CenterStack() {
                       aria-label={saved ? STR.card.unsave : STR.card.save}
                       aria-pressed={saved}
                     >
-                      <svg viewBox="0 0 24 24" width="18" height="18"
-                        fill={saved ? 'currentColor' : 'none'}
-                        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                         <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
                       </svg>
                     </button>
