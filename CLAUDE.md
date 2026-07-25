@@ -16,6 +16,15 @@
 - `deploy` = `github.com/chanmekala/discovery-of-music` — **this is what
   Vercel watches**; the live site only updates when you `git push deploy main`.
 
+**Live domain: `https://discovermusic.xyz`** (bought 2026-07-24 through Vercel,
+so Vercel is both registrar and DNS). Apex + `www` are aliased to the
+`discovermusic` project, alongside the original `discovery-of-music.vercel.app`
+which keeps working. The canonical URL / Open Graph metadata in
+`app/layout.tsx` (`SITE_URL`) points at the new domain — update it there if the
+domain ever changes. Nothing else in the code hardcodes a host: the Spotify
+"Connect" flow opens a plain login popup (no OAuth redirect), so no redirect-URI
+allowlisting is needed per-domain.
+
 All active work is on `main` (Next.js 16 + React Three Fiber). You commit
 as `chanmekala`. Convention: `git push origin main && git push deploy main`
 after each coherent change.
