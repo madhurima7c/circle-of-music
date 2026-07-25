@@ -13,6 +13,12 @@ export const STR = {
   app: {
     name: 'Music Exploration',
     tagline: 'Wander, don’t search — discover the world’s music by place and genre.',
+    /* How the site introduces itself when a link is shared (browser tab,
+     * iMessage/WhatsApp/Slack unfurls, search results). The description is
+     * the About copy boiled down to one line. */
+    shareTitle: 'Discover Music',
+    shareDescription:
+      'Streaming algorithms trap us in echo chambers. Explore music hands-on by country and genre — step outside your comfort zone and discover the world’s sound.',
   },
 
   world: {

@@ -29,22 +29,32 @@ export const SITE_URL = 'https://discovermusic.xyz';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: STR.app.name,
-  description: STR.app.tagline,
+  // What a shared link says: "Discover Music" + the About copy in one line.
+  // og:image / twitter:image are wired automatically from app/opengraph-image.tsx,
+  // and the tab/home-screen icons from app/icon.svg + app/apple-icon.tsx.
+  // `default` is what a bare link shows; `template` lets a route add context
+  // to the TAB only (e.g. "World of Music · Discover Music"). og:title below
+  // is set explicitly, so link previews always read "Discover Music".
+  title: {
+    default: STR.app.shareTitle,
+    template: `%s · ${STR.app.shareTitle}`,
+  },
+  description: STR.app.shareDescription,
+  applicationName: STR.app.shareTitle,
   // No blanket `alternates.canonical` here: it would stamp every route with
   // the same URL, telling crawlers /world is a duplicate of the root. Each
   // instrument owns its own address (/circle, /world).
   openGraph: {
     type: 'website',
     url: SITE_URL,
-    siteName: STR.app.name,
-    title: STR.app.name,
-    description: STR.app.tagline,
+    siteName: STR.app.shareTitle,
+    title: STR.app.shareTitle,
+    description: STR.app.shareDescription,
   },
   twitter: {
     card: 'summary_large_image',
-    title: STR.app.name,
-    description: STR.app.tagline,
+    title: STR.app.shareTitle,
+    description: STR.app.shareDescription,
   },
 };
 
