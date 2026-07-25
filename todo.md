@@ -166,6 +166,12 @@ MusicBrainz + Deezer. Log `/tmp/mine-charts.log`, cache
 `lib/.chart-verify-cache.json` (gitignored, written every 25). **~0.5 artists/s,
 ETA ~2.4h.** Safe to interrupt: re-running skips everything cached.
 
+**⚠️ When it finishes, re-run it once** (`npm run mine:charts`). The process
+loaded `lib/genre-rules.ts` at startup, before the vocabulary-audit fix in
+`c9b2d00`, so its genre buckets use the superseded matcher. The cache stores
+raw MusicBrainz/Deezer labels, so a re-run is an all-cache-hit pass that
+re-assembles in seconds with the corrected rules.
+
 **When it finishes:** it writes `chart-proposals.json` (gitignored, reviewable
 like `seed-proposals.json`). Review `artists[]` with the user, then
 `npm run mine:charts -- --apply` to merge into `lib/world-seeds.json`
@@ -193,8 +199,15 @@ scoped to artists we can play. Client primes once per pairing
 origin + genre, Deezer confirms playability + adds its own genre labels.
 
 **Genre rules — `lib/genre-rules.ts`,** extracted from `build-world-seeds.ts` so
-the two builders cannot drift. Weighted scoring (`bucketsScored`) + word-boundary
-keyword matching by default.
+the two builders cannot drift. Weighted scoring (`bucketsScored`) plus, after
+diffing every one of the 5,943 Every Noise labels (`c9b2d00`), substring
+matching with an explicit `NEGATIVE_RULES` trap list. Word-boundary matching
+was tried first and rejected: it fixed reggaeton→Reggae but silently stopped
+**89 labels** (synthwave, every `*metalcore`, bubblegrunge, indietronica,
+microhouse) from matching anything. Net: 0 labels lost coverage,
+3,846→3,864 carry a bucket, 23 assignments added / 22 wrong ones removed.
+**If you add a NEGATIVE_RULES entry, record the mis-bucketing you actually
+saw** — that list is only trustworthy while every line is evidence.
 
 ### 🔬 What the datasets can and cannot do (measured, do not re-litigate)
 
