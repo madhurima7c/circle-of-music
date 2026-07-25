@@ -80,11 +80,11 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 
 | File | Role |
 |---|---|
-| `lib/store.tsx` | all app state + actions: `spinLeft/Right`, `setCountry/Genre`, `commit`, `surprise`, `playPlace` (globe, instant, no debounce), `playPlaceNamed` (any globe nation → MusicBrainz tier; sets `customCountry`, cleared by any wheel action), `countryName` (display name incl. custom), `loadQueue` (library), `toggleLock*`, `toggleHandMode`, playback. Indices mirrored into refs. **`curatePlaylist`** artist-spreads every pairing (no same artist back-to-back). **`shuffle` toggle** (`toggleShuffle`) + **`trackEnded`** drive Spotify-style playback: the list is a FIXED curated order; shuffle-on plays random unheard tracks (played-set ref, no repeats until exhausted → then next genre/loop), shuffle-off advances linearly. |
-| `components/Overlay.tsx` | 2D UI: CenterStack (player w/ progress bar + share "listen in" menu + **fixed full-playlist rows: current highlighted in Spotify-green + equalizer, auto-scrolled, click-to-jump**; controls-panel **shuffle is a TOGGLE lit in blue when on**, distinct from the dock's surprise), Dial (letter ladder), WheelLock, **Dock** (shuffle=surprise · liked-songs popup · ⋮ menu w/ Language 19-langs / Hand tracking On-Off / world dots filter / Contact / About), **HandTracking** (opt-in VR-cursor gesture system), GestureToast. |
+| `lib/store.tsx` | all app state + actions: `spinLeft/Right`, `setCountry/Genre`, `commit`, `surprise`, `playPlace` (globe, instant, no debounce), `playPlaceNamed` (any globe nation → MusicBrainz tier; sets `customCountry`, cleared by any wheel action), `countryName` (display name incl. custom), `loadQueue` (library), `toggleLock*`, playback. Indices mirrored into refs. **`curatePlaylist`** artist-spreads every pairing (no same artist back-to-back). **`shuffle` toggle** (`toggleShuffle`) + **`trackEnded`** drive Spotify-style playback: the list is a FIXED curated order; shuffle-on plays random unheard tracks (played-set ref, no repeats until exhausted → then next genre/loop), shuffle-off advances linearly. |
+| `components/Overlay.tsx` | 2D UI: CenterStack (player w/ progress bar + share "listen in" menu + **fixed full-playlist rows: current highlighted in Spotify-green + equalizer, auto-scrolled, click-to-jump**; controls-panel **shuffle is a TOGGLE lit in blue when on**, distinct from the dock's surprise), Dial (letter ladder), WheelLock, **Dock** (shuffle=surprise · liked-songs popup · ⋮ menu w/ Language 19-langs / Contact / About), `RoundPlay` (round white Spotify-style play button). **Hand tracking has been REMOVED.** |
 | `components/ExperienceNav.tsx` | top-center switcher (Circle/World/Shades) using the user's icons in `public/icons/`; Shades = coming soon. |
 | `components/Stage.tsx` / `Wheel.tsx` | R3F wheels; tuned values are locked constants (`DESKTOP_TUNING`/`LIGHTS` — leva dial kit REMOVED for users; restore from git `30306c7` if tuning is needed again); lit PBR card materials (matte spine/back, clearcoat front). `MOBILE_*` swap in ≤640px. |
-| `components/WorldGlobe.tsx` | react-globe.gl globe; every nation tappable (seeded = curated pipeline, rest = world-seeds/MusicBrainz); flat artist-origin **dots** per queue (playing = avatar + sonar ring, hover popups per artists/songs filter, click jumps playback); vertical genre rail (left). Listens for `world:shuffle` / `world:dots` window events from the shared Dock. Dev hook: `window.__world.select(name, genreIdx)`. `lib/geo.ts` maps GeoJSON `NAME`→seed country. |
+| `components/WorldGlobe.tsx` | react-globe.gl globe; every nation tappable (seeded = curated pipeline, rest = world-seeds/MusicBrainz); flat artist-origin **dots** per queue (playing = avatar + sonar ring, hover popups per artists/songs filter, click jumps playback); vertical genre rail (left). **Country search** (top-right: magnifier expands to a field + flag dropdown; click/Enter selects and switches the highlighted country via the same path as a globe tap) and a vertical **+/- zoom pill** below it. Listens for `world:shuffle` / `world:dots` window events from the shared Dock. Dev hook: `window.__world.select(name, genreIdx)`. `lib/geo.ts` maps GeoJSON `NAME`→seed country. |
 | `lib/stories.ts` + `lib/track-stories.json` | curated artist/song stories (90) + `releaseYear` + `normKey` (Unicode-aware — keep the 4 copies in sync: stories, deezer, build-origins, enrich-seeds). |
 | `lib/origins.ts/.json` + `lib/origins-live.ts` | artist → origin coords (build-time for seeds via `npm run origins`; runtime Wikidata lookups w/ localStorage cache for everyone else). Manual JSON fixes survive re-runs. |
 | `lib/world-seeds.json` + `lib/enao-genres.json` | 161/175 nations w/ Deezer-verified genre-bucketed artists (`npm run world-seeds`); Every-Noise featured genres per country. Powers the World's any-nation tier + globe tint. |
@@ -106,10 +106,6 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 - **GSAP entrances**: wrap `.from()` tweens in the `canAnimate()` guard (page
   visible + motion not reduced). A hidden tab pauses rAF and strands `.from()`
   elements invisible. Use `@gsap/react` `useGSAP` scoped to a ref.
-- **Hand tracking is opt-in** (dock toggle, default off, `localStorage.handMode`,
-  hidden on coarse pointers). It only mounts when on. It's the VR-cursor model:
-  index-fingertip cursor, hover a `<button>` + pinch-hold ~1s to click, pinch
-  over the wheel canvas + move to spin. Needs a real webcam to test.
 - **The preview browser runs as a HIDDEN tab** (`document.hidden===true`) — so
   rAF animations (GSAP, globe idle spin) don't visibly run there, and the
   camera is blocked. Verify logic/DOM headless; the user tests motion + webcam +
@@ -206,6 +202,24 @@ cross-fade/zoom-dissolve morphs, flick detection, rubber-band ends,
 click-to-jump progress dots (root pointer-capture must skip the dots), copy
 in `STR.phone`. `/` opens on the Circle panel, `/world` on World. Desktop
 ≥641px unchanged. Real-phone feel check on the user.
+
+**UI batch (2026-07-24, `d54f71a`):** hand tracking **removed completely**
+(components, store flags, CSS, copy, `lib/gestures.ts`, the mediapipe dep).
+World gained a **country search** (top-right magnifier → field + flag dropdown;
+click/arrows/Enter switch the highlighted country) and a vertical **+/- zoom
+pill**; the genre rail is now DM Sans UPPERCASE. Both now-playing cards are
+**Spotify-aware**: while the embed sounds it IS the card header (our row +
+scrubber unmount, so there's never two players); otherwise our row carries a
+round white Spotify-style play button. The **♥ is the center control in both
+states** — order shuffle · prev · ♥ · next · share (the World card gained
+share and dropped "Listen to full song"). **Overlay z-fix:** `.frame`/
+`.world-frame` use `isolation: isolate`, which trapped in-frame popups BELOW
+the root-level Spotify strip (41) whatever their z-index — Liked/Contact/About
+now `createPortal` to `<body>` (44/45/46), with a separate `.liked-scrim` so
+the dock MENU scrim stays at 39 and the menu stays clickable. Wheel scroll
+speed halved (`WHEEL_PX_PER_STEP` 48). About card rewritten with LinkedIn
+links + API/Seattle footnotes. **Unverified by Claude:** the Spotify-CONNECTED
+layout (user asked that no Spotify lookup be triggered) — code + build only.
 
 **Awaiting from user:** Shades design; translations; About copy; vector icons;
 seed-proposals.json review; axes-growth decision; real-iPad tablet-preset
