@@ -16,7 +16,9 @@
     "world-seeds": "tsx scripts/build-world-seeds.ts",
     "world-songs": "tsx scripts/build-world-songs.ts",
     "recoord": "tsx scripts/recoord-world-songs.ts",
-    "origins:mb": "tsx scripts/enrich-origins-mb.ts"
+    "origins:mb": "tsx scripts/enrich-origins-mb.ts",
+    "mine:charts": "tsx scripts/mine-chart-artists.ts",
+    "features": "tsx scripts/build-track-features.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

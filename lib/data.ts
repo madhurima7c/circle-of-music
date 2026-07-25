@@ -36,6 +36,8 @@ export type Track = {
   duration: number | null;   // full-track length in seconds (Deezer)
   image: string;             // album cover (xl → big → small fallback)
   preview: string | null;    // ~30s MP3
+  rank?: number;             // Deezer popularity — the only free familiarity
+                             // signal we get, used to choose a playlist opener
 };
 
 /** Seconds → "m:ss" for queue rows and the progress readout. */

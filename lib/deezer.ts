@@ -53,6 +53,7 @@ export type DeezerTrack = {
   preview: string;          // ~30s MP3 URL
   release_date?: string;
   duration?: number;        // full-track seconds
+  rank?: number;            // Deezer popularity score
   artist: DeezerArtist;
   album: DeezerAlbum;
 };

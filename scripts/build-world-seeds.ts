@@ -25,6 +25,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { normName, bucketsFor } from '../lib/genre-rules';
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'lib', 'world-seeds.json');
@@ -35,62 +36,9 @@ const geoIso = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'geo-iso.json'), '
 const enao = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'enao-genres.json'), 'utf8')) as Record<string, string[]>;
 const seeds = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'seeds.json'), 'utf8')) as { genres: string[] };
 
-// Keep in sync with lib/stories.ts normKey (Unicode-aware + fold table).
-const FOLD: Record<string, string> = {
-  'ı': 'i', 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss',
-  'æ': 'ae', 'œ': 'oe', 'ð': 'd', 'þ': 'th',
-};
-function normName(s: string): string {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/[ıøłđßæœðþ]/g, (c) => FOLD[c] ?? c)
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-}
-
-/* ---------- Wikidata/ENAO genre label → wheel genre ----------
- * Ordered: first match wins; an artist can land in several buckets. */
-const GENRE_RULES: Array<[string, string[]]> = [
-  ['Bossa Nova', ['bossa']],
-  ['Cumbia',     ['cumbia']],
-  ['Afrobeats',  ['afrobeats', 'afropop', 'afro-pop', 'afro pop', 'afrofusion', 'afroswing', 'azonto']],
-  ['Reggae',     ['reggae', 'dancehall', 'ska', 'ragga', 'dub music', 'rocksteady', 'riddim']],
-  ['Punk',       ['punk', 'hardcore', 'emo', 'screamo', 'oi!']],
-  ['Techno',     ['techno', 'acid house', 'minimal']],
-  ['House',      ['house', 'amapiano', 'gqom', 'uk garage', 'garage house', 'kwaito']],
-  ['Disco',      ['disco', 'boogie', 'city pop', 'italo', 'eurodance', 'eurobeat']],
-  ['Ambient',    ['ambient', 'new age', 'new-age', 'drone', 'lo-fi beats']],
-  ['Hip Hop',    ['hip hop', 'hip-hop', 'rap', 'grime', 'drill', 'trap', 'crunk', 'boom bap']],
-  ['Jazz',       ['jazz', 'swing', 'bebop', 'big band']],
-  ['Classical',  ['classical', 'opera', 'baroque', 'symphon', 'orchestr', 'concerto', 'chamber music', 'choral', 'requiem', 'lied', 'oratorio']],
-  ['Electronic', ['electronic', 'electronica', 'synth', 'idm', 'downtempo', 'trip hop', 'trip-hop', 'edm', 'electro', 'dubstep', 'drum and bass', 'chillwave', 'vaporwave', 'breakbeat', 'glitch', 'future bass']],
-  ['Funk',       ['funk', 'afrobeat', 'go-go']],
-  ['Soul',       ['soul', 'r&b', 'rhythm and blues', 'rhythm & blues', 'motown', 'gospel', 'blues', 'neo soul', 'doo-wop', 'quiet storm']],
-  ['Rock',       ['rock', 'metal', 'grunge', 'psychedel', 'shoegaze', 'krautrock', 'new wave', 'britpop', 'post-rock']],
-  ['Indie',      ['indie', 'dream pop', 'jangle', 'twee', 'bedroom pop']],
-  ['Folk',       ['folk', 'singer-songwriter', 'americana', 'country music', 'country pop', 'bluegrass', 'acoustic', 'trova', 'nueva cancion', 'bard']],
-  ['World',      ['world', 'traditional', 'flamenco', 'fado', 'tango', 'salsa', 'merengue', 'bachata', 'mariachi', 'ranchera', 'norteno', 'klezmer', 'qawwali', 'ghazal', 'rai', 'gnawa', 'chaabi', 'arabesque', 'anatolian', 'rebetiko', 'laiko', 'schlager', 'chanson', 'samba', 'mpb', 'forro', 'sertanejo', 'axe', 'pagode', 'highlife', 'juju music', 'fuji music', 'mbalax', 'soukous', 'rumba', 'zouk', 'makossa', 'bikutsi', 'morna', 'mbaqanga', 'isicathamiya', 'maskandi', 'bhangra', 'filmi', 'bollywood', 'carnatic', 'hindustani', 'gamelan', 'dangdut', 'enka', 'min\'yo', 'trot', 'luk thung', 'morlam', 'cai luong', 'calypso', 'soca', 'reggaeton', 'mento', 'celtic', 'polka', 'turbo-folk', 'turbofolk', 'sevdalinka', 'fanfare', 'manele', 'chalga', 'joik', 'throat singing', 'khoomei']],
-  ['Pop',        ['pop', 'idol', 'boy band', 'girl group', 'dance music', 'europop', 'ballad']],
-];
-
-function keyMatches(label: string, key: string): boolean {
-  // Short keys need word boundaries ("rai" must not match "ukrainian").
-  if (key.length <= 4 && /^[a-z&!'-]+$/.test(key)) {
-    return new RegExp(`(^|[^a-z])${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z])`).test(label);
-  }
-  return label.includes(key);
-}
-
-function bucketsFor(genreLabels: string[]): string[] {
-  const out = new Set<string>();
-  const joined = genreLabels.map((g) => g.toLowerCase());
-  for (const [wheel, keys] of GENRE_RULES) {
-    if (joined.some((g) => keys.some((k) => keyMatches(g, k)))) out.add(wheel);
-  }
-  return [...out];
-}
+// Genre bucketing + name normalization are shared with the Kaggle chart
+// miner via lib/genre-rules.ts — one copy, so the two builders can never
+// bucket the same artist differently.
 
 /* ---------- Wikidata ---------- */
 async function sparql(query: string): Promise<Array<Record<string, { value?: string }>>> {

@@ -11,6 +11,8 @@ import {
 } from 'react';
 import { COUNTRIES, GENRES, SEEDS, type Track } from './data';
 import { buildPlaylist, type DeezerTrack } from './deezer';
+import { sequencePlaylist } from './sequence';
+import { primeFeatures, lookupFeatures } from './track-features';
 
 type Status = 'empty' | 'populating' | 'ready' | 'error';
 
@@ -146,62 +148,22 @@ export function toTrack(d: DeezerTrack): Track {
       d.album?.cover ||
       '',
     preview: d.preview ?? null,
+    rank: d.rank,
   };
 }
 
-/** Fisher–Yates in place. */
-function shuffleInPlace<T>(a: T[]): T[] {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-const artistKey = (t: Track) => (t.artistId ? String(t.artistId) : t.artist.toLowerCase());
-
 /**
- * Curate a pairing playlist into a pleasant fixed order:
- *  - shuffled (each run is different — not the artist-clustered order Deezer
- *    returns), but
- *  - spread so the SAME artist never lands back-to-back when it can be
- *    avoided (greedy "most-remaining-first" interleave, provably minimal
- *    adjacency; if one artist dominates the pool, its unavoidable repeats are
- *    still spaced as far apart as possible).
- * The result is stable — it does NOT change as tracks play; playback just
- * moves a highlight down it (Spotify-style).
+ * Curate a pairing playlist into a pleasant fixed order.
+ *
+ * Delegates to `sequencePlaylist` (lib/sequence.ts), which keeps the original
+ * contract — same artist never back-to-back where avoidable, order stable
+ * once set, run-to-run variety — and adds a familiar opener, era interleaving
+ * and, where audio features are known for the tracks, smooth tempo/key moves
+ * along an energy arc. Feature coverage is uneven across the world, so every
+ * feature-dependent term is skipped rather than guessed when data is missing.
  */
 export function curatePlaylist(tracks: Track[]): Track[] {
-  if (tracks.length < 3) return shuffleInPlace([...tracks]);
-
-  // Bucket by artist; shuffle within each bucket and the bucket order so ties
-  // break randomly (that's where the run-to-run variety comes from).
-  const byArtist = new Map<string, Track[]>();
-  for (const t of tracks) {
-    const k = artistKey(t);
-    (byArtist.get(k) ?? byArtist.set(k, []).get(k)!).push(t);
-  }
-  const buckets = shuffleInPlace(
-    [...byArtist.entries()].map(([key, items]) => ({ key, items: shuffleInPlace(items) })),
-  );
-
-  const out: Track[] = [];
-  let lastKey: string | null = null;
-  while (out.length < tracks.length) {
-    // Largest remaining bucket whose artist isn't the one we just placed;
-    // fall back to the largest if the only tracks left are that same artist.
-    let best: (typeof buckets)[number] | null = null;
-    for (const b of buckets) {
-      if (!b.items.length) continue;
-      if (b.key === lastKey) continue;
-      if (!best || b.items.length > best.items.length) best = b;
-    }
-    if (!best) best = buckets.find(b => b.items.length > 0) ?? null;
-    if (!best) break;
-    out.push(best.items.shift()!);
-    lastKey = best.key;
-  }
-  return out;
+  return sequencePlaylist(tracks, { features: lookupFeatures });
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -310,9 +272,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         raw = await buildPlaylist({ country, genre, seeds: SEEDS });
       }
       if (gen !== populateGen.current) return;
-      // Curate into a fixed, artist-spread order (Spotify-style — the list
-      // then stays put; playback only moves a highlight down it).
-      const mapped = curatePlaylist(raw.map(toTrack));
+      // Curate into a fixed order (Spotify-style — the list then stays put;
+      // playback only moves a highlight down it). Audio features are primed
+      // first so the sequencer can use them; the await fails soft and the
+      // ordering degrades to its data-free spine if the lookup doesn't land.
+      const tracksIn = raw.map(toTrack);
+      await primeFeatures(tracksIn);
+      if (gen !== populateGen.current) return;
+      const mapped = curatePlaylist(tracksIn);
       setTracks(mapped);
       resetPlayed();
       setStatus(mapped.length ? 'ready' : 'error');
