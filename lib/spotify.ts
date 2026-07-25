@@ -7,9 +7,12 @@
  * Setup (one-time, free):
  *   1. https://developer.spotify.com/dashboard → Create app
  *   2. Add redirect URIs (Spotify no longer accepts http://localhost for
- *      new apps — use the 127.0.0.1 loopback locally):
+ *      new apps — use the 127.0.0.1 loopback locally). NOTE: the live
+ *      "Connect" flow below no longer uses an OAuth redirect at all — it
+ *      opens a plain Spotify login popup — so these only matter if the
+ *      legacy PKCE path is ever re-enabled:
  *        http://127.0.0.1:3000/spotify-callback
- *        https://discovery-of-music.vercel.app/spotify-callback
+ *        https://discovermusic.xyz/spotify-callback
  *   3. .env.local → NEXT_PUBLIC_SPOTIFY_CLIENT_ID=<client id>
  *
  * Flow: Authorization Code + PKCE (no server, no secret). "Connect" opens

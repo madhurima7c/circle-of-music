@@ -20,9 +20,29 @@ const dmMono = DM_Mono({
   subsets: ['latin'],
 });
 
+/** The canonical home. Everything the app publishes about itself — canonical
+ *  URLs, Open Graph / Twitter cards — resolves against this, so a link shared
+ *  from any deployment (preview or the old *.vercel.app) still points people
+ *  at the real domain. */
+export const SITE_URL = 'https://discovermusic.xyz';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: STR.app.name,
   description: STR.app.tagline,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    url: SITE_URL,
+    siteName: STR.app.name,
+    title: STR.app.name,
+    description: STR.app.tagline,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: STR.app.name,
+    description: STR.app.tagline,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
