@@ -38,6 +38,8 @@ npm run audit        # pairing genre-mismatch report (no changes)
 npm run curate       # LLM-fill seeds.json (needs ANTHROPIC_API_KEY in .env.local)
 npm run origins      # Wikidata → lib/origins.json artist origin coords (resumable; manual fixes in the JSON persist because existing keys are skipped)
 npm run enrich       # propose verified artists for weak pairings → seed-proposals.json (review; never edits seeds)
+npm run origins:mb   # SECOND-pass origins from MusicBrainz for artists Wikidata missed (1 req/sec, ~9h for the full tail, resumable)
+npm run recoord      # rewrite globe dot coords in public/world-songs/* from origins.json (local, no network, idempotent)
 ```
 
 No env vars are needed to run — the Anthropic key only powers optional
@@ -97,6 +99,9 @@ reintroduce the stale-closure bug where the fetched playlist lagged the UI.
 | `lib/stories.ts` + `lib/track-stories.json` | curated artist/song stories (90) + `releaseYear` + `normKey` (Unicode-aware — keep the 4 copies in sync: stories, deezer, build-origins, enrich-seeds). |
 | `lib/origins.ts/.json` + `lib/origins-live.ts` | artist → origin coords (build-time for seeds via `npm run origins`; runtime Wikidata lookups w/ localStorage cache for everyone else). Manual JSON fixes survive re-runs. |
 | `lib/world-seeds.json` + `lib/enao-genres.json` | 161/175 nations w/ Deezer-verified genre-bucketed artists (`npm run world-seeds`); Every-Noise featured genres per country. Powers the World's any-nation tier + globe tint. |
+| `scripts/recoord-world-songs.ts` | **`npm run recoord`** — recomputes every globe dot's la/ln from `origins.json`. Real city when the artist's origin is INSIDE the filing country, else a verified interior point of that country; every dot point-in-polygon tested so nothing lands in the sea or on the wrong continent. The song lists cost a ~10h crawl — this only touches coordinates. |
+| `scripts/enrich-origins-mb.ts` | **`npm run origins:mb`** — fills origins Wikidata missed, using MusicBrainz. Its edge: MB returns the artist's **country code**, so candidates from the wrong country are rejected (the precision Wikidata lacks on short names). Geocodes begin-area via Wikidata with a city cache. |
+| `scripts/build-icons.mjs` + `lib/brand.ts` | the 8-square mark → transparent PNG icons (no image deps) and as an SVG string. |
 | `lib/geo-iso.json` | GeoJSON NAME → ISO-3166 alpha-2 — lets `/api/musicbrainz` accept any globe nation. |
 | `components/GlobalPlayer.tsx` | the one `<audio>` (+ Spotify SDK routing when connected) + MediaSession + hub mini-player; registers the element on `lib/audio-bus.ts`. |
 | `components/Library.tsx` + `lib/library.ts` | **LikedSongs popup** (Spotify-style: All liked + named playlists, drag-a-row-onto-a-playlist to add, create/delete, export/import) over localStorage stores `finds` + `playlists`. |
@@ -230,10 +235,26 @@ speed halved (`WHEEL_PX_PER_STEP` 48). About card rewritten with LinkedIn
 links + API/Seattle footnotes. **Unverified by Claude:** the Spotify-CONNECTED
 layout (user asked that no Spotify lookup be triggered) — code + build only.
 
-**Awaiting from user:** Shades design; translations; About copy; vector icons;
-seed-proposals.json review; axes-growth decision; real-iPad tablet-preset
-check; real-phone intro check. (Contact DB + email both DONE + verified live;
-optional later — verify a Resend domain for a branded `from`.)
+**Globe dots — AUDITED AND PARTLY FIXED (2026-07-25).** The user was right that
+they looked wrong. 26.6% of 92,267 dots were misplaced (1,111 on the wrong
+CONTINENT — a song is filed under the country its tag search returned, but its
+coordinate came from the ARTIST's origin; 23,418 off-landmass from centroid
+jitter). `npm run recoord` fixed placement to **0.30%**. Root cause of the
+clustering: `origins.json` had only ever covered the 678 curated Circle seed
+artists, not the 17,063 the globe plots. A widened Wikidata run took it to
+17,345 entries / 8,057 city-level, but only **6.9% of dots** sit on a city and
+India is still ~95% a blob (82% of its artists have no Wikidata entity; its
+short-name hits are wrong entities). A MusicBrainz second pass is running —
+see todo.md "PICK UP HERE".
+
+**Awaiting from user:** what the 1.5GB `kaggle_datasets/` drop is for
+(gitignored; Spotify track/audio-feature CSVs — probably no artist origins, but
+they could enable real "sounds good together" playlist sequencing, which was
+deferred because Deezer previews carry no tempo/key/energy). Plus: Shades
+design; translations; About copy sign-off; vector icons; seed-proposals.json
+review; axes-growth decision; real-iPad + real-phone checks; and verification of
+the Spotify-CONNECTED card layout (Claude was asked not to trigger a lookup).
+
 
 **Not done / known:** accounts / cross-device library (Supabase plan in
 `todo.md`); Shades; reach arcs + layer toggles + Circle→globe flyover; the

@@ -158,6 +158,137 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
+## 🔴 PICK UP HERE (handoff, 2026-07-25)
+
+### A background job is RUNNING — check it first
+`npm run origins:mb` (pid was 54989) is enriching `lib/origins.json` from
+MusicBrainz. Log: `/tmp/origins-mb.log`. At handoff: **3,425/15,951 done,
+567 fixed (~16% hit rate), ETA ~7h remaining** at 30 artists/min (MusicBrainz
+caps at 1 req/sec). It writes `lib/origins.json` every 25 artists, so it is
+safe to interrupt and re-run — it re-derives its own todo list and skips
+anything already placed at a city inside the right country.
+
+**When it finishes (or if you stop it):**
+1. `npm run recoord` — pushes the new origins into `public/world-songs/*.json`
+   (local only, no network, idempotent, ~1 min).
+2. Re-run the placement audit (script inline in the session log below) and the
+   India regional breakdown to report the real before/after.
+3. Commit `lib/origins.json` + `public/world-songs/` + `scripts/enrich-origins-mb.ts`
+   + `package.json` + `.gitignore` (all uncommitted at handoff).
+
+### The globe-dot problem (the reason for all of the above)
+User reported dots looked wrong — "no songs in south india, eastern india".
+**They were right.** Audit of all 92,267 dots found **26.6% misplaced**:
+- 1,111 rendered in the WRONG COUNTRY (Ebo Taylor, Ghanaian, plotted on Chile;
+  The Knife, Swedish, on Spain). Cause: a song is filed under the country whose
+  MusicBrainz tag search returned it, but its coordinate came from the ARTIST's
+  origin — so any cross-border artist threw the dot across the map.
+- 23,418 sat off their country's landmass (centroid ±1.5° jitter → sea).
+- Only **103 of 17,063** artists had real city coords: `origins.json` had only
+  ever been built for the 678 curated *Circle* seed artists, never the World set.
+
+**Fixed so far (pushed):**
+- `scripts/recoord-world-songs.ts` (`npm run recoord`, `--dry`) recomputes la/ln
+  from origins.json. Real city when the origin is inside the filing country;
+  otherwise a verified interior point of that country. Every dot is
+  point-in-polygon tested and the jitter shrinks until it lands on land.
+  **Misplacement 26.6% → 0.30%** (rest are micro-states too small for the 110m polygon).
+- `scripts/build-origins.ts` widened past seeds.json to every World artist
+  (`--seeds` restores the old behaviour). That run FINISHED: origins.json
+  678 → 17,345 entries, 9,901 resolved, 8,057 city-level.
+- Applied: 6,332 dots (6.9%) at a real city.
+
+**Still not solved — set expectations honestly.** India is still ~95% a central
+blob. Of its 216 artists: **82% have no Wikidata entity at all**, 9% resolve
+OUTSIDE India (wrong-entity hits on short names — Prithvi→Faisalabad,
+Vilen→Rotterdam, Stiv→Edinburgh), 5% country-only, leaving **4% placeable by
+city**. Hence the MusicBrainz second pass, whose advantage is that MB returns
+each artist's **country code**, so wrong-country candidates are rejected — the
+precision Wikidata lacked. Verified good: Angélique Kidjo→Cotonou,
+Manu Dibango→Douala, Ebo Taylor→Cape Coast (the very artist that was on Chile).
+Realistic ceiling: dot-level city coverage ~9–12%. A large share of a 17k
+long tail simply is not documented in either database.
+
+### User dropped 1.5GB of Kaggle music datasets
+`kaggle_datasets/` (gitignored — never commit). Six zips: `spotify_songs.csv`,
+`spotify-2023.csv`, `tracks_features.csv` (346MB), a GTZAN audio-features set,
+`universal_top_spotify_songs.csv` (498MB), and popularity splits. Unprompted —
+ask what they're for. Worth noting: none obviously carry artist ORIGIN/city,
+so they likely won't fix the dot problem, but `tracks_features.csv` and the
+audio-feature sets COULD finally enable the "songs that sound good together"
+sequencing that was deferred when curating playlists (Deezer previews carry no
+tempo/key/energy).
+
+## ✅ Shipped 2026-07-24/25 (all pushed to BOTH remotes)
+
+**Domain + platform**
+- **Live domain `discovermusic.xyz`** (Vercel is registrar AND DNS). Apex + www
+  aliased to the `discovermusic` project; old `discovery-of-music.vercel.app`
+  still works. Canonical/OG resolve from `SITE_URL` in `app/layout.tsx`.
+- **Vercel Web Analytics** (`@vercel/analytics/next` — the framework-specific
+  import is what attributes App Router ROUTES correctly). Verified live: script
+  serves 200 from a randomised ad-blocker-resistant path (`/f60c…/script.js`,
+  NOT `/_vercel/insights/…` — that tripped me up), pageview event queued with
+  `{route:'/', path:'/'}`, beacon endpoint accepts POSTs.
+- **`/` now 307-redirects to `/circle`** (mirrors `/world`). Deliberately
+  TEMPORARY — permanent redirects get cached hard and `/` should stay free for
+  a landing page. Removed the `replaceState` that rewrote the URL to
+  `/?country=x&genre=y` on every spin; params are still READ so old shared
+  links work (verified `?country=brazil&genre=funk` → Brazil × Funk) then
+  stripped back to `/circle`.
+
+**Link previews / icons**
+- Share title **"Discover Music"** + the Chan & Maddy About copy as the
+  description, on og: and twitter:.
+- Favicon is the user's **8-square mark** (`#737CF4`), standing alone.
+  `app/icon.svg` + `app/icon.png` (512) + `app/apple-icon.png` (180), the PNGs
+  **transparent** — generated by `scripts/build-icons.mjs` (no image deps:
+  polygon coverage sampled 4×4/px + a minimal PNG writer).
+  **Why PNGs matter:** unfurlers largely ignore SVG favicons and fall back to
+  apple-touch-icon; ours had a light plate, which is what put the white box
+  beside the link in WhatsApp. Reference (madhurima.me) ships one transparent
+  PNG and no apple-touch-icon.
+  Deleted the leftover create-next-app `favicon.ico` — it was outranking the
+  brand mark, so the tab had been showing the Next.js logo.
+- `/world` has its own globe favicon (`app/world/icon.svg`), same `#737CF4`.
+  Purpose-drawn (a photo globe is mush at 16px): solid disc, graticule knocked
+  out white. Verified it swaps on full load AND client-side nav.
+- OG card = the user's World mockup, `app/opengraph-image.png` 1200×630,
+  COVER-cropped anchored to the TOP (art is 1.68:1 vs OG 1.91:1 — fitting left
+  white bars, centre-cropping ate the lavender frame). Source kept at
+  `design/og-source.png`.
+- Nav Circle icon swapped to the same 8-square mark (`CircleIcon` in
+  ExperienceNav, also used by PhoneIntro). Every rect is `currentColor`, which
+  is what preserves per-theme ink + the hover spin.
+
+**Theming batch** — tokens in `:root`: `--surface #10111D`, `--playing #9daaff`,
+`--playing-bg rgba(115,124,244,.16)`.
+- Now-playing highlight off Spotify green onto our periwinkle (row, title,
+  artist, equaliser). The two remaining `#1db954` are the *Connect Spotify*
+  buttons, where Spotify's green is correct.
+- Highlight bleeds 8px past artwork/duration (negative margin + padding back;
+  `overflow-x:hidden` on the queue so it can't scroll).
+- `--surface` replaced all five `#2a2a2a` planes + the `#111` ink on dock
+  icons, letter ladder and the wheel-lock padlocks.
+- Dock takes the top nav's glass and themes per stage: `--surface` ink on
+  Circle, **white** on World (matches search/zoom exactly).
+- Letter ladder: all ticks one weight (the 0.22 dim read as a fault).
+
+**Cards / controls**
+- Heart is the CENTER control on both cards, sized like its neighbours
+  (plain `.ctrl`, 16px icon). Liked = accent-blue disc + solid white heart,
+  identical to shuffle-on. NOTE: `.ctrl--lg svg { fill: currentColor }` had been
+  force-filling it, so "liked" was never readable before.
+- `RoundPlay` — round white Spotify-style play/pause in the now-row; glyphs
+  redrawn ~2× (11×14 of the 24 viewBox, was 6.5×9).
+- Spotify-aware layout: when the embed sounds it IS the card header (order 0)
+  and our row+scrubber unmount, so there is never two players.
+- **Not verified by Claude:** the Spotify-CONNECTED layout — user asked that no
+  Spotify lookup be triggered. Code + build only.
+
+**Removed:** hand tracking, completely (components, store flags, CSS, copy,
+`lib/gestures.ts`, the `@mediapipe/tasks-vision` dep).
+
 ## ✅ This session (2026-07-24, pushed `d54f71a`) — UI batch
 
 - **Hand tracking REMOVED completely**: `HandTracking`/`CameraUnavailable`/`GestureToast` components, the dock submenu + `!coarse` gate, store `handMode`/`toggleHandMode`, `.gesture-cursor`/`.gesture-hover` CSS, all `STR.camera`/hand copy, the dead `lib/gestures.ts`, and the `@mediapipe/tasks-vision` dependency (lockfile synced). Nothing references a webcam any more.
