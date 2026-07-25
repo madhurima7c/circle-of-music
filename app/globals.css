@@ -1850,13 +1850,18 @@ html, body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* The card is a flex column; explicit orders keep the layout identical in both
+   Spotify states. Order 0 = the header group (FROM banner, then either our
+   now-row + scrubber OR the embed slot), 1 = controls, 2 = the share menu. */
 .wnp__controls {
+  order: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   padding: 2px 0;
 }
+.wnp__links, .wnp__connect { order: 2; }
 /* ProgressBar ships with the center card's order:2 — neutralize it here
  * so the wnp keeps its natural top-to-bottom flow. */
 .wnp .center__progress { order: 0; }
