@@ -1880,24 +1880,26 @@ html, body {
  *  instruments without !important (equal specificity → later wins, and
  *  the doubled selectors out-rank `.wnp .ctrl--lg svg`).
  * ===================================================================== */
-/* The heart matches the dock's: a 16px OUTLINE that fills when active.
-   White by default; the app accent blue (same as shuffle-on) once liked.
-   `.ctrl--lg svg { fill: currentColor }` above would otherwise force it
-   permanently solid — that's why it always looked filled. */
-.ctrl--lg.ctrl--heart svg,
-.wnp .ctrl--lg.ctrl--heart svg {
-  width: 16px;
-  height: 16px;
+/* ♥ is a plain .ctrl now — the exact same disc as prev / next / shuffle, so
+   the icon-to-circle ratio matches them too (16px in 30px; 14 in 28 on the
+   World card). Unliked = white outline on the default disc. Liked = the
+   shuffle-on treatment: accent-blue disc with a SOLID WHITE heart.
+   These sit after the .ctrl/.wnp rules above so they win on order without
+   !important — `.ctrl:not(.ctrl--lg) svg { fill: none }` ties on specificity. */
+.ctrl--heart svg {
   fill: none;
   stroke: #fff;
   stroke-width: 1.7;
 }
-.ctrl--lg.ctrl--heart[data-saved="true"] svg,
-.wnp .ctrl--lg.ctrl--heart[data-saved="true"] svg {
-  fill: #1d2bdf;
-  stroke: #1d2bdf;
+.ctrl--heart[data-saved="true"] {
+  background: #1d2bdf;
+  color: #fff;
 }
-.ctrl--heart[data-saved="true"] { color: #1d2bdf; }
+.ctrl--heart[data-saved="true"]:hover { background: #2536e6; }
+.ctrl--heart[data-saved="true"] svg {
+  fill: #fff;
+  stroke: #fff;
+}
 
 /* Round play/pause — the glyph was far too small inside the disc, so both
    icons are drawn at roughly double their previous footprint. */

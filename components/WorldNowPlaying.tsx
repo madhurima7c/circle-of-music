@@ -133,7 +133,7 @@ export function WorldNowPlaying() {
             {/* ♥ is the center of the strip — like it here, or save it to
                 Spotify from the embed. Playback lives in the round button. */}
             <button
-              className="ctrl ctrl--lg ctrl--heart"
+              className="ctrl ctrl--heart"
               data-saved={saved ? 'true' : 'false'}
               onClick={() => toggleFind({
                 id: track.id, title: track.title, artist: track.artist,

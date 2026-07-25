@@ -663,7 +663,7 @@ export function CenterStack() {
                         embed above. Playback lives in the round button (or in
                         the embed), never here. */}
                     <button
-                      className="ctrl ctrl--lg ctrl--heart"
+                      className="ctrl ctrl--heart"
                       data-saved={saved ? 'true' : 'false'}
                       disabled={!track}
                       onClick={() => track && toggleFind({
