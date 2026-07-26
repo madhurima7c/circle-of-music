@@ -23,6 +23,12 @@
 
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
+/* Imported, not copied. The local copy that used to live here stripped
+ * separators ("abdelrahmanelbacha") while lib/origins.ts keys on the
+ * space-separated form ("abdel rahman el bacha"), so rule 1 below could only
+ * ever fire for single-word artist names — origins were found for 33% of dots
+ * instead of 64%, and city-level placement for 30% instead of 55%. */
+import { normKey } from '../lib/stories';
 
 const ROOT = path.join(__dirname, '..');
 const ORIGINS = path.join(ROOT, 'lib', 'origins.json');
@@ -34,9 +40,6 @@ type Origin = { lat: number; lng: number; precision?: string } | null;
 type Song = { i: number; t: string; a: string; la: number; ln: number };
 type Ring = [number, number][];
 
-/** Same normalization as lib/stories.ts normKey (keep the copies in sync). */
-const normKey = (s: string) =>
-  s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /* ---------- geometry ---------- */
 function ringsOf(feature: { geometry: { type: string; coordinates: unknown } }): Ring[] {

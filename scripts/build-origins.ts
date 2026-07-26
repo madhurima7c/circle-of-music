@@ -26,6 +26,7 @@
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { normKey } from '../lib/stories';   // one copy — see recoord for why
 
 const SEEDS_PATH = path.join(__dirname, '..', 'lib', 'seeds.json');
 const WORLD_SONGS_DIR = path.join(__dirname, '..', 'public', 'world-songs');
@@ -35,20 +36,6 @@ const UA = 'MusicExploration/0.1 ( https://github.com/madhurima7c/circle-of-musi
 const RETRY_MISSES = process.argv.includes('--retry');
 const SEEDS_ONLY = process.argv.includes('--seeds');
 
-/** Same normalization as lib/stories.ts normKey / lib/deezer.ts normName. */
-const FOLD: Record<string, string> = {
-  'ı': 'i', 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss',
-  'æ': 'ae', 'œ': 'oe', 'ð': 'd', 'þ': 'th',
-};
-function normKey(s: string): string {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/[ıøłđßæœðþ]/g, (c) => FOLD[c] ?? c)
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-}
 
 type Origin = {
   name: string;

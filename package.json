@@ -18,7 +18,9 @@
     "recoord": "tsx scripts/recoord-world-songs.ts",
     "origins:mb": "tsx scripts/enrich-origins-mb.ts",
     "mine:charts": "tsx scripts/mine-chart-artists.ts",
-    "features": "tsx scripts/build-track-features.ts"
+    "features": "tsx scripts/build-track-features.ts",
+    "mine:ambiguous": "tsx scripts/resolve-ambiguous.ts",
+    "origins:csv": "tsx scripts/apply-artist-countries.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

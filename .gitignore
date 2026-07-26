@@ -70,3 +70,7 @@ lib/.chart-verify-cache.json
 
 # reviewable output of npm run mine:charts (like seed-proposals.json)
 chart-proposals.json
+
+# reviewable output of npm run mine:ambiguous
+ambiguous-resolved.json
+lib/.ambiguous-cache.json

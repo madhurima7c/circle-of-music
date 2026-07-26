@@ -27,6 +27,7 @@
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { normKey } from '../lib/stories';   // one copy — see recoord for why
 
 const ROOT = path.join(__dirname, '..');
 const ORIGINS = path.join(ROOT, 'lib', 'origins.json');
@@ -47,8 +48,6 @@ const LIMIT = (() => {
 type Origin = { name: string; lat: number; lng: number; place: string; country: string; precision: string } | null;
 type Ring = [number, number][];
 
-const normKey = (s: string) =>
-  s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- geometry guard ---------- */
