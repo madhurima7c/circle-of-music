@@ -84,6 +84,7 @@ const arg = (flag: string) => {
 const has = (flag: string) => process.argv.includes(flag);
 const LIMIT = Number(arg('--limit') ?? Infinity);
 const APPLY = has('--apply');
+const DRY_APPLY = has('--apply-dry');
 
 /* Chart nomination thresholds. Deliberately loose — MusicBrainz is the gate,
  * so the cost of a loose prior is verification time, not a wrong dot. */
@@ -501,17 +502,41 @@ async function main() {
   const top = Object.entries(byCountry).sort((a, b) => b[1] - a[1]).slice(0, 12);
   console.log(`  top countries:`, top.map(([c, n]) => `${c} ${n}`).join(', '));
 
-  if (APPLY) applyToWorldSeeds(accepted, worldSeeds);
+  if (APPLY || DRY_APPLY) applyToWorldSeeds(accepted, worldSeeds, isoToGeo);
 }
 
-/** Merge reviewed proposals into world-seeds.json. Only artists WITH a genre
- *  bucket are added to a genre list; everyone accepted joins `top`. */
+/**
+ * Merge reviewed proposals into world-seeds.json. Only artists WITH a genre
+ * bucket are added to a genre list; everyone accepted joins `top`.
+ *
+ * Also picks up `ambiguous-resolved.json` when it exists, so the artists
+ * `npm run mine:ambiguous` rescued from the quarantine — the ones where a
+ * single stage name turned out to cover several real people — land in the
+ * same pass. One writer for world-seeds.json, so the two can't disagree.
+ */
 function applyToWorldSeeds(
   accepted: Array<{ name: string; country: string; genres: string[] }>,
   worldSeeds: Record<string, { top?: string[]; featured?: string[]; genres?: Record<string, string[]> }>,
+  isoToGeo: Map<string, string>,
 ) {
+  const merged = [...accepted];
+  const resolvedPath = path.join(ROOT, 'ambiguous-resolved.json');
+  let fromAmbiguous = 0;
+  if (existsSync(resolvedPath)) {
+    const r = JSON.parse(readFileSync(resolvedPath, 'utf8')) as {
+      resolved?: Array<{ name: string; country: string; genres?: string[] }>;
+    };
+    for (const a of r.resolved || []) {
+      const geoName = isoToGeo.get(a.country);        // resolved rows carry ISO
+      if (!geoName) continue;
+      merged.push({ name: a.name, country: geoName, genres: a.genres ?? [] });
+      fromAmbiguous++;
+    }
+    console.log(`  including ${fromAmbiguous} rescued from the ambiguity pass`);
+  }
+
   let addedTop = 0, addedGenre = 0;
-  for (const a of accepted) {
+  for (const a of merged) {
     const entry = worldSeeds[a.country] ?? (worldSeeds[a.country] = { top: [], featured: [], genres: {} });
     entry.top ??= []; entry.genres ??= {};
     const seen = new Set(entry.top.map(normName));
@@ -521,8 +546,13 @@ function applyToWorldSeeds(
       if (!list.some((x) => normName(x) === normName(a.name))) { list.push(a.name); addedGenre++; }
     }
   }
+  const countries = new Set(merged.map((a) => a.country));
+  if (DRY_APPLY) {
+    console.log(`\n[dry] would add ${addedTop} artists across ${countries.size} countries, ${addedGenre} genre placements`);
+    return;
+  }
   writeFileSync(path.join(ROOT, 'lib', 'world-seeds.json'), JSON.stringify(worldSeeds, null, 2));
-  console.log(`\napplied → lib/world-seeds.json: +${addedTop} to top, +${addedGenre} genre placements`);
+  console.log(`\napplied → lib/world-seeds.json: +${addedTop} to top, +${addedGenre} genre placements across ${countries.size} countries`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
