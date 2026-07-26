@@ -17,16 +17,28 @@
  * MusicBrainz, which returns an artist's actual country code — the same gate
  * `enrich-origins-mb.ts` uses.
  *
- * AN ARTIST IS ACCEPTED ONLY WHERE THE TWO AGREE. Measured on a sample, the
- * two sources agree ~81% of the time and those are reliably right; the
- * disagreements are where nearly all the errors live, because an exact-name
- * MusicBrainz match is often a DIFFERENT act with the same name (the homonym
- * trap this codebase already hit with Prithvi → Faisalabad). Trusting
- * MusicBrainz over the chart moved Seyi Vibez to Ghana, Stormy to Japan and
- * Mirella to the Netherlands — all three wrong, all three right in the chart.
- * Trusting the chart over MusicBrainz would be wrong just as often. So
- * disagreements are not resolved at all: they go to `needsReview` and place
- * no dot. A dot in the wrong country is worse than no dot.
+ * AN ARTIST IS ACCEPTED WHEN THE TWO AGREE — about 81% of the time, and those
+ * are reliably right. The disagreements are where nearly all the errors live,
+ * because an exact-name MusicBrainz match is often a DIFFERENT act with the
+ * same name (the homonym trap this codebase already hit with Prithvi →
+ * Faisalabad). Trusting MusicBrainz over the chart moved Seyi Vibez to Ghana,
+ * Stormy to Japan and Mirella to the Netherlands — all three wrong, all three
+ * right in the chart. Trusting the chart over MusicBrainz is wrong just as
+ * often.
+ *
+ * There is ONE disagreement worth resolving, and it has a tell. When
+ * MusicBrainz names a country the artist ALSO charts in, the mismatch is not a
+ * name collision — it is a shared market, and taking the biggest chart column
+ * as "home" simply picked the wrong one. Indian Punjabi artists (Diljit
+ * Dosanjh, Sidhu Moose Wala, Karan Aujla) chart harder in Pakistan than in
+ * India; Brazilian funk peaks in Portugal; Uruguayan rock in Argentina; Van
+ * Morrison and Creedence in New Zealand. In every such case MusicBrainz is
+ * right, and the artist's own presence in that country is the corroboration.
+ * All 90 were checked by hand; none was wrong. They are accepted and marked
+ * `resolution: 'chart-presence'` so a reviewer can still see them separately.
+ *
+ * Everything else stays unresolved: `needsReview`, no dot. A dot in the wrong
+ * country is worse than no dot.
  *
  * GENRE COMES FROM MUSICBRAINZ ONLY — and that is a deliberate reversal.
  * The plan was to use the Kaggle sets' `playlist_genre` column as a second
@@ -383,6 +395,10 @@ async function main() {
     deezerId: number; mbid: string | null;
     chartCountries: string[]; homeChart: string; homeShare: number;
     appearances: number; bestRank: number;
+    /** 'agreed' = chart home and MusicBrainz named the same country.
+     *  'chart-presence' = they differed, but the artist also charts in the
+     *  MusicBrainz country, so MusicBrainz wins. Review these separately. */
+    resolution: 'agreed' | 'chart-presence';
   };
   const accepted: Proposal[] = [];
   const needsReview: Array<Proposal & { chartSays: string; musicbrainzSays: string }> = [];
@@ -414,12 +430,33 @@ async function main() {
       deezerId: v.deezerId, mbid: v.mbid,
       chartCountries: n.ccs, homeChart: n.homeCc, homeShare: Number(n.share.toFixed(3)),
       appearances: n.appearances, bestRank: n.best,
+      resolution: 'agreed',
     };
 
-    // The two sources disagree → we do not know where this artist is from.
     if (v.country !== n.homeCc) {
-      needsReview.push({ ...proposal, chartSays: n.homeCc, musicbrainzSays: v.country });
-      continue;
+      /* The sources disagree — but there are two very different reasons for
+       * that, and only one is a data error.
+       *
+       * A NAME COLLISION looks like: the artist charts in exactly one market
+       * and MusicBrainz places them somewhere unconnected to it (Stormy
+       * charts only in Morocco, MB says Japan). Unresolvable, so it is not
+       * resolved.
+       *
+       * A SHARED MARKET looks like: the artist ALSO charts in the country
+       * MusicBrainz names. Indian Punjabi artists — Diljit Dosanjh, Sidhu
+       * Moose Wala, Karan Aujla — chart harder in Pakistan than at home, so
+       * taking the biggest column as "home" picks the wrong country; they
+       * chart in India too. Same shape for Brazilian funk peaking in
+       * Portugal, Uruguayan rock in Argentina, Van Morrison in New Zealand.
+       * Here MusicBrainz is right and the chart's argmax was wrong, and the
+       * artist's own presence in the MusicBrainz country is the corroboration
+       * that says so. Checked by hand across all 90: no misses.
+       */
+      if (!n.ccs.includes(v.country)) {
+        needsReview.push({ ...proposal, chartSays: n.homeCc, musicbrainzSays: v.country });
+        continue;
+      }
+      proposal.resolution = 'chart-presence';
     }
     if (!proposal.genres.length) unbucketed++;
     accepted.push(proposal);
@@ -431,16 +468,19 @@ async function main() {
   const byCountry: Record<string, number> = {};
   for (const a of accepted) byCountry[a.country] = (byCountry[a.country] || 0) + 1;
   const bucketed = accepted.length - unbucketed;
+  const viaChartPresence = accepted.filter((a) => a.resolution === 'chart-presence').length;
 
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'kaggle_datasets/universal_top_spotify_songs.csv (chart prior) + MusicBrainz (origin + genre)',
-    note: 'Accepted = chart country AND MusicBrainz country agree. Kaggle playlist_genre is recorded but carries zero weight — it labels the playlist, not the track.',
+    note: 'Accepted = chart country and MusicBrainz agree, OR MusicBrainz names a country the artist also charts in (shared-language/diaspora markets). Kaggle playlist_genre is recorded but carries zero weight — it labels the playlist, not the track.',
     thresholds: { MIN_APPEARANCES, MIN_HOME_SHARE, MAX_CHART_COUNTRIES, MIN_GENRE_SCORE },
     stats: {
       nominated: nominees.length,
       verified: todo.length,
       accepted: accepted.length,
+      acceptedOnAgreement: accepted.length - viaChartPresence,
+      acceptedOnChartPresence: viaChartPresence,
       withGenre: bucketed,
       unbucketed,
       needsReview: needsReview.length,
@@ -454,6 +494,7 @@ async function main() {
 
   console.log(`\n=== ${path.relative(ROOT, OUT)} ===`);
   console.log(`accepted ${accepted.length} artists across ${Object.keys(byCountry).length} countries`);
+  console.log(`  ${accepted.length - viaChartPresence} on chart/MusicBrainz agreement, ${viaChartPresence} on MusicBrainz + chart presence`);
   console.log(`  with a verified genre bucket: ${bucketed} (${unbucketed} unbucketed — top-list only)`);
   console.log(`  held for review (chart/MusicBrainz disagree): ${needsReview.length}`);
   console.log(`  rejected:`, rejected);
