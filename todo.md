@@ -158,7 +158,96 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
-## 🔴 PICK UP HERE (handoff, 2026-07-25b) — Kaggle pass 1
+## 🔴 PICK UP HERE (2026-07-26) — Kaggle pass 2 MERGED
+
+### Shipped (`a081173`, `0243ffb`, both remotes) — no background jobs running
+
+**World roster: 2,427 → 4,350 artists (+79%) across 64 countries.**
+`npm run mine:charts -- --apply` merged 1,813 chart-mined artists plus 110
+rescued from the quarantine. Verified after merge: zero duplicate names, zero
+genre keys outside the 20 wheel genres, zero empty names, country count still
+175. Live-checked on `/world`: Thailand plays (Jeff Satur), console clean.
+
+**`normKey` drift — the bug that had been quietly halving dot quality.**
+`lib/origins.ts` keys artists space-separated (`"abdel rahman el bacha"`);
+`recoord-world-songs.ts`, `enrich-origins-mb.ts` and `build-origins.ts` each
+carried a local copy that stripped separators (`"abdelrahmanelbacha"`).
+recoord's copy even claimed "keep the copies in sync". Effect: it could only
+match SINGLE-WORD artist names, so Trilok Gurtu / A.R. Rahman / Kailash Kher
+were invisible to it and got country-centroid dots despite having known
+cities sitting in origins.json all along.
+
+    dots with a known origin    33.0% → 71.4%
+    placed at the artist's city 30.3% → 33.4%
+    no origin at all            67.0% → 28.6%
+
+All local copies deleted; every script now imports the one export from
+`lib/stories.ts`. **If you add a script that touches origins.json, import
+normKey — do not copy it.** (The city figure moves less than the origin
+figure because recoord deliberately pins a song to its FILING country when
+the artist is foreign. That rule is what stopped Ghanaian dots landing on
+Chile — leave it.)
+
+**`npm run origins:csv`** (`scripts/apply-artist-countries.ts`) — fills origin
+gaps from `kaggle_datasets/artists.csv` `country_mb`. 1,578 globe artists no
+Wikidata or MusicBrainz crawl had reached (Fokn Bois, Marijata, Sandunes,
+Steve Monite, T.P. Orchestre Poly-Rythmo). Gaps only; never overwrites a
+city-level origin. `country_lastfm` deliberately UNUSED — the dataset
+documents that it conflates language with origin and mislabels Latin
+American, Austrian and Swiss artists.
+
+**`npm run mine:ambiguous`** (`scripts/resolve-ambiguous.ts`) — 110 of the 600
+quarantined artists were never conflicts. A stage name is not a unique
+identifier: MusicBrainz's own disambiguation says Tulus is a "Norwegian black
+metal band" AND an "Indonesian singer-songwriter". The miner had kept the
+FIRST exact-name match with a country, so it compared the chart's artist to a
+different person. Now it reads every exact match's country as a set: if MB
+also lists that name in the chart's country, they were describing different
+people. Recovered DESH (HU), Airbag (AR), Polycat + Cocktail (TH), FiNCH (DE),
+Vixen (PL), Adie (PH), Pause (MA).
+**It also re-reads genres from the CORRECT entity** — Tulus had inherited
+`Rock` from the black metal band. Most come back empty, because the real
+artist is a small local act with no MB tags. Blank beats wrong.
+User's hand corrections live in `MANUAL_COUNTRY` and survive re-runs.
+
+### ▶️ Next
+
+- [ ] **490 still quarantined.** MusicBrainz has no artist of that name in the
+  chart's country at all, so nothing corroborates either side. Seyi Vibez is
+  here (MB files him under Ghana, which is wrong). The chart is probably right
+  for many; needs a human or a third source. `ambiguous-resolved.json`
+  (gitignored) has the list with a `why` per row.
+- [ ] **New artists have no dots yet.** They're in world-seeds but not in
+  `public/world-songs/*.json`. Needs `npm run world-songs` (~10h crawl) or a
+  targeted run for the 64 affected countries, then `npm run origins:mb` +
+  `npm run recoord`.
+- [ ] **`npm run audit`** against the merged roster — the genre-rule fixes in
+  `c9b2d00` never got applied to the pre-existing 2,427 artists.
+- [ ] Nigeria's Afrobeats bucket is thin (10). Deezer labels its artists
+  "African Music" → World. A targeted rule would help; do NOT infer Afrobeats
+  from the continent-wide label.
+
+### ⚠️ Data-provenance rules learned the hard way — do not re-litigate
+
+1. **`playlist_genre` in `spotify_songs.csv` / `high_/low_popularity` labels the
+   PLAYLIST, not the track.** Seyi Vibez and Young Jonn carry a dozen `arabic`
+   labels each from a playlist called "Arab X". The wrong label IS the
+   majority, so no dominance rule survives. Zero weight.
+2. **`tags_lastfm` in `artists.csv` is user-generated and often a joke.** Rolf
+   Zuckowski (German children's music) buckets as Rock from a "black metal"
+   tag. Only 2.7% of artists bucket from the clean `tags_mb` alone.
+3. **`artists.csv` `country_mb` is NOT an independent origin source** — it is
+   scraped from MusicBrainz, the same source our live queries hit. Using it to
+   arbitrate a chart-vs-MusicBrainz dispute double-counts MusicBrainz. Its
+   genuinely new column is `ambiguous_artist` (shared Last.fm page).
+4. **Audio-feature coverage is uneven, not just partial**: UK×Rock 80%,
+   Brazil×Bossa Nova 2%. Never let features drive sequencing; they refine it.
+5. **Check key formats before comparing two datasets.** This session lost time
+   three separate times to silent mismatches — ISO code vs country name, and
+   normName vs normKey twice. A 0%/100% split is a comparison bug, not a
+   finding.
+
+## 🟡 Kaggle pass 1 (2026-07-25b)
 
 ### A background job is RUNNING
 `npm run mine:charts` — verifying 4,278 chart-nominated artists against
