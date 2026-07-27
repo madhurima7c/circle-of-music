@@ -47,6 +47,22 @@
     "country": "Kyrgyzstan",
     "precision": "city"
   },
+  "385": {
+    "name": "385",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "1814": {
+    "name": "1814",
+    "lat": -38.069,
+    "lng": 175.577,
+    "place": "",
+    "country": "New Zealand",
+    "precision": "country"
+  },
   "1976": {
     "name": "1976",
     "lat": 24,
@@ -795,7 +811,14 @@
     "country": "France",
     "precision": "city"
   },
-  "justice": null,
+  "justice": {
+    "name": "justice",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
   "phoenix": {
     "name": "Phoenix",
     "lat": 48.805,
@@ -1481,7 +1504,14 @@
     "country": "India",
     "precision": "city"
   },
-  "ritviz": null,
+  "ritviz": {
+    "name": "Ritviz",
+    "lat": 21.73,
+    "lng": 82.79,
+    "place": "",
+    "country": "India",
+    "precision": "country"
+  },
   "su real": null,
   "karsh kale": {
     "name": "Karsh Kale",
@@ -118483,5 +118513,4445 @@
     "place": "Hanoi",
     "country": "Vietnam",
     "precision": "city"
+  },
+  "madonna": {
+    "name": "Madonna",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "bruce springsteen": {
+    "name": "Bruce Springsteen",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "marina": {
+    "name": "Marina",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "natalie imbruglia": {
+    "name": "Natalie Imbruglia",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "corinne bailey rae": {
+    "name": "Corinne Bailey Rae",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "the stone roses": {
+    "name": "The Stone Roses",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "the streets": {
+    "name": "The Streets",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "iggy azalea": {
+    "name": "Iggy Azalea",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "jimmy cliff": {
+    "name": "Jimmy Cliff",
+    "lat": 18.113,
+    "lng": -77.269,
+    "place": "",
+    "country": "Jamaica",
+    "precision": "country"
+  },
+  "dj fresh": {
+    "name": "DJ.Fresh",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "robert miles": {
+    "name": "Robert Miles",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "alesso": {
+    "name": "Alesso",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "eve": {
+    "name": "Ève",
+    "lat": 36.501,
+    "lng": 127.793,
+    "place": "",
+    "country": "South Korea",
+    "precision": "country"
+  },
+  "mae": {
+    "name": "Mae",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "noisia": {
+    "name": "Noisia",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "5 seconds of summer": {
+    "name": "5 Seconds Of Summer",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "madlib": {
+    "name": "Madlib",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "carl orff": {
+    "name": "Carl Orff",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "raphael saadiq": {
+    "name": "Raphael Saadiq",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "samuel barber": {
+    "name": "Samuel Barber",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "camel": {
+    "name": "Camel",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "keren ann": {
+    "name": "Keren Ann",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "ghost": {
+    "name": "Ghost",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "technotronic": {
+    "name": "Technotronic",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "gregorian": {
+    "name": "Gregorian",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "lene marlin": {
+    "name": "Lene Marlin",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "sandra": {
+    "name": "Sandra",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "focus": {
+    "name": "Focus!",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "jan delay": {
+    "name": "Jan Delay",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "nujabes": {
+    "name": "Nujabes",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "ralph vaughan williams": {
+    "name": "Ralph Vaughan Williams",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "safri duo": {
+    "name": "Safri Duo",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "emperor": {
+    "name": "Emperor",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "dirty south": {
+    "name": "Dirty South",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "medina": {
+    "name": "Medina",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "paolo conte": {
+    "name": "Paolo Conte",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "gob": {
+    "name": "Gob",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "spiller": {
+    "name": "Spiller",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "aeroplane": {
+    "name": "Aeroplane",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "serebro": {
+    "name": "Serebro",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "racoon": {
+    "name": "Racoon",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "oren lavie": {
+    "name": "Oren Lavie",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "goldfish": {
+    "name": "Goldfish",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "bob moses": {
+    "name": "Bob Moses",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "pegboard nerds": {
+    "name": "Pegboard Nerds",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "subway to sally": {
+    "name": "Subway To Sally",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "ice mc": {
+    "name": "Ice MC",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "basto": {
+    "name": "Basto",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "alma": {
+    "name": "Alma",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "jon secada": {
+    "name": "Jon Secada",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "zuco 103": {
+    "name": "Zuco 103",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "orphaned land": {
+    "name": "Orphaned Land",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "hugo": {
+    "name": "Hugo",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "to die for": {
+    "name": "To/Die/For",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "grupo niche": {
+    "name": "Grupo Niche",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "fonseca": {
+    "name": "Fonseca",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "gloria trevi": {
+    "name": "Gloria Trevi",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "max herre": {
+    "name": "Max Herre",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "new years day": {
+    "name": "New Years Day",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "yuki": {
+    "name": "Yuki",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "stigmata": {
+    "name": "Stigmata",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "zeus": {
+    "name": "Zeus",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "sophie hutchings": {
+    "name": "Sophie Hutchings",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "audio lotion": {
+    "name": "Audio Lotion",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "monica naranjo": {
+    "name": "Mónica Naranjo",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "kato": {
+    "name": "Kato",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "red velvet": {
+    "name": "Red Velvet",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "sdp": {
+    "name": "SDP",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "rose": {
+    "name": "Rose",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "anna von hausswolff": {
+    "name": "Anna von Hausswolff",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "leprous": {
+    "name": "Leprous",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "l imperatrice": {
+    "name": "L'Impératrice",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "pandora": {
+    "name": "Pandora",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "aya": {
+    "name": "aya",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "xavier cugat": {
+    "name": "Xavier Cugat",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "pup": {
+    "name": "Pup",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "hard rock sofa": {
+    "name": "Hard Rock Sofa",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "валентин стрыкало": {
+    "name": "Валентин Стрыкало",
+    "lat": 48.814,
+    "lng": 31.083,
+    "place": "",
+    "country": "Ukraine",
+    "precision": "country"
+  },
+  "konshens": {
+    "name": "Konshens",
+    "lat": 18.113,
+    "lng": -77.269,
+    "place": "",
+    "country": "Jamaica",
+    "precision": "country"
+  },
+  "stella": {
+    "name": "Stella",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "erasmo carlos": {
+    "name": "Erasmo Carlos",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "liam finn": {
+    "name": "Liam Finn",
+    "lat": -38.069,
+    "lng": 175.577,
+    "place": "",
+    "country": "New Zealand",
+    "precision": "country"
+  },
+  "zack de la rocha": {
+    "name": "Zack de la Rocha",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "jaakko eino kalevi": {
+    "name": "Jaakko Eino Kalevi",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "ark": {
+    "name": "Ark",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "klyne": {
+    "name": "Klyne",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "hande yener": {
+    "name": "Hande Yener",
+    "lat": 38.931,
+    "lng": 35.482,
+    "place": "",
+    "country": "Turkey",
+    "precision": "country"
+  },
+  "d train": {
+    "name": "D Train",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "hans joachim roedelius": {
+    "name": "Hans-Joachim Roedelius",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "seventeen": {
+    "name": "Seventeen",
+    "lat": 36.501,
+    "lng": 127.793,
+    "place": "",
+    "country": "South Korea",
+    "precision": "country"
+  },
+  "tony rebel": {
+    "name": "Tony Rebel",
+    "lat": 18.113,
+    "lng": -77.269,
+    "place": "",
+    "country": "Jamaica",
+    "precision": "country"
+  },
+  "aiko": {
+    "name": "Aiko",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "double": {
+    "name": "Double",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "pharaoh": {
+    "name": "Pharaøh",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "public domain": {
+    "name": "Public Domain",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "aria": {
+    "name": "Aria",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "illusion": {
+    "name": "Illusion",
+    "lat": 47.192,
+    "lng": 19.456,
+    "place": "",
+    "country": "Hungary",
+    "precision": "country"
+  },
+  "edvin marton": {
+    "name": "Edvin Marton",
+    "lat": 47.192,
+    "lng": 19.456,
+    "place": "",
+    "country": "Hungary",
+    "precision": "country"
+  },
+  "aaa": {
+    "name": "AAA",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "gepe": {
+    "name": "Gepe",
+    "lat": -35.718,
+    "lng": -71.315,
+    "place": "",
+    "country": "Chile",
+    "precision": "country"
+  },
+  "javier solis": {
+    "name": "Javier Solis",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "gordi": {
+    "name": "Gordi",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "brothomstates": {
+    "name": "Brothomstates",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "solee": {
+    "name": "Solee",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "sabotage": {
+    "name": "Sabotage",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "plini": {
+    "name": "Plini",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "k 391": {
+    "name": "K-391",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "spitfire": {
+    "name": "Spitfire",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "pile": {
+    "name": "Pile",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "komeda": {
+    "name": "Komeda",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "den harrow": {
+    "name": "Den Harrow",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "together": {
+    "name": "Together",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "sawako": {
+    "name": "Sawako",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "supernova": {
+    "name": "Supernova",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "tomas andersson wij": {
+    "name": "Tomas Andersson Wij",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "zeze di camargo luciano": {
+    "name": "Zezé Di Camargo & Luciano",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "halloween": {
+    "name": "Halloween",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "aeon": {
+    "name": "AEON",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "jennie": {
+    "name": "JENNIE",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "michael nau": {
+    "name": "Michael Nau",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "jefre cantu ledesma": {
+    "name": "Jefre Cantu-Ledesma",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "adriana evans": {
+    "name": "Adriana Evans",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "alain goraguer": {
+    "name": "Alain Goraguer",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "aphrodelics": {
+    "name": "Aphrodelics",
+    "lat": 47.735,
+    "lng": 13.23,
+    "place": "",
+    "country": "Austria",
+    "precision": "country"
+  },
+  "australian crawl": {
+    "name": "Australian Crawl",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "hannah": {
+    "name": "Hannah",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "stray": {
+    "name": "Stray",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "aimer": {
+    "name": "Aimer",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "thundamentals": {
+    "name": "Thundamentals",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "mastiksoul": {
+    "name": "Mastiksoul",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "skyforger": {
+    "name": "Skyforger",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "activ": {
+    "name": "Activ",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "the young professionals": {
+    "name": "The Young Professionals",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "the neon judgement": {
+    "name": "The Neon Judgement",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "rita": {
+    "name": "Rita",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "urfaust": {
+    "name": "Urfaust",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "серьга": {
+    "name": "СерьГа",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "nayer": {
+    "name": "Nayer",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "maria jose": {
+    "name": "Maria Jose",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "alka yagnik": {
+    "name": "Alka Yagnik",
+    "lat": 21.73,
+    "lng": 82.79,
+    "place": "",
+    "country": "India",
+    "precision": "country"
+  },
+  "monkey business": {
+    "name": "Monkey Business",
+    "lat": 49.836,
+    "lng": 15.547,
+    "place": "",
+    "country": "Czechia",
+    "precision": "country"
+  },
+  "abwarts": {
+    "name": "Abwärts",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "deeb": {
+    "name": "Deeb",
+    "lat": 26.793,
+    "lng": 30.783,
+    "place": "",
+    "country": "Egypt",
+    "precision": "country"
+  },
+  "mutiny": {
+    "name": "Mutiny",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "gustav": {
+    "name": "Gustav",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "manuel barrueco": {
+    "name": "Manuel Barrueco",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "leo brouwer": {
+    "name": "Léo Brouwer",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "나윤선": {
+    "name": "나윤선",
+    "lat": 36.501,
+    "lng": 127.793,
+    "place": "",
+    "country": "South Korea",
+    "precision": "country"
+  },
+  "day6": {
+    "name": "Day6",
+    "lat": 36.501,
+    "lng": 127.793,
+    "place": "",
+    "country": "South Korea",
+    "precision": "country"
+  },
+  "binder krieglstein": {
+    "name": "Binder & Krieglstein",
+    "lat": 47.735,
+    "lng": 13.23,
+    "place": "",
+    "country": "Austria",
+    "precision": "country"
+  },
+  "the names": {
+    "name": "The Names",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "wintermute": {
+    "name": "Wintermute",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "radar": {
+    "name": "Radar",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "skinny": {
+    "name": "Skinny",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "sandro": {
+    "name": "SANDRO",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "getter jaani": {
+    "name": "Getter Jaani",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "stoppok": {
+    "name": "Stoppok",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "zaq": {
+    "name": "Zaq",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "alekseev": {
+    "name": "Alekseev",
+    "lat": 48.814,
+    "lng": 31.083,
+    "place": "",
+    "country": "Ukraine",
+    "precision": "country"
+  },
+  "alkilados": {
+    "name": "Alkilados",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "uniikki": {
+    "name": "Uniikki",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "the kids": {
+    "name": "The Kids",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "chinaski": {
+    "name": "Chinaski",
+    "lat": 49.836,
+    "lng": 15.547,
+    "place": "",
+    "country": "Czechia",
+    "precision": "country"
+  },
+  "lauer": {
+    "name": "Lauer",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "cecilia": {
+    "name": "Cecilia",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "neurotech": {
+    "name": "Neurotech",
+    "lat": 46.152,
+    "lng": 15.131,
+    "place": "",
+    "country": "Slovenia",
+    "precision": "country"
+  },
+  "insite": {
+    "name": "Insite",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "dzeko": {
+    "name": "Dzeko",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "alain barriere": {
+    "name": "Alain Barrière",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "urban symphony": {
+    "name": "Urban Symphony",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "fractal": {
+    "name": "Fractal",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "nemesis": {
+    "name": "Nemesis",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "corrupted": {
+    "name": "cørrupted",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "siglo xx": {
+    "name": "Siglo XX",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "powersolo": {
+    "name": "Powersolo",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "coals": {
+    "name": "Coals",
+    "lat": 51.939,
+    "lng": 19.052,
+    "place": "",
+    "country": "Poland",
+    "precision": "country"
+  },
+  "гаидамаки": {
+    "name": "Гайдамаки",
+    "lat": 48.814,
+    "lng": 31.083,
+    "place": "",
+    "country": "Ukraine",
+    "precision": "country"
+  },
+  "nexus": {
+    "name": "Nexus",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "franz lehar": {
+    "name": "Franz Lehar",
+    "lat": 47.735,
+    "lng": 13.23,
+    "place": "",
+    "country": "Austria",
+    "precision": "country"
+  },
+  "radium": {
+    "name": "Radium",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "e mantra": {
+    "name": "E-Mantra",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "wuthering heights": {
+    "name": "Wuthering Heights",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "plastic": {
+    "name": "Plastic",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "echo": {
+    "name": "Echo",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "red zebra": {
+    "name": "Red Zebra",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "mohamed hamaki": {
+    "name": "Mohamed Hamaki",
+    "lat": 26.793,
+    "lng": 30.783,
+    "place": "",
+    "country": "Egypt",
+    "precision": "country"
+  },
+  "coyu": {
+    "name": "Coyu",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "dj smokey": {
+    "name": "Dj Smokey",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "antonia": {
+    "name": "Antonia",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "santiago cruz": {
+    "name": "Santiago Cruz",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "lo": {
+    "name": "LO",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "mirabilis": {
+    "name": "Mirabilis",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "ella": {
+    "name": "Ella",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "andy rivera": {
+    "name": "Andy Rivera",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "ali": {
+    "name": "Ali",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "diana haddad": {
+    "name": "Diana Haddad",
+    "lat": 33.867,
+    "lng": 35.869,
+    "place": "",
+    "country": "Lebanon",
+    "precision": "country"
+  },
+  "up dharma down": {
+    "name": "Up Dharma Down",
+    "lat": 15.521,
+    "lng": 121.495,
+    "place": "",
+    "country": "Philippines",
+    "precision": "country"
+  },
+  "spiro": {
+    "name": "Spiro",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "cobra": {
+    "name": "Cobra",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "solveig slettahjell": {
+    "name": "Solveig Slettahjell",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "mustang": {
+    "name": "Mustang",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "the penetrators": {
+    "name": "The Penetrators",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "seamus ennis": {
+    "name": "Seamus Ennis",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "distorted harmony": {
+    "name": "Distorted Harmony",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "payung teduh": {
+    "name": "Payung Teduh",
+    "lat": -2.32,
+    "lng": 121.734,
+    "place": "",
+    "country": "Indonesia",
+    "precision": "country"
+  },
+  "paperi t": {
+    "name": "Paperi T",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "altitude": {
+    "name": "Altitude.",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "dan barta": {
+    "name": "Dan Bárta",
+    "lat": 49.836,
+    "lng": 15.547,
+    "place": "",
+    "country": "Czechia",
+    "precision": "country"
+  },
+  "mirror": {
+    "name": "Mirror",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "east forest": {
+    "name": "East Forest",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "luminate": {
+    "name": "Luminate",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "my first story": {
+    "name": "MY FIRST STORY",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "ange": {
+    "name": "Ange",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "error": {
+    "name": "Error",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "bandari": {
+    "name": "Bandari",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "azul azul": {
+    "name": "Azul Azul",
+    "lat": -16.317,
+    "lng": -63.544,
+    "place": "",
+    "country": "Bolivia",
+    "precision": "country"
+  },
+  "jackie shane": {
+    "name": "Jackie Shane",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "cassiano": {
+    "name": "Cassiano",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "emin": {
+    "name": "Emin",
+    "lat": 40.066,
+    "lng": 47.683,
+    "place": "",
+    "country": "Azerbaijan",
+    "precision": "country"
+  },
+  "invsn": {
+    "name": "INVSN",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "kevin": {
+    "name": "Kevin",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "marcell": {
+    "name": "Marcell",
+    "lat": -2.32,
+    "lng": 121.734,
+    "place": "",
+    "country": "Indonesia",
+    "precision": "country"
+  },
+  "loredana": {
+    "name": "Loredana",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "mikko tarmia": {
+    "name": "Mikko Tarmia",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "inculto": {
+    "name": "InCulto",
+    "lat": 55.139,
+    "lng": 23.822,
+    "place": "",
+    "country": "Lithuania",
+    "precision": "country"
+  },
+  "chava flores": {
+    "name": "Chava Flores",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "mara": {
+    "name": "Mara",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "sir georg solti": {
+    "name": "Sir Georg Solti",
+    "lat": 47.192,
+    "lng": 19.456,
+    "place": "",
+    "country": "Hungary",
+    "precision": "country"
+  },
+  "iwan fals": {
+    "name": "Iwan Fals",
+    "lat": -2.32,
+    "lng": 121.734,
+    "place": "",
+    "country": "Indonesia",
+    "precision": "country"
+  },
+  "vama veche": {
+    "name": "Vama Veche",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "marcelo": {
+    "name": "Marcelo",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "crystals": {
+    "name": "Crystals",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "maria conchita alonso": {
+    "name": "Maria Conchita Alonso",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "wande coal": {
+    "name": "Wande Coal",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "valery gergiev": {
+    "name": "Valery Gergiev",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "hamza": {
+    "name": "Hamza",
+    "lat": 21.73,
+    "lng": 82.79,
+    "place": "",
+    "country": "India",
+    "precision": "country"
+  },
+  "maria del mar bonet": {
+    "name": "Maria Del Mar Bonet",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "cali p": {
+    "name": "Cali P",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "nichts": {
+    "name": "Nichts",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "fausto": {
+    "name": "Fausto",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "winter severity index": {
+    "name": "Winter Severity Index",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "maarit": {
+    "name": "Maarit",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "logic system": {
+    "name": "Logic System",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "libertad lamarque": {
+    "name": "Libertad Lamarque",
+    "lat": -37.091,
+    "lng": -63.522,
+    "place": "",
+    "country": "Argentina",
+    "precision": "country"
+  },
+  "emmy": {
+    "name": "Emmy",
+    "lat": 39.995,
+    "lng": 45.044,
+    "place": "",
+    "country": "Armenia",
+    "precision": "country"
+  },
+  "oliver klein": {
+    "name": "Oliver Klein",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "hail spirit noir": {
+    "name": "Hail Spirit Noir",
+    "lat": 39.118,
+    "lng": 23.108,
+    "place": "",
+    "country": "Greece",
+    "precision": "country"
+  },
+  "rockfour": {
+    "name": "Rockfour",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "fermin iv": {
+    "name": "Fermin IV",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "740 boyz": {
+    "name": "740 Boyz",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "nerve": {
+    "name": "Nerve",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "pyrexia": {
+    "name": "Pyrexia",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "dilara kazimova": {
+    "name": "Dilara Kazimova",
+    "lat": 40.066,
+    "lng": 47.683,
+    "place": "",
+    "country": "Azerbaijan",
+    "precision": "country"
+  },
+  "david calzado y su charanga habanera": {
+    "name": "David Calzado Y Su Charanga Habanera",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "carpe diem": {
+    "name": "CARPE DIEM",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "azure": {
+    "name": "Azure",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "jnl": {
+    "name": "JNL",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "absturzende brieftauben": {
+    "name": "Abstürzende Brieftauben",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "flavio jose": {
+    "name": "Flávio José",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "patoranking": {
+    "name": "Patoranking",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "igo": {
+    "name": "IGO",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "jimmy van m": {
+    "name": "Jimmy Van M",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "wheel": {
+    "name": "Wheel",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "tabou combo": {
+    "name": "Tabou Combo",
+    "lat": 19.052,
+    "lng": -72.687,
+    "place": "",
+    "country": "Haiti",
+    "precision": "country"
+  },
+  "benjamin orr": {
+    "name": "Benjamin Orr",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "assia": {
+    "name": "Assia",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "marchio bossa": {
+    "name": "Marchio Bossa",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "nicolae guta": {
+    "name": "Nicolae Guta",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "agora": {
+    "name": "Agora",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "aera": {
+    "name": "Äera",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "centerfold": {
+    "name": "Centerfold",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "lloyd miller": {
+    "name": "Lloyd Miller",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "dj hazel": {
+    "name": "DJ Hazel",
+    "lat": 51.939,
+    "lng": 19.052,
+    "place": "",
+    "country": "Poland",
+    "precision": "country"
+  },
+  "kasper winding": {
+    "name": "Kasper Winding",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "bedwetters": {
+    "name": "Bedwetters",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "yaro": {
+    "name": "Yaro",
+    "lat": 51.939,
+    "lng": 19.052,
+    "place": "",
+    "country": "Poland",
+    "precision": "country"
+  },
+  "idaly": {
+    "name": "Idaly",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "kameleba": {
+    "name": "Kameleba",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "tom sawyer": {
+    "name": "Tom Sawyer",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "fanatic": {
+    "name": "Fanatic",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "tanel padar": {
+    "name": "Tanel Padar",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "sofia essaidi": {
+    "name": "Sofia Essaïdi",
+    "lat": 28.59,
+    "lng": -9.072,
+    "place": "",
+    "country": "Morocco",
+    "precision": "country"
+  },
+  "dd company": {
+    "name": "DD Company",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "cash": {
+    "name": "Cash!*",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "alberto barros": {
+    "name": "Alberto Barros",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "credo": {
+    "name": "Credo",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "normalize": {
+    "name": "Normalize",
+    "lat": 39.118,
+    "lng": 23.108,
+    "place": "",
+    "country": "Greece",
+    "precision": "country"
+  },
+  "rama": {
+    "name": "RAMA",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "ice prince": {
+    "name": "Ice Prince",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "goblini": {
+    "name": "Goblini",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "mizz nina": {
+    "name": "Mizz Nina",
+    "lat": 3.851,
+    "lng": 114.423,
+    "place": "",
+    "country": "Malaysia",
+    "precision": "country"
+  },
+  "carlos paiao": {
+    "name": "Carlos Paião",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "lukas": {
+    "name": "Lukas",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "eduardo gatti": {
+    "name": "Eduardo Gatti",
+    "lat": -35.718,
+    "lng": -71.315,
+    "place": "",
+    "country": "Chile",
+    "precision": "country"
+  },
+  "los intocables": {
+    "name": "Los Intocables",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "lupe fuentes": {
+    "name": "Lupe Fuentes",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "yordano": {
+    "name": "Yordano",
+    "lat": 6.443,
+    "lng": -66.532,
+    "place": "",
+    "country": "Venezuela",
+    "precision": "country"
+  },
+  "astro n out": {
+    "name": "Astro'n'out",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "laura rizzotto": {
+    "name": "Laura Rizzotto",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "martin tillman": {
+    "name": "Martin Tillman",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "cubanito 20 02": {
+    "name": "Cubanito 20.02",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "doga": {
+    "name": "Doğa",
+    "lat": 49.836,
+    "lng": 15.547,
+    "place": "",
+    "country": "Czechia",
+    "precision": "country"
+  },
+  "fred de palma": {
+    "name": "Fred De Palma",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "yandar yostin": {
+    "name": "Yandar & Yostin",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "los 4": {
+    "name": "Los 4",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "flip da scrip": {
+    "name": "Flip Da Scrip",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "ukendt kunstner": {
+    "name": "Ukendt Kunstner",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "laima vaikule": {
+    "name": "Laima Vaikule",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "jarek smietana": {
+    "name": "Jarek Smietana",
+    "lat": 51.939,
+    "lng": 19.052,
+    "place": "",
+    "country": "Poland",
+    "precision": "country"
+  },
+  "ainars mielavs": {
+    "name": "Ainars Mielavs",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "cairokee": {
+    "name": "Cairokee",
+    "lat": 26.793,
+    "lng": 30.783,
+    "place": "",
+    "country": "Egypt",
+    "precision": "country"
+  },
+  "kashuks": {
+    "name": "Kashuks",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "kaveh yaghmaei": {
+    "name": "Kaveh Yaghmaei",
+    "lat": 32.396,
+    "lng": 53.713,
+    "place": "",
+    "country": "Iran",
+    "precision": "country"
+  },
+  "thyx": {
+    "name": "THYX",
+    "lat": 47.735,
+    "lng": 13.23,
+    "place": "",
+    "country": "Austria",
+    "precision": "country"
+  },
+  "janet seidel": {
+    "name": "Janet Seidel",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "trovante": {
+    "name": "Trovante",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "alondra de la parra": {
+    "name": "Alondra de la Parra",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "dj mind x": {
+    "name": "DJ Mind-X",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "sergiu celibidache": {
+    "name": "Sergiu Celibidache",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "cross": {
+    "name": "Cross",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "ulfur ulfur": {
+    "name": "Úlfur Úlfur",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "hakon austbo": {
+    "name": "Hakon Austbo",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "ashtar": {
+    "name": "Ashtar",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "josef locke": {
+    "name": "Josef Locke",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "irish stew of sindidun": {
+    "name": "Irish Stew of Sindidun",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "the arch": {
+    "name": "The Arch",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "emmsje gauti": {
+    "name": "Emmsjé Gauti",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "damascus": {
+    "name": "Damascus",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "trespass": {
+    "name": "Trespass",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "hey smith": {
+    "name": "Hey-Smith",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "thot": {
+    "name": "Thot",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "world standard": {
+    "name": "World Standard",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "alemu aga": {
+    "name": "Alemu Aga",
+    "lat": 9.191,
+    "lng": 40.372,
+    "place": "",
+    "country": "Ethiopia",
+    "precision": "country"
+  },
+  "malu trevejo": {
+    "name": "Malu Trevejo",
+    "lat": 21.661,
+    "lng": -79.576,
+    "place": "",
+    "country": "Cuba",
+    "precision": "country"
+  },
+  "disconnected": {
+    "name": "Disconnected",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "stevans": {
+    "name": "Stevans",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "uptown": {
+    "name": "Uptown",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "dartz": {
+    "name": "Dartz",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "saluki": {
+    "name": "SALUKI",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "los silvertones": {
+    "name": "Los Silvertones",
+    "lat": 8.416,
+    "lng": -80.104,
+    "place": "",
+    "country": "Panama",
+    "precision": "country"
+  },
+  "hamza namira": {
+    "name": "Hamza Namira",
+    "lat": 26.793,
+    "lng": 30.783,
+    "place": "",
+    "country": "Egypt",
+    "precision": "country"
+  },
+  "kastra": {
+    "name": "Kastra",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "alisan": {
+    "name": "Alisan",
+    "lat": 38.931,
+    "lng": 35.482,
+    "place": "",
+    "country": "Turkey",
+    "precision": "country"
+  },
+  "shelow shaq": {
+    "name": "Shelow Shaq",
+    "lat": 18.742,
+    "lng": -70.132,
+    "place": "",
+    "country": "Dominican Rep.",
+    "precision": "country"
+  },
+  "sixsense": {
+    "name": "Sixsense",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "brasil 690": {
+    "name": "Brasil 690",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "aka moon": {
+    "name": "Aka Moon",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "lucky brown": {
+    "name": "Lucky Brown",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "aron can": {
+    "name": "Aron Can",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "luis represas": {
+    "name": "Luís Represas",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "my linh": {
+    "name": "Mỹ Linh",
+    "lat": 16.591,
+    "lng": 106.648,
+    "place": "",
+    "country": "Vietnam",
+    "precision": "country"
+  },
+  "sonerien du": {
+    "name": "Sonerien Du",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "nocaden": {
+    "name": "Nocaden",
+    "lat": 48.665,
+    "lng": 19.719,
+    "place": "",
+    "country": "Slovakia",
+    "precision": "country"
+  },
+  "sonny okosun": {
+    "name": "Sonny Okosun",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "inferno": {
+    "name": "Inferno",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "greg gow": {
+    "name": "Greg Gow",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "don t": {
+    "name": "Don't",
+    "lat": 44.157,
+    "lng": 16.285,
+    "place": "",
+    "country": "Croatia",
+    "precision": "country"
+  },
+  "indra lesmana": {
+    "name": "Indra Lesmana",
+    "lat": -2.32,
+    "lng": 121.734,
+    "place": "",
+    "country": "Indonesia",
+    "precision": "country"
+  },
+  "rey valera": {
+    "name": "REY VALERA",
+    "lat": 15.521,
+    "lng": 121.495,
+    "place": "",
+    "country": "Philippines",
+    "precision": "country"
+  },
+  "unnikrishnan": {
+    "name": "Unnikrishnan",
+    "lat": 21.73,
+    "lng": 82.79,
+    "place": "",
+    "country": "India",
+    "precision": "country"
+  },
+  "felipe gordon": {
+    "name": "Felipe Gordon",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "illegal": {
+    "name": "Illegal",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "chad hugo": {
+    "name": "Chad Hugo",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "liis lemsalu": {
+    "name": "Liis Lemsalu",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "dario gomez": {
+    "name": "Darío Gómez",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "o hooley tidow": {
+    "name": "O'Hooley & Tidow",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "intifada": {
+    "name": "Intifada",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "reket": {
+    "name": "Reket",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "kru": {
+    "name": "Kru",
+    "lat": 3.851,
+    "lng": 114.423,
+    "place": "",
+    "country": "Malaysia",
+    "precision": "country"
+  },
+  "de brassers": {
+    "name": "De Brassers",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "peregoyo y su combo vacana": {
+    "name": "Peregoyo Y Su Combo Vacaná",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "валентина пономарева": {
+    "name": "Валентина Пономарева",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "kona": {
+    "name": "Kona",
+    "lat": 23.559,
+    "lng": 90.379,
+    "place": "",
+    "country": "Bangladesh",
+    "precision": "country"
+  },
+  "alina eremia": {
+    "name": "Alina Eremia",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "mikalojus konstantinas ciurlionis": {
+    "name": "Mikalojus Konstantinas Ciurlionis",
+    "lat": 55.139,
+    "lng": 23.822,
+    "place": "",
+    "country": "Lithuania",
+    "precision": "country"
+  },
+  "pieter jan leusink": {
+    "name": "Pieter Jan Leusink",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "chocolat s": {
+    "name": "Chocolat's",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "joipe": {
+    "name": "JóiPé",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "xxx rottweiler hundar": {
+    "name": "XXX Rottweiler hundar",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "emociones clandestinas": {
+    "name": "Emociones Clandestinas",
+    "lat": -35.718,
+    "lng": -71.315,
+    "place": "",
+    "country": "Chile",
+    "precision": "country"
+  },
+  "sean dunphy": {
+    "name": "Sean Dunphy",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "carsten dahl": {
+    "name": "Carsten Dahl",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "lockdown": {
+    "name": "Lockdown",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "aiken": {
+    "name": "Aiken",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "eric nam": {
+    "name": "Eric Nam",
+    "lat": 36.501,
+    "lng": 127.793,
+    "place": "",
+    "country": "South Korea",
+    "precision": "country"
+  },
+  "alfredo gutierrez": {
+    "name": "Alfredo Gutiérrez",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "jagatara": {
+    "name": "Jagatara",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "自然捲": {
+    "name": "自然捲",
+    "lat": 23.633,
+    "lng": 121.029,
+    "place": "",
+    "country": "Taiwan",
+    "precision": "country"
+  },
+  "no choice": {
+    "name": "No Choice",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "kuberunnak karmo": {
+    "name": "Küberünnak & Karmo",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "badsista": {
+    "name": "Badsista",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "lovindeer": {
+    "name": "Lovindeer",
+    "lat": 18.113,
+    "lng": -77.269,
+    "place": "",
+    "country": "Jamaica",
+    "precision": "country"
+  },
+  "tunde mabadu": {
+    "name": "Tunde Mabadu",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "super junky monkey": {
+    "name": "Super Junky Monkey",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "与非门": {
+    "name": "与非门",
+    "lat": 36.871,
+    "lng": 104.351,
+    "place": "",
+    "country": "China",
+    "precision": "country"
+  },
+  "moka boka": {
+    "name": "Moka Boka",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "minuano": {
+    "name": "Minuano",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "yan": {
+    "name": "Yan",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "uro": {
+    "name": "URO",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "the bayonets": {
+    "name": "The Bayonets",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "awlnight": {
+    "name": "Awlnight",
+    "lat": 53.744,
+    "lng": 27.947,
+    "place": "",
+    "country": "Belarus",
+    "precision": "country"
+  },
+  "drims": {
+    "name": "DRIMS",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "utangardsmenn": {
+    "name": "Utangarðsmenn",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "go save the hostages": {
+    "name": "Go! Save The Hostages!",
+    "lat": 26.793,
+    "lng": 30.783,
+    "place": "",
+    "country": "Egypt",
+    "precision": "country"
+  },
+  "lara saint paul": {
+    "name": "Lara Saint Paul",
+    "lat": 15.227,
+    "lng": 39.702,
+    "place": "",
+    "country": "Eritrea",
+    "precision": "country"
+  },
+  "edith": {
+    "name": "Edith",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "pil c": {
+    "name": "Pil C",
+    "lat": 48.665,
+    "lng": 19.719,
+    "place": "",
+    "country": "Slovakia",
+    "precision": "country"
+  },
+  "gustavo elis": {
+    "name": "Gustavo Elis",
+    "lat": 6.443,
+    "lng": -66.532,
+    "place": "",
+    "country": "Venezuela",
+    "precision": "country"
+  },
+  "luigi alva": {
+    "name": "Luigi Alva",
+    "lat": -9.203,
+    "lng": -75.038,
+    "place": "",
+    "country": "Peru",
+    "precision": "country"
+  },
+  "yannis markopoulos": {
+    "name": "Yannis Markopoulos",
+    "lat": 39.118,
+    "lng": 23.108,
+    "place": "",
+    "country": "Greece",
+    "precision": "country"
+  },
+  "makadem": {
+    "name": "Makadem",
+    "lat": 0.415,
+    "lng": 37.874,
+    "place": "",
+    "country": "Kenya",
+    "precision": "country"
+  },
+  "baiba skride": {
+    "name": "Baiba Skride",
+    "lat": 56.793,
+    "lng": 24.616,
+    "place": "",
+    "country": "Latvia",
+    "precision": "country"
+  },
+  "omar enrique": {
+    "name": "Omar Enrique",
+    "lat": 6.443,
+    "lng": -66.532,
+    "place": "",
+    "country": "Venezuela",
+    "precision": "country"
+  },
+  "deku": {
+    "name": "Deku",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "ringispil": {
+    "name": "Ringispil",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "hysteric": {
+    "name": "Hysteric",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "blaes bukki": {
+    "name": "Blæs Bukki",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "bridie gallagher": {
+    "name": "Bridie Gallagher",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "viktor sodoma": {
+    "name": "Viktor Sodoma",
+    "lat": 49.836,
+    "lng": 15.547,
+    "place": "",
+    "country": "Czechia",
+    "precision": "country"
+  },
+  "struggler": {
+    "name": "Struggler",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "rayess bek": {
+    "name": "Rayess Bek",
+    "lat": 33.867,
+    "lng": 35.869,
+    "place": "",
+    "country": "Lebanon",
+    "precision": "country"
+  },
+  "the push": {
+    "name": "The push",
+    "lat": 62.234,
+    "lng": 17.465,
+    "place": "",
+    "country": "Sweden",
+    "precision": "country"
+  },
+  "filmmaker": {
+    "name": "Filmmaker",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "samey": {
+    "name": "Samey",
+    "lat": 48.665,
+    "lng": 19.719,
+    "place": "",
+    "country": "Slovakia",
+    "precision": "country"
+  },
+  "justatee": {
+    "name": "JustaTee",
+    "lat": 16.591,
+    "lng": 106.648,
+    "place": "",
+    "country": "Vietnam",
+    "precision": "country"
+  },
+  "crisalida": {
+    "name": "Crisálida",
+    "lat": -35.718,
+    "lng": -71.315,
+    "place": "",
+    "country": "Chile",
+    "precision": "country"
+  },
+  "lianna": {
+    "name": "Lianna",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "varga miklos": {
+    "name": "Varga Miklós",
+    "lat": 47.192,
+    "lng": 19.456,
+    "place": "",
+    "country": "Hungary",
+    "precision": "country"
+  },
+  "imran ajmain": {
+    "name": "Imran Ajmain",
+    "lat": 3.851,
+    "lng": 114.423,
+    "place": "",
+    "country": "Malaysia",
+    "precision": "country"
+  },
+  "murasaki": {
+    "name": "Murasaki",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "puta volcano": {
+    "name": "Puta Volcano",
+    "lat": 39.118,
+    "lng": 23.108,
+    "place": "",
+    "country": "Greece",
+    "precision": "country"
+  },
+  "polar bears": {
+    "name": "Polar Bears",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "kizzy": {
+    "name": "Kizzy",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "maya diab": {
+    "name": "Maya Diab",
+    "lat": 33.867,
+    "lng": 35.869,
+    "place": "",
+    "country": "Lebanon",
+    "precision": "country"
+  },
+  "jordan rivera": {
+    "name": "Jordan Rivera",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "svetlana": {
+    "name": "Svetlana",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "daniela aleuy": {
+    "name": "Daniela Aleuy",
+    "lat": -35.718,
+    "lng": -71.315,
+    "place": "",
+    "country": "Chile",
+    "precision": "country"
+  },
+  "hans philip": {
+    "name": "Hans Philip",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "afro national": {
+    "name": "Afro National",
+    "lat": 8.416,
+    "lng": -11.738,
+    "place": "",
+    "country": "Sierra Leone",
+    "precision": "country"
+  },
+  "38 dub band": {
+    "name": "38 Dub Band",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "sovjet war": {
+    "name": "Sovjet War",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "claudy siar": {
+    "name": "Claudy Siar",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "孟庭葦": {
+    "name": "孟庭葦",
+    "lat": 23.633,
+    "lng": 121.029,
+    "place": "",
+    "country": "Taiwan",
+    "precision": "country"
+  },
+  "el chicles": {
+    "name": "El Chicles",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "celma ribas": {
+    "name": "Celma Ribas",
+    "lat": -11.897,
+    "lng": 17.86,
+    "place": "",
+    "country": "Angola",
+    "precision": "country"
+  },
+  "cian finn": {
+    "name": "Cian Finn",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "leo mathisen": {
+    "name": "Leo Mathisen",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "ngot": {
+    "name": "Ngot",
+    "lat": 16.591,
+    "lng": 106.648,
+    "place": "",
+    "country": "Vietnam",
+    "precision": "country"
+  },
+  "тося чаикина": {
+    "name": "Тося Чайкина",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "sandor vegh": {
+    "name": "Sandor Vègh",
+    "lat": 47.192,
+    "lng": 19.456,
+    "place": "",
+    "country": "Hungary",
+    "precision": "country"
+  },
+  "marjana derzaj": {
+    "name": "Marjana Derzaj",
+    "lat": 46.152,
+    "lng": 15.131,
+    "place": "",
+    "country": "Slovenia",
+    "precision": "country"
+  },
+  "lebensnacht": {
+    "name": "Lebensnacht",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "remi kabaka": {
+    "name": "Remi Kabaka",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "goatmare the hellspades": {
+    "name": "Goatmare & The Hellspades",
+    "lat": 44.208,
+    "lng": 20.908,
+    "place": "",
+    "country": "Serbia",
+    "precision": "country"
+  },
+  "kajto": {
+    "name": "Kajto",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "mal pasar": {
+    "name": "Mal pasar",
+    "lat": -37.091,
+    "lng": -63.522,
+    "place": "",
+    "country": "Argentina",
+    "precision": "country"
+  },
+  "baksey cham krong": {
+    "name": "Baksey Cham Krong",
+    "lat": 12.529,
+    "lng": 104.981,
+    "place": "",
+    "country": "Cambodia",
+    "precision": "country"
+  },
+  "sharhabil ahmed": {
+    "name": "Sharhabil Ahmed",
+    "lat": 15.115,
+    "lng": 30.173,
+    "place": "",
+    "country": "Sudan",
+    "precision": "country"
+  },
+  "dr hector": {
+    "name": "Dr. Hector",
+    "lat": 39.118,
+    "lng": 23.108,
+    "place": "",
+    "country": "Greece",
+    "precision": "country"
+  },
+  "paulina aguirre": {
+    "name": "Paulina Aguirre",
+    "lat": -1.789,
+    "lng": -78.101,
+    "place": "",
+    "country": "Ecuador",
+    "precision": "country"
+  },
+  "jonee jonee": {
+    "name": "Jonee Jonee",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "lonely god": {
+    "name": "Lonely God",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "realta": {
+    "name": "REALTA",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "towa": {
+    "name": "Towa",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "grupo fiesta": {
+    "name": "Grupo Fiesta",
+    "lat": 15.777,
+    "lng": -90.227,
+    "place": "",
+    "country": "Guatemala",
+    "precision": "country"
+  },
+  "aperco": {
+    "name": "Aperco",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "sukar": {
+    "name": "ŠUKAR",
+    "lat": 46.152,
+    "lng": 15.131,
+    "place": "",
+    "country": "Slovenia",
+    "precision": "country"
+  },
+  "puuluup": {
+    "name": "Puuluup",
+    "lat": 58.543,
+    "lng": 25.736,
+    "place": "",
+    "country": "Estonia",
+    "precision": "country"
+  },
+  "kenji kihara": {
+    "name": "KENJI KIHARA",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "gan gah": {
+    "name": "Gan Gah",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "nelson henriquez": {
+    "name": "Nelson Henríquez",
+    "lat": 6.443,
+    "lng": -66.532,
+    "place": "",
+    "country": "Venezuela",
+    "precision": "country"
+  },
+  "michael austin": {
+    "name": "Michael Austin",
+    "lat": 56.28,
+    "lng": 9.501,
+    "place": "",
+    "country": "Denmark",
+    "precision": "country"
+  },
+  "小久保隆": {
+    "name": "小久保隆",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "colin grant": {
+    "name": "Colin Grant",
+    "lat": 56.798,
+    "lng": -98.341,
+    "place": "",
+    "country": "Canada",
+    "precision": "country"
+  },
+  "tonhalle orchester zurich": {
+    "name": "Tonhalle-Orchester Zürich",
+    "lat": 46.804,
+    "lng": 8.233,
+    "place": "",
+    "country": "Switzerland",
+    "precision": "country"
+  },
+  "anna fedorova": {
+    "name": "Anna Fedorova",
+    "lat": 48.814,
+    "lng": 31.083,
+    "place": "",
+    "country": "Ukraine",
+    "precision": "country"
+  },
+  "ian ludvig": {
+    "name": "Ian Ludvig",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "kabza de small": {
+    "name": "Kabza De Small",
+    "lat": -28.455,
+    "lng": 24.588,
+    "place": "",
+    "country": "South Africa",
+    "precision": "country"
+  },
+  "marimba orquesta alma tuneca": {
+    "name": "Marimba Orquesta Alma Tuneca",
+    "lat": 15.777,
+    "lng": -90.227,
+    "place": "",
+    "country": "Guatemala",
+    "precision": "country"
+  },
+  "nisvanis": {
+    "name": "Nisvanis",
+    "lat": 46.822,
+    "lng": 103.762,
+    "place": "",
+    "country": "Mongolia",
+    "precision": "country"
+  },
+  "los caballeros de colon": {
+    "name": "Los Caballeros de Colon",
+    "lat": 8.416,
+    "lng": -80.104,
+    "place": "",
+    "country": "Panama",
+    "precision": "country"
+  },
+  "corbillard": {
+    "name": "Corbillard",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "rina": {
+    "name": "Rina",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "band maid": {
+    "name": "BAND-MAID",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "nico van der meel": {
+    "name": "Nico van der Meel",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "simi deac": {
+    "name": "Simi Deac",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "luis vega": {
+    "name": "Luis Vega",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "arabyrd": {
+    "name": "Arabyrd",
+    "lat": 3.851,
+    "lng": 114.423,
+    "place": "",
+    "country": "Malaysia",
+    "precision": "country"
+  },
+  "costel biju": {
+    "name": "Costel Biju",
+    "lat": 45.955,
+    "lng": 24.923,
+    "place": "",
+    "country": "Romania",
+    "precision": "country"
+  },
+  "frederic rabold crew": {
+    "name": "Frederic Rabold Crew",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "cuarzo": {
+    "name": "CUARZO",
+    "lat": -9.203,
+    "lng": -75.038,
+    "place": "",
+    "country": "Peru",
+    "precision": "country"
+  },
+  "ליילי": {
+    "name": "ליילי",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "mayor boss": {
+    "name": "Mayor Boss",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "miguel araujo": {
+    "name": "Miguel Araújo",
+    "lat": 39.559,
+    "lng": -7.958,
+    "place": "",
+    "country": "Portugal",
+    "precision": "country"
+  },
+  "klean": {
+    "name": "Klean",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "holland boys choir": {
+    "name": "Holland Boys Choir",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "vicentico": {
+    "name": "Vicentico",
+    "lat": -37.091,
+    "lng": -63.522,
+    "place": "",
+    "country": "Argentina",
+    "precision": "country"
+  },
+  "kick s": {
+    "name": "Kick.S",
+    "lat": 65.005,
+    "lng": 26.081,
+    "place": "",
+    "country": "Finland",
+    "precision": "country"
+  },
+  "artilleros musical": {
+    "name": "Artilleros Musical",
+    "lat": 15.777,
+    "lng": -90.227,
+    "place": "",
+    "country": "Guatemala",
+    "precision": "country"
+  },
+  "zeal": {
+    "name": "Zeal",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "cheba ibtissem": {
+    "name": "Cheba Ibtissem",
+    "lat": 33.829,
+    "lng": 9.507,
+    "place": "",
+    "country": "Tunisia",
+    "precision": "country"
+  },
+  "etenesh wassie": {
+    "name": "Etenesh Wassie",
+    "lat": 9.191,
+    "lng": 40.372,
+    "place": "",
+    "country": "Ethiopia",
+    "precision": "country"
+  },
+  "imzad": {
+    "name": "Imzad",
+    "lat": 28.088,
+    "lng": 1.658,
+    "place": "",
+    "country": "Algeria",
+    "precision": "country"
+  },
+  "g soul": {
+    "name": "G-Soul",
+    "lat": 3.851,
+    "lng": 114.423,
+    "place": "",
+    "country": "Malaysia",
+    "precision": "country"
+  },
+  "s a m": {
+    "name": "S.A.M.",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "beta": {
+    "name": "Bêta",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "bloodfire": {
+    "name": "Bloodfire",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "bich phuong": {
+    "name": "Bich Phuong",
+    "lat": 16.591,
+    "lng": 106.648,
+    "place": "",
+    "country": "Vietnam",
+    "precision": "country"
+  },
+  "calin": {
+    "name": "CÂLIN",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "cholo": {
+    "name": "Cholo",
+    "lat": 31.389,
+    "lng": 35.116,
+    "place": "",
+    "country": "Israel",
+    "precision": "country"
+  },
+  "colin": {
+    "name": "Colin",
+    "lat": 65.012,
+    "lng": -18.968,
+    "place": "",
+    "country": "Iceland",
+    "precision": "country"
+  },
+  "compass": {
+    "name": "Compass",
+    "lat": 23.63,
+    "lng": -101.97,
+    "place": "",
+    "country": "Mexico",
+    "precision": "country"
+  },
+  "duelo": {
+    "name": "Duelo",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "ernia": {
+    "name": "Ernia",
+    "lat": 42.512,
+    "lng": 12.615,
+    "place": "",
+    "country": "Italy",
+    "precision": "country"
+  },
+  "gina": {
+    "name": "Gina",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "homecomings": {
+    "name": "Homecomings",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
+  },
+  "jessi": {
+    "name": "JESSI",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "kabbalah": {
+    "name": "Kabbalah",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "karman": {
+    "name": "Karman",
+    "lat": 46.746,
+    "lng": 1.753,
+    "place": "",
+    "country": "France",
+    "precision": "country"
+  },
+  "kayra": {
+    "name": "Kayra",
+    "lat": 38.931,
+    "lng": 35.482,
+    "place": "",
+    "country": "Turkey",
+    "precision": "country"
+  },
+  "klass": {
+    "name": "Klass",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "kumasi": {
+    "name": "Kumasi",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "lavish": {
+    "name": "Lavish",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "less": {
+    "name": "Less",
+    "lat": 54.298,
+    "lng": -2.234,
+    "place": "",
+    "country": "United Kingdom",
+    "precision": "country"
+  },
+  "madd": {
+    "name": "Madd",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "marimba orquesta maya excelsior": {
+    "name": "Marimba Orquesta Maya Excelsior",
+    "lat": 15.777,
+    "lng": -90.227,
+    "place": "",
+    "country": "Guatemala",
+    "precision": "country"
+  },
+  "meteora": {
+    "name": "Meteora",
+    "lat": 59.425,
+    "lng": 103.644,
+    "place": "",
+    "country": "Russia",
+    "precision": "country"
+  },
+  "moki": {
+    "name": "Moki",
+    "lat": 51.143,
+    "lng": 10.503,
+    "place": "",
+    "country": "Germany",
+    "precision": "country"
+  },
+  "noa": {
+    "name": "NOA",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "newtone": {
+    "name": "NewTone",
+    "lat": 37.235,
+    "lng": -95.826,
+    "place": "",
+    "country": "United States of America",
+    "precision": "country"
+  },
+  "sahell": {
+    "name": "Sahell",
+    "lat": -14.262,
+    "lng": -54.359,
+    "place": "",
+    "country": "Brazil",
+    "precision": "country"
+  },
+  "sisi": {
+    "name": "SiSi",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "thaneco": {
+    "name": "Thaneco",
+    "lat": 39.118,
+    "lng": 23.108,
+    "place": "",
+    "country": "Greece",
+    "precision": "country"
+  },
+  "the beths": {
+    "name": "The Beths",
+    "lat": -38.069,
+    "lng": 175.577,
+    "place": "",
+    "country": "New Zealand",
+    "precision": "country"
+  },
+  "the hardkiss": {
+    "name": "The Hardkiss",
+    "lat": 48.814,
+    "lng": 31.083,
+    "place": "",
+    "country": "Ukraine",
+    "precision": "country"
+  },
+  "the homesick": {
+    "name": "The Homesick",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "the rudeboyz": {
+    "name": "The Rudeboyz",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "the teskey brothers": {
+    "name": "The Teskey Brothers",
+    "lat": -24.852,
+    "lng": 133.454,
+    "place": "",
+    "country": "Australia",
+    "precision": "country"
+  },
+  "toi": {
+    "name": "Toi",
+    "lat": 18.113,
+    "lng": -77.269,
+    "place": "",
+    "country": "Jamaica",
+    "precision": "country"
+  },
+  "tulio enrique leon": {
+    "name": "Tulio Enrique León",
+    "lat": 6.443,
+    "lng": -66.532,
+    "place": "",
+    "country": "Venezuela",
+    "precision": "country"
+  },
+  "victor nubla": {
+    "name": "Victor Nubla",
+    "lat": 39.848,
+    "lng": -3.177,
+    "place": "",
+    "country": "Spain",
+    "precision": "country"
+  },
+  "wahwahsda": {
+    "name": "Wahwahsda",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "whispering sons": {
+    "name": "Whispering Sons",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "yade lauren": {
+    "name": "Yade Lauren",
+    "lat": 52.157,
+    "lng": 5.204,
+    "place": "",
+    "country": "Netherlands",
+    "precision": "country"
+  },
+  "yasuha": {
+    "name": "Yasuha.",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "young jonn": {
+    "name": "Young Jonn",
+    "lat": 9.053,
+    "lng": 8.634,
+    "place": "",
+    "country": "Nigeria",
+    "precision": "country"
+  },
+  "aint": {
+    "name": "$Aint",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "ruzto": {
+    "name": "Ruzto",
+    "lat": 4.07,
+    "lng": -72.934,
+    "place": "",
+    "country": "Colombia",
+    "precision": "country"
+  },
+  "saran": {
+    "name": "Saran",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "the band": {
+    "name": "The Band",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "mot": {
+    "name": "MOT",
+    "lat": 36.501,
+    "lng": 127.793,
+    "place": "",
+    "country": "South Korea",
+    "precision": "country"
+  },
+  "popol ace": {
+    "name": "Popol Ace",
+    "lat": 67.363,
+    "lng": 15.951,
+    "place": "",
+    "country": "Norway",
+    "precision": "country"
+  },
+  "rains": {
+    "name": "Rains",
+    "lat": 36.204,
+    "lng": 136.182,
+    "place": "",
+    "country": "Japan",
+    "precision": "country"
+  },
+  "shungu": {
+    "name": "Shungu",
+    "lat": 50.502,
+    "lng": 4.335,
+    "place": "",
+    "country": "Belgium",
+    "precision": "country"
+  },
+  "the wolfhound": {
+    "name": "The Wolfhound",
+    "lat": 53.4,
+    "lng": -8.005,
+    "place": "",
+    "country": "Ireland",
+    "precision": "country"
   }
 }
