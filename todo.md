@@ -158,7 +158,37 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
-## 🔴 PICK UP HERE (2026-07-27) — 11 dead pairings are now real scenes
+## 🔴 PICK UP HERE (2026-07-27b) — dots now land in CITIES, not centroids
+
+User spotted it on Australia: every Australian town is coastal, yet the dots
+piled into the dead centre. **Outback 42% → 1%.** Melbourne 38%, Sydney 24%,
+Perth 12%, Adelaide 11%, Brisbane 6%. Three causes, all fixed in
+`scripts/recoord-world-songs.ts`:
+
+1. **Centroid fallback → music-city anchors.** Rules 2/3 now anchor on the
+   cities where that country's OWN artists are already placed in
+   origins.json, weighted by count. No new dataset — the answer was already
+   in the file. 43% of all dots anchor this way.
+2. **Country-level origins were treated as cities.** Rule 1 checked only
+   "inside the country", and a country-level origin's coords ARE the
+   centroid. Now requires `precision === 'city'`.
+   ⚠️ **This is why "at the artist's real city" reads 56.3%, not 72.6%** —
+   the old number counted centroids as cities. It was never 72.6%; do not
+   treat the drop as a regression.
+3. **Rounding pushed coastal dots into the sea.** `scatter()` tested the
+   full-precision point but returned a rounded one. Rounds first now.
+   **Dots outside their filing country: 0.42% → 0.03%.**
+
+Generalises: Canada northern interior 5%, Russia Siberia 3%, Brazil Amazon
+0%. Countries with no city-level origin still use the interior point —
+nothing better to anchor on, and that is honest.
+
+**If a country still clusters wrongly**, check in this order: does it have
+city-level origins (`precision:'city'`, `place` ≠ country name)? are its
+anchors real cities? is the filing country even right (`npm run audit:dots`
+ATTRIBUTION)?
+
+## 🟡 Seed research (2026-07-27) — 11 dead pairings filled
 
 User researched the FALLBACK pairings; ~105 candidates were verified on
 Deezer (identity + playable previews + catalog fit) and 60 seeded across 11
