@@ -110,6 +110,15 @@
       "Classical": [
         "Martha Argerich",
         "Alberto Ginastera"
+      ],
+      "Disco": [
+        "Toomy Disco",
+        "Jay West",
+        "Javier Penna",
+        "Thomass Jackson",
+        "Manuel Sahagun",
+        "Julian Sanza",
+        "Miranda!"
       ]
     },
     "Brazil": {
@@ -406,6 +415,9 @@
       "Disco": [
         "Bappi Lahiri",
         "Asha Bhosle"
+      ],
+      "Reggae": [
+        "The Ska Vengers"
       ]
     },
     "Iran": {
@@ -451,6 +463,12 @@
       "Disco": [
         "Googoosh",
         "Kourosh Yaghmaei"
+      ],
+      "Bossa Nova": [
+        "Mahan Mirarab",
+        "Hamzeh Yeganeh",
+        "Tara Tiba",
+        "Arshid Azarine"
       ]
     },
     "Japan": {
@@ -601,6 +619,14 @@
       "Classical": [
         "Arturo Marquez",
         "Silvestre Revueltas"
+      ],
+      "Disco": [
+        "Midnight Generation",
+        "Disco Bahía",
+        "Wet Baes",
+        "Clubz",
+        "Rebolledo",
+        "Hot Pepper"
       ]
     },
     "Nigeria": {
@@ -723,6 +749,10 @@
         "Akuvi",
         "Tolou",
         "Matata"
+      ],
+      "Reggae": [
+        "Admiral P",
+        "Nico D."
       ]
     },
     "Pakistan": {
@@ -821,6 +851,16 @@
       "Reggae": [
         "Daab",
         "Izrael"
+      ],
+      "Disco": [
+        "Boys",
+        "Piękni i Młodzi",
+        "Defis",
+        "Bracia Figo Fagot",
+        "Bayer Full",
+        "Top One",
+        "Zenon Martyniuk",
+        "Sławomir"
       ]
     },
     "Portugal": {
@@ -873,6 +913,15 @@
       ],
       "Reggae": [
         "Richie Campbell"
+      ],
+      "Disco": [
+        "Moullinex",
+        "Xinobi",
+        "GPU Panic",
+        "Mirror People",
+        "Branko",
+        "Da Chick",
+        "António Variações"
       ]
     },
     "South Africa": {
@@ -1045,6 +1094,24 @@
         "Andrés Segovia",
         "Alicia de Larrocha",
         "Pablo Casals"
+      ],
+      "Bossa Nova": [
+        "Andrea Motis",
+        "Rita Payés"
+      ],
+      "Disco": [
+        "Baccara",
+        "Barrabas",
+        "David Lyme",
+        "Azul y Negro",
+        "Ivan",
+        "Squash Gang",
+        "Susana Estrada",
+        "Las Grecas",
+        "Charo",
+        "Rayko",
+        "Ilya Santana",
+        "Golden Bug"
       ]
     },
     "Sweden": {
@@ -1104,6 +1171,13 @@
       ],
       "Classical": [
         "Anne Sofie von Otter"
+      ],
+      "Reggae": [
+        "Million Stylez",
+        "Kapten Röd",
+        "Etzia",
+        "Syster Sol",
+        "Peps Persson"
       ]
     },
     "Turkey": {
@@ -1157,6 +1231,14 @@
       ],
       "Reggae": [
         "Sattas"
+      ],
+      "Bossa Nova": [
+        "Tülay German",
+        "Birsen Tezer",
+        "Elif Çağlar",
+        "Önder Focan",
+        "Özdemir Erdoğan",
+        "Emir Ersoy"
       ]
     },
     "United Kingdom": {
