@@ -10,12 +10,22 @@
  *
  * Three rules, in order:
  *   1. Artist origin known AND inside the filing country  → that city (±0.25°).
- *   2. Artist origin known but in a DIFFERENT country     → the filing
- *      country's interior point. The song is filed under country X because
- *      that is where the tag search found it; plotting it at the artist's
- *      foreign origin is what put Ghanaian dots on Chile and Swedish dots on
- *      Spain. Keep the dot in the country it belongs to.
- *   3. No origin → the filing country's interior point (±jitter, re-tested).
+ *   2. Artist origin known but in a DIFFERENT country     → a MUSIC CITY of
+ *      the filing country. The song is filed under country X because that is
+ *      where the tag search found it; plotting it at the artist's foreign
+ *      origin is what put Ghanaian dots on Chile and Swedish dots on Spain.
+ *      Keep the dot in the country it belongs to.
+ *   3. No origin → the same music-city anchor (±jitter, re-tested).
+ *
+ * WHY MUSIC CITIES AND NOT THE CENTROID. Rules 2 and 3 used to fall back to a
+ * geometric interior point, which for Australia is the dead centre of the
+ * outback — 42% of its dots piled into empty desert while every Australian
+ * lives on the coast. The anchors are now derived from origins.json itself:
+ * the cities where this country's OWN artists are already placed, weighted by
+ * how many are there (Australia → Melbourne 36, Sydney 31, Adelaide 14,
+ * Perth 11, Brisbane 7). A dot with no known city lands somewhere the music
+ * actually comes from. Countries with no city-level origin at all still use
+ * the interior point.
  *
  * Every result is verified to land on that country's landmass, so nothing
  * floats in the sea or on the wrong continent.
@@ -36,7 +46,7 @@ const GEO = path.join(ROOT, 'public', 'geo', 'countries-110m.geojson');
 const DIR = path.join(ROOT, 'public', 'world-songs');
 const DRY = process.argv.includes('--dry');
 
-type Origin = { lat: number; lng: number; precision?: string } | null;
+type Origin = { lat: number; lng: number; place?: string; country?: string; precision?: string } | null;
 type Song = { i: number; t: string; a: string; la: number; ln: number };
 type Ring = [number, number][];
 
@@ -82,6 +92,43 @@ function interiorPoint(rings: Ring[]): { lat: number; lng: number } {
   return best ?? { lat: cy, lng: cx };
 }
 
+/**
+ * A country's music cities, from the artists origins.json already places
+ * there — weighted by how many, so the common cities dominate.
+ */
+function cityAnchors(
+  origins: Record<string, Origin>,
+  rings: Map<string, Ring[]>,
+): Map<string, Array<{ lat: number; lng: number }>> {
+  const byCountry = new Map<string, Map<string, { lat: number; lng: number; n: number }>>();
+  for (const o of Object.values(origins)) {
+    if (!o || o.precision !== 'city' || !o.country) continue;
+    // Some entries are marked city-level but name the COUNTRY as the place —
+    // those coordinates are a centroid wearing a city's label, and letting
+    // one into the pool re-creates the very cluster this is fixing.
+    if (!o.place || normKey(o.place) === normKey(o.country)) continue;
+    const r = rings.get(o.country);
+    if (!r || !inCountry(r, o.lng, o.lat)) continue;   // stale//wrong-country entries excluded
+    const m = byCountry.get(o.country) ?? new Map();
+    const key = `${o.lat}|${o.lng}`;
+    const cur = m.get(key);
+    if (cur) cur.n++; else m.set(key, { lat: o.lat, lng: o.lng, n: 1 });
+    byCountry.set(o.country, m);
+  }
+  // Expand to a weighted pool, capped so one huge city cannot crowd out the
+  // rest entirely — a country should still read as several scenes.
+  const out = new Map<string, Array<{ lat: number; lng: number }>>();
+  for (const [country, m] of byCountry) {
+    const pool: Array<{ lat: number; lng: number }> = [];
+    for (const c of m.values()) {
+      const weight = Math.min(c.n, 12);
+      for (let i = 0; i < weight; i++) pool.push({ lat: c.lat, lng: c.lng });
+    }
+    if (pool.length) out.set(country, pool);
+  }
+  return out;
+}
+
 /** Deterministic hash — identical output run to run. */
 function hash(s: string): number {
   let h = 0;
@@ -94,9 +141,13 @@ function scatter(rings: Ring[], base: { lat: number; lng: number }, key: string,
   const h = hash(key);
   for (let attempt = 0; attempt < 6; attempt++) {
     const s = spread / (attempt + 1);            // shrink until it lands
-    const la = base.lat + ((h % 100) / 100 - 0.5) * s;
-    const ln = base.lng + (((h >> 7) % 100) / 100 - 0.5) * s;
-    if (inCountry(rings, ln, la)) return { la: round(la), ln: round(ln) };
+    // Round BEFORE the land test. Testing the full-precision point and then
+    // returning a rounded one lets the rounding itself nudge a coastal dot
+    // into the sea — invisible while everything sat on inland centroids,
+    // obvious once dots anchor on Sydney and Lisbon.
+    const la = round(base.lat + ((h % 100) / 100 - 0.5) * s);
+    const ln = round(base.lng + (((h >> 7) % 100) / 100 - 0.5) * s);
+    if (inCountry(rings, ln, la)) return { la, ln };
   }
   return { la: round(base.lat), ln: round(base.lng) };
 }
@@ -117,7 +168,8 @@ function main() {
     interior.set(f.properties.NAME, interiorPoint(r));
   }
 
-  let total = 0, atCity = 0, foreign = 0, noOrigin = 0, unknownCountry = 0;
+  const anchors = cityAnchors(origins, rings);
+  let total = 0, atCity = 0, foreign = 0, noOrigin = 0, unknownCountry = 0, viaAnchor = 0;
 
   for (const file of readdirSync(DIR).filter((f) => f.endsWith('.json'))) {
     const p = path.join(DIR, file);
@@ -136,12 +188,27 @@ function main() {
         const o = origins[normKey(song.a)];
         let next: { la: number; ln: number };
 
-        if (o && inCountry(r, o.lng, o.lat)) {
+        // Rule 1 requires a CITY. A country-level origin's coordinates ARE
+        // the centroid, so treating one as a city planted The Saints,
+        // Natalie Imbruglia and 5 Seconds Of Summer in the middle of the
+        // Australian outback at -24.85,133.45. Country-level origins fall
+        // through to the music-city anchor below, same as no origin at all.
+        if (o && o.precision === 'city' && inCountry(r, o.lng, o.lat)) {
           next = scatter(r, o, `${song.a}|${song.i}`, 0.5);   // rule 1: real city
           atCity++;
         } else {
           if (o) foreign++; else noOrigin++;                  // rules 2 & 3
-          next = scatter(r, home, `${song.a}|${song.i}`, 3.0);
+          // Anchor on one of the country's real music cities, chosen
+          // deterministically per artist so a re-run is identical and one
+          // artist's songs stay together.
+          const pool = anchors.get(country);
+          if (pool && pool.length) {
+            const pick = pool[hash(song.a) % pool.length];
+            next = scatter(r, pick, `${song.a}|${song.i}`, 0.8);
+            viaAnchor++;
+          } else {
+            next = scatter(r, home, `${song.a}|${song.i}`, 3.0);
+          }
         }
         if (next.la !== song.la || next.ln !== song.ln) touched = true;
         song.la = next.la;
@@ -156,6 +223,7 @@ function main() {
   console.log(`  at the artist's real city        ${atCity} (${pct(atCity)})`);
   console.log(`  origin abroad → kept in-country  ${foreign} (${pct(foreign)})`);
   console.log(`  no origin → in-country point     ${noOrigin} (${pct(noOrigin)})`);
+  console.log(`    …of those two, anchored on a real music city: ${viaAnchor} (${pct(viaAnchor)})`);
   if (unknownCountry) console.log(`  skipped (country not in GeoJSON) ${unknownCountry}`);
 }
 
