@@ -158,7 +158,42 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
-## 🔴 PICK UP HERE (2026-07-26, late) — globe re-crawl DONE
+## 🔴 PICK UP HERE (2026-07-26, night) — honest empty state SHIPPED (`cb4484a`)
+
+**The two instruments now give the same answer to the same question.** A
+pairing with no verified music shows "No matching results for this pairing :("
+plus a linked list of that country's REAL genres (seeds/world-seeds-backed
+only, so a suggestion never dead-ends). Circle: click spins the wheel and
+populates. World: click re-taps the country with the new genre. Shared
+component `NoPairing` (Overlay.tsx), status `noResults` (≠ network `error`).
+
+**Removed from the runtime pipeline:** RELATED_GENRES borrowing (both seed
+paths), genre-blind tier 2.5 fill for genre pairings, the LLM guess tier.
+Norway × Afrobeats no longer plays a-ha.
+
+**Norway × Afrobeats is now REAL** — user-supplied, Deezer-verified: Akuvi,
+Tolou (TOLOU), Matata, in seeds.json + world-seeds.json + 18 globe dots via a
+targeted crawl (Nico & Vinz joined via MusicBrainz on its own). Recipe for
+adding a scene to one pairing end-to-end:
+  1. add artists to seeds.json (+ world-seeds.json genres list)
+  2. remove the country from that genre's `__done` in public/world-songs/<g>.json
+  3. `npx tsx scripts/build-world-songs.ts --genres "<Genre>"` (fills just it)
+  4. `npm run recoord`
+
+### 🎯 SEED RESEARCH LIST — the user offered to Google these
+19 hard-FALLBACK pairings (no seeds anywhere). The user found Norway's scene
+in one search; these need the same treatment. Diamonds probably exist for
+most:
+  Argentina × Disco · Ghana × Classical · India × Reggae · Iran × Bossa Nova ·
+  Iran × Reggae · Mexico × Bossa Nova · Mexico × Disco · Nigeria × Classical ·
+  Norway × Reggae · Pakistan × Bossa Nova · Pakistan × Reggae · Poland × Disco ·
+  Portugal × Disco · South Korea × Bossa Nova · South Korea × Reggae ·
+  Spain × Bossa Nova · Spain × Disco · Sweden × Reggae · Turkey × Bossa Nova
+Also: the audit's 136 RELATED pairings now rely on MusicBrainz alone or show
+the empty card — spot-check the popular ones (each country × Afrobeats/
+Reggae/Cumbia are likeliest to be empty).
+
+## 🟡 Globe re-crawl (2026-07-26, late)
 
 Everything below is committed and pushed to BOTH remotes. Vercel is deploying
 `2145096`. No background jobs running.
