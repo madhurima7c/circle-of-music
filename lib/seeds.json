@@ -45,288 +45,1319 @@
   ],
   "artists": {
     "Argentina": {
-      "Folk":       ["Mercedes Sosa", "Atahualpa Yupanqui", "Jorge Cafrune"],
-      "Jazz":       ["Astor Piazzolla", "Gato Barbieri", "Pedro Aznar"],
-      "Rock":       ["Soda Stereo", "Charly Garcia", "Babasonicos", "Spinetta", "Patricio Rey y sus Redonditos de Ricota"],
-      "Pop":        ["Fito Paez", "Andres Calamaro", "Lali", "Tini Stoessel"],
-      "Indie":      ["Bandalos Chinos", "El Mato a un Policia Motorizado", "Marilina Bertoldi", "Conociendo Rusia"],
-      "Cumbia":     ["Damas Gratis", "Antonio Rios", "Pibes Chorros", "Gilda"],
-      "Hip Hop":    ["Wos", "Trueno", "Bizarrap", "Duki", "Ca7riel", "Nathy Peluso"],
-      "Electronic": ["Bajofondo", "Gotan Project", "Bersuit Vergarabat"],
-      "Reggae":     ["Los Pericos", "Los Cafres"],
-      "Punk":       ["Attaque 77", "Los Violadores", "2 Minutos"],
-      "World":      ["Mercedes Sosa", "Astor Piazzolla", "Carlos Gardel"],
-      "Classical":  ["Martha Argerich", "Alberto Ginastera"]
+      "Folk": [
+        "Mercedes Sosa",
+        "Atahualpa Yupanqui",
+        "Jorge Cafrune"
+      ],
+      "Jazz": [
+        "Astor Piazzolla",
+        "Gato Barbieri",
+        "Pedro Aznar"
+      ],
+      "Rock": [
+        "Soda Stereo",
+        "Charly Garcia",
+        "Babasonicos",
+        "Spinetta",
+        "Patricio Rey y sus Redonditos de Ricota"
+      ],
+      "Pop": [
+        "Fito Paez",
+        "Andres Calamaro",
+        "Lali",
+        "Tini Stoessel"
+      ],
+      "Indie": [
+        "Bandalos Chinos",
+        "El Mato a un Policia Motorizado",
+        "Marilina Bertoldi",
+        "Conociendo Rusia"
+      ],
+      "Cumbia": [
+        "Damas Gratis",
+        "Antonio Rios",
+        "Pibes Chorros",
+        "Gilda"
+      ],
+      "Hip Hop": [
+        "Wos",
+        "Trueno",
+        "Bizarrap",
+        "Duki",
+        "Ca7riel",
+        "Nathy Peluso"
+      ],
+      "Electronic": [
+        "Bajofondo",
+        "Gotan Project",
+        "Bersuit Vergarabat"
+      ],
+      "Reggae": [
+        "Los Pericos",
+        "Los Cafres"
+      ],
+      "Punk": [
+        "Attaque 77",
+        "Los Violadores",
+        "2 Minutos"
+      ],
+      "World": [
+        "Mercedes Sosa",
+        "Astor Piazzolla",
+        "Carlos Gardel"
+      ],
+      "Classical": [
+        "Martha Argerich",
+        "Alberto Ginastera"
+      ]
     },
     "Brazil": {
-      "Bossa Nova": ["Joao Gilberto", "Antonio Carlos Jobim", "Stan Getz", "Astrud Gilberto", "Vinicius de Moraes"],
-      "Jazz":       ["Hermeto Pascoal", "Egberto Gismonti", "Eumir Deodato", "Naná Vasconcelos"],
-      "Funk":       ["Tim Maia", "Jorge Ben Jor", "Banda Black Rio", "Ed Motta"],
-      "Pop":        ["Caetano Veloso", "Gal Costa", "Maria Bethania", "Anitta", "Marisa Monte"],
-      "Indie":      ["Tulipa Ruiz", "Marcelo Camelo", "Silva", "Tim Bernardes"],
-      "Electronic": ["Amon Tobin", "Gui Boratto", "DJ Marky"],
-      "Hip Hop":    ["Racionais MCs", "Emicida", "Criolo", "Karol Conka", "BK"],
-      "Rock":       ["Os Mutantes", "Legiao Urbana", "Engenheiros do Hawaii", "Capital Inicial", "Skank"],
-      "Soul":       ["Tim Maia", "Ed Motta", "Marisa Monte"],
-      "Folk":       ["Milton Nascimento", "Chico Buarque", "Geraldo Vandre"],
-      "Reggae":     ["Natiruts", "Cidade Negra", "Tribo de Jah"],
-      "World":      ["Caetano Veloso", "Gilberto Gil", "Milton Nascimento"],
-      "Classical":  ["Heitor Villa-Lobos"],
-      "Punk":       ["Ratos de Porao"]
+      "Bossa Nova": [
+        "Joao Gilberto",
+        "Antonio Carlos Jobim",
+        "Stan Getz",
+        "Astrud Gilberto",
+        "Vinicius de Moraes"
+      ],
+      "Jazz": [
+        "Hermeto Pascoal",
+        "Egberto Gismonti",
+        "Eumir Deodato",
+        "Naná Vasconcelos"
+      ],
+      "Funk": [
+        "Tim Maia",
+        "Jorge Ben Jor",
+        "Banda Black Rio",
+        "Ed Motta"
+      ],
+      "Pop": [
+        "Caetano Veloso",
+        "Gal Costa",
+        "Maria Bethania",
+        "Anitta",
+        "Marisa Monte"
+      ],
+      "Indie": [
+        "Tulipa Ruiz",
+        "Marcelo Camelo",
+        "Silva",
+        "Tim Bernardes"
+      ],
+      "Electronic": [
+        "Amon Tobin",
+        "Gui Boratto",
+        "DJ Marky"
+      ],
+      "Hip Hop": [
+        "Racionais MCs",
+        "Emicida",
+        "Criolo",
+        "Karol Conka",
+        "BK"
+      ],
+      "Rock": [
+        "Os Mutantes",
+        "Legiao Urbana",
+        "Engenheiros do Hawaii",
+        "Capital Inicial",
+        "Skank"
+      ],
+      "Soul": [
+        "Tim Maia",
+        "Ed Motta",
+        "Marisa Monte"
+      ],
+      "Folk": [
+        "Milton Nascimento",
+        "Chico Buarque",
+        "Geraldo Vandre"
+      ],
+      "Reggae": [
+        "Natiruts",
+        "Cidade Negra",
+        "Tribo de Jah"
+      ],
+      "World": [
+        "Caetano Veloso",
+        "Gilberto Gil",
+        "Milton Nascimento"
+      ],
+      "Classical": [
+        "Heitor Villa-Lobos"
+      ],
+      "Punk": [
+        "Ratos de Porao"
+      ]
     },
     "France": {
-      "Jazz":       ["Stephane Grappelli", "Django Reinhardt", "Melody Gardot", "Madeleine Peyroux"],
-      "Electronic": ["Air", "Daft Punk", "Justice", "Phoenix", "M83"],
-      "Pop":        ["Francoise Hardy", "Christine and the Queens", "Charlotte Gainsbourg", "Vanessa Paradis", "Stromae"],
-      "Indie":      ["Phoenix", "M83", "La Femme", "Yelle"],
-      "House":      ["Daft Punk", "Cassius", "Modjo", "Bob Sinclar"],
-      "Hip Hop":    ["IAM", "MC Solaar", "PNL", "Damso", "Booba", "Nekfeu"],
-      "Rock":       ["Indochine", "Telephone", "Noir Desir"],
-      "Folk":       ["Georges Brassens", "Jacques Brel", "Edith Piaf", "Serge Gainsbourg"],
-      "Disco":      ["Cerrone", "Sebastien Tellier", "Patrick Hernandez"],
-      "Techno":     ["Justice", "Laurent Garnier", "Vitalic"],
-      "Reggae":     ["Tryo", "Sinsemilia"],
-      "World":      ["Manu Chao", "Charles Aznavour"],
-      "Soul":       ["Stromae", "Christine and the Queens", "Ben l'Oncle Soul"],
-      "Bossa Nova": ["Nouvelle Vague", "Pierre Barouh"],
-      "Punk":       ["Bérurier Noir"],
-      "Classical":  ["Hélène Grimaud", "Alexandre Tharaud"]
+      "Jazz": [
+        "Stephane Grappelli",
+        "Django Reinhardt",
+        "Melody Gardot",
+        "Madeleine Peyroux"
+      ],
+      "Electronic": [
+        "Air",
+        "Daft Punk",
+        "Justice",
+        "Phoenix",
+        "M83"
+      ],
+      "Pop": [
+        "Francoise Hardy",
+        "Christine and the Queens",
+        "Charlotte Gainsbourg",
+        "Vanessa Paradis",
+        "Stromae"
+      ],
+      "Indie": [
+        "Phoenix",
+        "M83",
+        "La Femme",
+        "Yelle"
+      ],
+      "House": [
+        "Daft Punk",
+        "Cassius",
+        "Modjo",
+        "Bob Sinclar"
+      ],
+      "Hip Hop": [
+        "IAM",
+        "MC Solaar",
+        "PNL",
+        "Damso",
+        "Booba",
+        "Nekfeu"
+      ],
+      "Rock": [
+        "Indochine",
+        "Telephone",
+        "Noir Desir"
+      ],
+      "Folk": [
+        "Georges Brassens",
+        "Jacques Brel",
+        "Edith Piaf",
+        "Serge Gainsbourg"
+      ],
+      "Disco": [
+        "Cerrone",
+        "Sebastien Tellier",
+        "Patrick Hernandez"
+      ],
+      "Techno": [
+        "Justice",
+        "Laurent Garnier",
+        "Vitalic"
+      ],
+      "Reggae": [
+        "Tryo",
+        "Sinsemilia"
+      ],
+      "World": [
+        "Manu Chao",
+        "Charles Aznavour"
+      ],
+      "Soul": [
+        "Stromae",
+        "Christine and the Queens",
+        "Ben l'Oncle Soul"
+      ],
+      "Bossa Nova": [
+        "Nouvelle Vague",
+        "Pierre Barouh"
+      ],
+      "Punk": [
+        "Bérurier Noir"
+      ],
+      "Classical": [
+        "Hélène Grimaud",
+        "Alexandre Tharaud"
+      ]
     },
     "Ghana": {
-      "Afrobeats":  ["Sarkodie", "Stonebwoy", "Amaarae", "Kwesi Arthur", "King Promise", "Black Sherif"],
-      "Funk":       ["Ebo Taylor", "Pat Thomas", "Ata Kak", "Gyedu-Blay Ambolley"],
-      "Jazz":       ["Ebo Taylor", "Pat Thomas", "Gyedu-Blay Ambolley"],
-      "World":      ["Ebo Taylor", "Pat Thomas", "King Ayisoba"],
-      "Hip Hop":    ["Sarkodie", "M.anifest", "Wanlov the Kubolor", "FOKN Bois"],
-      "Reggae":     ["Rocky Dawuni"],
-      "Pop":        ["King Promise", "Kwesi Arthur", "Stonebwoy"],
-      "Electronic": ["DJ Katapila", "Gafacci", "Ata Kak", "Juls"],
-      "House":      ["DJ Katapila", "Gafacci", "Juls"],
-      "Rock":       ["Osibisa", "Dark Suburb"],
-      "Disco":      ["George Darko", "Charles Amoah", "Wilson Boateng", "Marijata"]
+      "Afrobeats": [
+        "Sarkodie",
+        "Stonebwoy",
+        "Amaarae",
+        "Kwesi Arthur",
+        "King Promise",
+        "Black Sherif"
+      ],
+      "Funk": [
+        "Ebo Taylor",
+        "Pat Thomas",
+        "Ata Kak",
+        "Gyedu-Blay Ambolley"
+      ],
+      "Jazz": [
+        "Ebo Taylor",
+        "Pat Thomas",
+        "Gyedu-Blay Ambolley"
+      ],
+      "World": [
+        "Ebo Taylor",
+        "Pat Thomas",
+        "King Ayisoba"
+      ],
+      "Hip Hop": [
+        "Sarkodie",
+        "M.anifest",
+        "Wanlov the Kubolor",
+        "FOKN Bois"
+      ],
+      "Reggae": [
+        "Rocky Dawuni"
+      ],
+      "Pop": [
+        "King Promise",
+        "Kwesi Arthur",
+        "Stonebwoy"
+      ],
+      "Electronic": [
+        "DJ Katapila",
+        "Gafacci",
+        "Ata Kak",
+        "Juls"
+      ],
+      "House": [
+        "DJ Katapila",
+        "Gafacci",
+        "Juls"
+      ],
+      "Rock": [
+        "Osibisa",
+        "Dark Suburb"
+      ],
+      "Disco": [
+        "George Darko",
+        "Charles Amoah",
+        "Wilson Boateng",
+        "Marijata"
+      ]
     },
     "India": {
-      "Jazz":       ["Louiz Banks", "Rudy Wallang", "Trilok Gurtu", "L Subramaniam", "Sandunes", "Soulmate"],
-      "Classical":  ["Ravi Shankar", "Zakir Hussain", "Ali Akbar Khan", "Hariprasad Chaurasia", "Bombay Jayashri", "T M Krishna"],
-      "Folk":       ["Kailash Kher", "Rajasthan Roots", "Indian Ocean"],
-      "Indie":      ["Prateek Kuhad", "Peter Cat Recording Co", "Parekh and Singh", "When Chai Met Toast", "The Local Train"],
-      "Pop":        ["Arijit Singh", "A R Rahman", "Shreya Ghoshal", "Sonu Nigam"],
-      "Rock":       ["Indian Ocean", "Parikrama", "Pentagram", "Thermal And A Quarter"],
-      "Hip Hop":    ["Divine", "Naezy", "Seedhe Maut", "Raftaar", "Prabh Deep"],
-      "Electronic": ["Nucleya", "Ritviz", "Su Real", "Karsh Kale"],
-      "Ambient":    ["Talvin Singh", "Karsh Kale", "Niraj Chag"],
-      "World":      ["Ravi Shankar", "A R Rahman", "Kailash Kher"],
-      "Disco":      ["Bappi Lahiri", "Asha Bhosle"]
+      "Jazz": [
+        "Louiz Banks",
+        "Rudy Wallang",
+        "Trilok Gurtu",
+        "L Subramaniam",
+        "Sandunes",
+        "Soulmate"
+      ],
+      "Classical": [
+        "Ravi Shankar",
+        "Zakir Hussain",
+        "Ali Akbar Khan",
+        "Hariprasad Chaurasia",
+        "Bombay Jayashri",
+        "T M Krishna"
+      ],
+      "Folk": [
+        "Kailash Kher",
+        "Rajasthan Roots",
+        "Indian Ocean"
+      ],
+      "Indie": [
+        "Prateek Kuhad",
+        "Peter Cat Recording Co",
+        "Parekh and Singh",
+        "When Chai Met Toast",
+        "The Local Train"
+      ],
+      "Pop": [
+        "Arijit Singh",
+        "A R Rahman",
+        "Shreya Ghoshal",
+        "Sonu Nigam"
+      ],
+      "Rock": [
+        "Indian Ocean",
+        "Parikrama",
+        "Pentagram",
+        "Thermal And A Quarter"
+      ],
+      "Hip Hop": [
+        "Divine",
+        "Naezy",
+        "Seedhe Maut",
+        "Raftaar",
+        "Prabh Deep"
+      ],
+      "Electronic": [
+        "Nucleya",
+        "Ritviz",
+        "Su Real",
+        "Karsh Kale"
+      ],
+      "Ambient": [
+        "Talvin Singh",
+        "Karsh Kale",
+        "Niraj Chag"
+      ],
+      "World": [
+        "Ravi Shankar",
+        "A R Rahman",
+        "Kailash Kher"
+      ],
+      "Disco": [
+        "Bappi Lahiri",
+        "Asha Bhosle"
+      ]
     },
     "Iran": {
-      "Folk":       ["Mohammad Reza Shajarian", "Hossein Alizadeh", "Parisa"],
-      "Classical":  ["Kayhan Kalhor", "Hossein Alizadeh", "Mohammad Reza Shajarian"],
-      "World":      ["Niyaz", "Mohsen Namjoo", "Mohammad Reza Lotfi"],
-      "Indie":      ["Mohsen Namjoo", "Kiosk"],
-      "Pop":        ["Hayedeh", "Googoosh", "Ebi", "Dariush"],
-      "Rock":       ["Kiosk", "O-Hum", "Kourosh Yaghmaei"],
-      "Hip Hop":    ["Hichkas", "Yas", "Bahram"],
-      "Electronic": ["9T Antiope", "Sote"],
-      "Disco":      ["Googoosh", "Kourosh Yaghmaei"]
+      "Folk": [
+        "Mohammad Reza Shajarian",
+        "Hossein Alizadeh",
+        "Parisa"
+      ],
+      "Classical": [
+        "Kayhan Kalhor",
+        "Hossein Alizadeh",
+        "Mohammad Reza Shajarian"
+      ],
+      "World": [
+        "Niyaz",
+        "Mohsen Namjoo",
+        "Mohammad Reza Lotfi"
+      ],
+      "Indie": [
+        "Mohsen Namjoo",
+        "Kiosk"
+      ],
+      "Pop": [
+        "Hayedeh",
+        "Googoosh",
+        "Ebi",
+        "Dariush"
+      ],
+      "Rock": [
+        "Kiosk",
+        "O-Hum",
+        "Kourosh Yaghmaei"
+      ],
+      "Hip Hop": [
+        "Hichkas",
+        "Yas",
+        "Bahram"
+      ],
+      "Electronic": [
+        "9T Antiope",
+        "Sote"
+      ],
+      "Disco": [
+        "Googoosh",
+        "Kourosh Yaghmaei"
+      ]
     },
     "Japan": {
-      "Jazz":       ["Hiromi Uehara", "Toshiko Akiyoshi", "Sadao Watanabe", "Casiopea"],
-      "Ambient":    ["Hiroshi Yoshimura", "Susumu Yokota", "Ryuichi Sakamoto", "Midori Takada"],
-      "Electronic": ["Cornelius", "Ryuichi Sakamoto", "Yellow Magic Orchestra", "Towa Tei"],
-      "Pop":        ["Mariya Takeuchi", "Tatsuro Yamashita", "Anri", "Utada Hikaru", "Yumi Matsutoya"],
-      "Rock":       ["Mono", "Boris", "Toe", "Number Girl"],
-      "Indie":      ["Cornelius", "Lamp", "Ichiko Aoba", "Haruomi Hosono"],
-      "Hip Hop":    ["Awich", "Kohh", "Creepy Nuts", "Tha Blue Herb"],
-      "Funk":       ["Casiopea", "Tatsuro Yamashita", "Toshiki Kadomatsu"],
-      "Folk":       ["Haruomi Hosono", "Akiko Yano", "Happy End"],
-      "House":      ["Soichi Terada", "Crystal"],
-      "Techno":     ["Ken Ishii", "Susumu Yokota"],
-      "Soul":       ["Tatsuro Yamashita", "Toshiki Kadomatsu", "Anri"],
-      "Punk":       ["Shonen Knife", "The Blue Hearts", "Guitar Wolf"],
-      "Classical":  ["Toru Takemitsu", "Joe Hisaishi"],
-      "Bossa Nova": ["Lisa Ono", "naomi & goro"],
-      "Cumbia":     ["Minyo Crusaders"],
-      "Disco":      ["Tatsuro Yamashita", "Mariya Takeuchi"],
-      "Reggae":     ["Mute Beat", "Pushim"]
+      "Jazz": [
+        "Hiromi Uehara",
+        "Toshiko Akiyoshi",
+        "Sadao Watanabe",
+        "Casiopea"
+      ],
+      "Ambient": [
+        "Hiroshi Yoshimura",
+        "Susumu Yokota",
+        "Ryuichi Sakamoto",
+        "Midori Takada"
+      ],
+      "Electronic": [
+        "Cornelius",
+        "Ryuichi Sakamoto",
+        "Yellow Magic Orchestra",
+        "Towa Tei"
+      ],
+      "Pop": [
+        "Mariya Takeuchi",
+        "Tatsuro Yamashita",
+        "Anri",
+        "Utada Hikaru",
+        "Yumi Matsutoya"
+      ],
+      "Rock": [
+        "Mono",
+        "Boris",
+        "Toe",
+        "Number Girl"
+      ],
+      "Indie": [
+        "Cornelius",
+        "Lamp",
+        "Ichiko Aoba",
+        "Haruomi Hosono"
+      ],
+      "Hip Hop": [
+        "Awich",
+        "Kohh",
+        "Creepy Nuts",
+        "Tha Blue Herb"
+      ],
+      "Funk": [
+        "Casiopea",
+        "Tatsuro Yamashita",
+        "Toshiki Kadomatsu"
+      ],
+      "Folk": [
+        "Haruomi Hosono",
+        "Akiko Yano",
+        "Happy End"
+      ],
+      "House": [
+        "Soichi Terada",
+        "Crystal"
+      ],
+      "Techno": [
+        "Ken Ishii",
+        "Susumu Yokota"
+      ],
+      "Soul": [
+        "Tatsuro Yamashita",
+        "Toshiki Kadomatsu",
+        "Anri"
+      ],
+      "Punk": [
+        "Shonen Knife",
+        "The Blue Hearts",
+        "Guitar Wolf"
+      ],
+      "Classical": [
+        "Toru Takemitsu",
+        "Joe Hisaishi"
+      ],
+      "Bossa Nova": [
+        "Lisa Ono",
+        "naomi & goro"
+      ],
+      "Cumbia": [
+        "Minyo Crusaders"
+      ],
+      "Disco": [
+        "Tatsuro Yamashita",
+        "Mariya Takeuchi"
+      ],
+      "Reggae": [
+        "Mute Beat",
+        "Pushim"
+      ]
     },
     "Mexico": {
-      "Cumbia":     ["Celso Pina", "Los Angeles Azules", "Sonora Santanera"],
-      "Folk":       ["Lila Downs", "Natalia Lafourcade", "Chavela Vargas"],
-      "Indie":      ["Cafe Tacvba", "Zoe", "Carla Morrison", "Belanova"],
-      "Rock":       ["Cafe Tacvba", "Zoe", "Mana", "Caifanes", "Soda Stereo"],
-      "Hip Hop":    ["Cartel de Santa", "Santa Fe Klan", "C-Kan"],
-      "Pop":        ["Julieta Venegas", "Belanova", "Thalia", "Luis Miguel"],
-      "Electronic": ["Nortec Collective", "Mexican Institute of Sound", "Murcof"],
-      "Punk":       ["Molotov", "Botellita de Jerez", "Maldita Vecindad"],
-      "World":      ["Lila Downs", "Chavela Vargas", "Natalia Lafourcade"],
-      "Reggae":     ["Antidoping"],
-      "Classical":  ["Arturo Marquez", "Silvestre Revueltas"]
+      "Cumbia": [
+        "Celso Pina",
+        "Los Angeles Azules",
+        "Sonora Santanera"
+      ],
+      "Folk": [
+        "Lila Downs",
+        "Natalia Lafourcade",
+        "Chavela Vargas"
+      ],
+      "Indie": [
+        "Cafe Tacvba",
+        "Zoe",
+        "Carla Morrison",
+        "Belanova"
+      ],
+      "Rock": [
+        "Cafe Tacvba",
+        "Zoe",
+        "Mana",
+        "Caifanes",
+        "Soda Stereo"
+      ],
+      "Hip Hop": [
+        "Cartel de Santa",
+        "Santa Fe Klan",
+        "C-Kan"
+      ],
+      "Pop": [
+        "Julieta Venegas",
+        "Belanova",
+        "Thalia",
+        "Luis Miguel"
+      ],
+      "Electronic": [
+        "Nortec Collective",
+        "Mexican Institute of Sound",
+        "Murcof"
+      ],
+      "Punk": [
+        "Molotov",
+        "Botellita de Jerez",
+        "Maldita Vecindad"
+      ],
+      "World": [
+        "Lila Downs",
+        "Chavela Vargas",
+        "Natalia Lafourcade"
+      ],
+      "Reggae": [
+        "Antidoping"
+      ],
+      "Classical": [
+        "Arturo Marquez",
+        "Silvestre Revueltas"
+      ]
     },
     "Nigeria": {
-      "Afrobeats":  ["Burna Boy", "Wizkid", "Davido", "Tems", "Rema", "Asake", "Ayra Starr"],
-      "Funk":       ["Fela Kuti", "Tony Allen", "William Onyeabor"],
-      "Jazz":       ["Fela Kuti", "Tony Allen"],
-      "World":      ["King Sunny Ade", "Femi Kuti", "Seun Kuti"],
-      "Pop":        ["Asa", "Yemi Alade", "Tiwa Savage"],
-      "Hip Hop":    ["M.I Abaga", "Olamide", "Falz", "Mode 9"],
-      "Indie":      ["Asa", "Brymo"],
-      "Reggae":     ["Majek Fashek"],
-      "Electronic": ["Niniola", "Sarz", "Obongjayar"],
-      "House":      ["Niniola", "Sarz"],
-      "Disco":      ["Steve Monite", "William Onyeabor", "Livy Ekemezie"]
+      "Afrobeats": [
+        "Burna Boy",
+        "Wizkid",
+        "Davido",
+        "Tems",
+        "Rema",
+        "Asake",
+        "Ayra Starr"
+      ],
+      "Funk": [
+        "Fela Kuti",
+        "Tony Allen",
+        "William Onyeabor"
+      ],
+      "Jazz": [
+        "Fela Kuti",
+        "Tony Allen"
+      ],
+      "World": [
+        "King Sunny Ade",
+        "Femi Kuti",
+        "Seun Kuti"
+      ],
+      "Pop": [
+        "Asa",
+        "Yemi Alade",
+        "Tiwa Savage"
+      ],
+      "Hip Hop": [
+        "M.I Abaga",
+        "Olamide",
+        "Falz",
+        "Mode 9"
+      ],
+      "Indie": [
+        "Asa",
+        "Brymo"
+      ],
+      "Reggae": [
+        "Majek Fashek"
+      ],
+      "Electronic": [
+        "Niniola",
+        "Sarz",
+        "Obongjayar"
+      ],
+      "House": [
+        "Niniola",
+        "Sarz"
+      ],
+      "Disco": [
+        "Steve Monite",
+        "William Onyeabor",
+        "Livy Ekemezie"
+      ]
     },
     "Norway": {
-      "Jazz":       ["Jan Garbarek", "Mathias Eick", "Arild Andersen", "Bugge Wesseltoft"],
-      "Electronic": ["Royksopp", "Lindstrom", "Todd Terje", "Cashmere Cat"],
-      "Indie":      ["Aurora", "Sigrid", "AURORA"],
-      "Ambient":    ["Biosphere", "Deathprod", "Bjorn Torske"],
-      "Pop":        ["a-ha", "Aurora", "Sigrid", "Kygo"],
-      "Rock":       ["Turbonegro", "Madrugada", "Kvelertak"],
-      "House":      ["Lindstrom", "Todd Terje", "Prins Thomas"],
-      "Folk":       ["Mari Boine", "Eivor", "Karl Seglem"],
-      "Hip Hop":    ["Karpe", "Cezinando", "Arif"],
-      "Classical":  ["Grieg", "Leif Ove Andsnes"],
-      "Punk":       ["Turbonegro"],
-      "Disco":      ["Todd Terje"]
+      "Jazz": [
+        "Jan Garbarek",
+        "Mathias Eick",
+        "Arild Andersen",
+        "Bugge Wesseltoft"
+      ],
+      "Electronic": [
+        "Royksopp",
+        "Lindstrom",
+        "Todd Terje",
+        "Cashmere Cat"
+      ],
+      "Indie": [
+        "Aurora",
+        "Sigrid",
+        "AURORA"
+      ],
+      "Ambient": [
+        "Biosphere",
+        "Deathprod",
+        "Bjorn Torske"
+      ],
+      "Pop": [
+        "a-ha",
+        "Aurora",
+        "Sigrid",
+        "Kygo"
+      ],
+      "Rock": [
+        "Turbonegro",
+        "Madrugada",
+        "Kvelertak"
+      ],
+      "House": [
+        "Lindstrom",
+        "Todd Terje",
+        "Prins Thomas"
+      ],
+      "Folk": [
+        "Mari Boine",
+        "Eivor",
+        "Karl Seglem"
+      ],
+      "Hip Hop": [
+        "Karpe",
+        "Cezinando",
+        "Arif"
+      ],
+      "Classical": [
+        "Grieg",
+        "Leif Ove Andsnes"
+      ],
+      "Punk": [
+        "Turbonegro"
+      ],
+      "Disco": [
+        "Todd Terje"
+      ],
+      "Afrobeats": [
+        "Akuvi",
+        "Tolou",
+        "Matata"
+      ]
     },
     "Pakistan": {
-      "Folk":       ["Nusrat Fateh Ali Khan", "Abida Parveen", "Reshma"],
-      "World":      ["Junoon", "Nusrat Fateh Ali Khan", "Ali Sethi"],
-      "Pop":        ["Atif Aslam", "Ali Sethi", "Shafqat Amanat Ali"],
-      "Indie":      ["Strings", "Ali Sethi", "Mooroo"],
-      "Rock":       ["Strings", "Junoon", "Noori", "Vital Signs"],
-      "Hip Hop":    ["Faris Shafi", "Talhah Yunus", "Talha Anjum"],
-      "Classical":  ["Nusrat Fateh Ali Khan", "Abida Parveen"],
-      "Electronic": ["Talal Qureshi", "Zohaib Kazi", "Mughal-E-Funk"],
-      "Disco":      ["Nazia Hassan", "Zoheb Hassan"]
+      "Folk": [
+        "Nusrat Fateh Ali Khan",
+        "Abida Parveen",
+        "Reshma"
+      ],
+      "World": [
+        "Junoon",
+        "Nusrat Fateh Ali Khan",
+        "Ali Sethi"
+      ],
+      "Pop": [
+        "Atif Aslam",
+        "Ali Sethi",
+        "Shafqat Amanat Ali"
+      ],
+      "Indie": [
+        "Strings",
+        "Ali Sethi",
+        "Mooroo"
+      ],
+      "Rock": [
+        "Strings",
+        "Junoon",
+        "Noori",
+        "Vital Signs"
+      ],
+      "Hip Hop": [
+        "Faris Shafi",
+        "Talhah Yunus",
+        "Talha Anjum"
+      ],
+      "Classical": [
+        "Nusrat Fateh Ali Khan",
+        "Abida Parveen"
+      ],
+      "Electronic": [
+        "Talal Qureshi",
+        "Zohaib Kazi",
+        "Mughal-E-Funk"
+      ],
+      "Disco": [
+        "Nazia Hassan",
+        "Zoheb Hassan"
+      ]
     },
     "Poland": {
-      "Jazz":       ["Krzysztof Komeda", "Tomasz Stanko", "Marcin Wasilewski Trio"],
-      "Classical":  ["Frederic Chopin", "Krzysztof Penderecki", "Witold Lutoslawski"],
-      "Folk":       ["Warsaw Village Band", "Voo Voo"],
-      "Electronic": ["Skalpel", "Smolik", "Novika"],
-      "Indie":      ["Brodka", "Mela Koteluk", "Coma"],
-      "Rock":       ["Republika", "Lady Pank", "Hey", "Myslovitz"],
-      "Hip Hop":    ["Taco Hemingway", "Quebonafide", "Mata"],
-      "Pop":        ["Edyta Gornika", "Doda", "Brodka"],
-      "Bossa Nova": ["Basia"],
-      "Punk":       ["Dezerter"],
-      "Reggae":     ["Daab", "Izrael"]
+      "Jazz": [
+        "Krzysztof Komeda",
+        "Tomasz Stanko",
+        "Marcin Wasilewski Trio"
+      ],
+      "Classical": [
+        "Frederic Chopin",
+        "Krzysztof Penderecki",
+        "Witold Lutoslawski"
+      ],
+      "Folk": [
+        "Warsaw Village Band",
+        "Voo Voo"
+      ],
+      "Electronic": [
+        "Skalpel",
+        "Smolik",
+        "Novika"
+      ],
+      "Indie": [
+        "Brodka",
+        "Mela Koteluk",
+        "Coma"
+      ],
+      "Rock": [
+        "Republika",
+        "Lady Pank",
+        "Hey",
+        "Myslovitz"
+      ],
+      "Hip Hop": [
+        "Taco Hemingway",
+        "Quebonafide",
+        "Mata"
+      ],
+      "Pop": [
+        "Edyta Gornika",
+        "Doda",
+        "Brodka"
+      ],
+      "Bossa Nova": [
+        "Basia"
+      ],
+      "Punk": [
+        "Dezerter"
+      ],
+      "Reggae": [
+        "Daab",
+        "Izrael"
+      ]
     },
     "Portugal": {
-      "Folk":       ["Amalia Rodrigues", "Mariza", "Carminho", "Camane"],
-      "World":      ["Madredeus", "Amalia Rodrigues", "Mariza"],
-      "Indie":      ["Capitao Fausto", "Conjunto Corona", "Linda Martini"],
-      "Pop":        ["Salvador Sobral", "Carolina Deslandes", "Rui Veloso"],
-      "Rock":       ["GNR", "Os Quatro e Meia", "Linda Martini", "Xutos & Pontapes"],
-      "Hip Hop":    ["Sam the Kid", "Mundo Segundo", "Boss AC", "ProfJam"],
-      "Electronic": ["Buraka Som Sistema", "Branko"],
-      "Jazz":       ["Maria Joao", "Mario Laginha"],
-      "Classical":  ["Maria João Pires"],
-      "Punk":       ["Xutos & Pontapés"],
-      "Reggae":     ["Richie Campbell"]
+      "Folk": [
+        "Amalia Rodrigues",
+        "Mariza",
+        "Carminho",
+        "Camane"
+      ],
+      "World": [
+        "Madredeus",
+        "Amalia Rodrigues",
+        "Mariza"
+      ],
+      "Indie": [
+        "Capitao Fausto",
+        "Conjunto Corona",
+        "Linda Martini"
+      ],
+      "Pop": [
+        "Salvador Sobral",
+        "Carolina Deslandes",
+        "Rui Veloso"
+      ],
+      "Rock": [
+        "GNR",
+        "Os Quatro e Meia",
+        "Linda Martini",
+        "Xutos & Pontapes"
+      ],
+      "Hip Hop": [
+        "Sam the Kid",
+        "Mundo Segundo",
+        "Boss AC",
+        "ProfJam"
+      ],
+      "Electronic": [
+        "Buraka Som Sistema",
+        "Branko"
+      ],
+      "Jazz": [
+        "Maria Joao",
+        "Mario Laginha"
+      ],
+      "Classical": [
+        "Maria João Pires"
+      ],
+      "Punk": [
+        "Xutos & Pontapés"
+      ],
+      "Reggae": [
+        "Richie Campbell"
+      ]
     },
     "South Africa": {
-      "Jazz":       ["Hugh Masekela", "Abdullah Ibrahim", "Miriam Makeba", "Dorothy Masuka"],
-      "House":      ["Black Coffee", "Culoe De Song", "Da Capo", "Caiiro"],
-      "World":      ["Ladysmith Black Mambazo", "Mahotella Queens", "Miriam Makeba"],
-      "Afrobeats":  ["Tyla", "Master KG", "Sho Madjozi"],
-      "Hip Hop":    ["Nasty C", "AKA", "Cassper Nyovest", "Sho Madjozi", "Riky Rick"],
-      "Pop":        ["Tyla", "Sjava", "Lloyiso"],
-      "Folk":       ["Vusi Mahlasela", "Johnny Clegg"],
-      "Indie":      ["Petite Noir", "BCUC", "Beatenberg"],
-      "Soul":       ["Mafikizolo", "Lira"],
-      "Electronic": ["Black Coffee", "Culoe De Song"],
-      "Classical":  ["Abel Selaocoe"],
-      "Disco":      ["Brenda Fassie", "Yvonne Chaka Chaka"],
-      "Reggae":     ["Lucky Dube"]
+      "Jazz": [
+        "Hugh Masekela",
+        "Abdullah Ibrahim",
+        "Miriam Makeba",
+        "Dorothy Masuka"
+      ],
+      "House": [
+        "Black Coffee",
+        "Culoe De Song",
+        "Da Capo",
+        "Caiiro"
+      ],
+      "World": [
+        "Ladysmith Black Mambazo",
+        "Mahotella Queens",
+        "Miriam Makeba"
+      ],
+      "Afrobeats": [
+        "Tyla",
+        "Master KG",
+        "Sho Madjozi"
+      ],
+      "Hip Hop": [
+        "Nasty C",
+        "AKA",
+        "Cassper Nyovest",
+        "Sho Madjozi",
+        "Riky Rick"
+      ],
+      "Pop": [
+        "Tyla",
+        "Sjava",
+        "Lloyiso"
+      ],
+      "Folk": [
+        "Vusi Mahlasela",
+        "Johnny Clegg"
+      ],
+      "Indie": [
+        "Petite Noir",
+        "BCUC",
+        "Beatenberg"
+      ],
+      "Soul": [
+        "Mafikizolo",
+        "Lira"
+      ],
+      "Electronic": [
+        "Black Coffee",
+        "Culoe De Song"
+      ],
+      "Classical": [
+        "Abel Selaocoe"
+      ],
+      "Disco": [
+        "Brenda Fassie",
+        "Yvonne Chaka Chaka"
+      ],
+      "Reggae": [
+        "Lucky Dube"
+      ]
     },
     "South Korea": {
-      "Pop":        ["IU", "BTS", "Blackpink", "Twice", "NewJeans", "aespa"],
-      "Indie":      ["Hyukoh", "Se So Neon", "Adoy", "Silica Gel"],
-      "Hip Hop":    ["Epik High", "Tablo", "Beenzino", "Zico", "Loco"],
-      "Rock":       ["Hyukoh", "Jambinai", "Galaxy Express"],
-      "Electronic": ["Idiotape", "Hitchhiker", "Peggy Gou"],
-      "Folk":       ["Kim Min Ki", "Yoon Do Hyun", "Lucid Fall"],
-      "Soul":       ["Crush", "Dean", "Heize"],
-      "Punk":       ["Crying Nut", "No Brain"],
-      "Classical":  ["Yiruma", "Joyce Yang"],
-      "Ambient":    ["Yiruma"]
+      "Pop": [
+        "IU",
+        "BTS",
+        "Blackpink",
+        "Twice",
+        "NewJeans",
+        "aespa"
+      ],
+      "Indie": [
+        "Hyukoh",
+        "Se So Neon",
+        "Adoy",
+        "Silica Gel"
+      ],
+      "Hip Hop": [
+        "Epik High",
+        "Tablo",
+        "Beenzino",
+        "Zico",
+        "Loco"
+      ],
+      "Rock": [
+        "Hyukoh",
+        "Jambinai",
+        "Galaxy Express"
+      ],
+      "Electronic": [
+        "Idiotape",
+        "Hitchhiker",
+        "Peggy Gou"
+      ],
+      "Folk": [
+        "Kim Min Ki",
+        "Yoon Do Hyun",
+        "Lucid Fall"
+      ],
+      "Soul": [
+        "Crush",
+        "Dean",
+        "Heize"
+      ],
+      "Punk": [
+        "Crying Nut",
+        "No Brain"
+      ],
+      "Classical": [
+        "Yiruma",
+        "Joyce Yang"
+      ],
+      "Ambient": [
+        "Yiruma"
+      ]
     },
     "Spain": {
-      "Folk":       ["Camaron de la Isla", "Paco de Lucia", "Estrella Morente"],
-      "Pop":        ["Rosalia", "Manu Chao", "Aitana", "Bad Gyal"],
-      "Indie":      ["Triangulo de Amor Bizarro", "Hinds", "Vetusta Morla", "Sidonie"],
-      "Hip Hop":    ["C. Tangana", "Nathy Peluso", "Tote King", "Kase O"],
-      "Rock":       ["Heroes del Silencio", "Los Planetas", "Extremoduro", "Marea"],
-      "Electronic": ["Dorian", "Najwajean", "John Talabot"],
-      "Reggae":     ["Ska-P", "Macaco"],
-      "Punk":       ["Eskorbuto", "La Polla Records", "Kortatu"],
-      "World":      ["Paco de Lucia", "Manu Chao", "Buika"],
-      "Classical":  ["Andrés Segovia", "Alicia de Larrocha", "Pablo Casals"]
+      "Folk": [
+        "Camaron de la Isla",
+        "Paco de Lucia",
+        "Estrella Morente"
+      ],
+      "Pop": [
+        "Rosalia",
+        "Manu Chao",
+        "Aitana",
+        "Bad Gyal"
+      ],
+      "Indie": [
+        "Triangulo de Amor Bizarro",
+        "Hinds",
+        "Vetusta Morla",
+        "Sidonie"
+      ],
+      "Hip Hop": [
+        "C. Tangana",
+        "Nathy Peluso",
+        "Tote King",
+        "Kase O"
+      ],
+      "Rock": [
+        "Heroes del Silencio",
+        "Los Planetas",
+        "Extremoduro",
+        "Marea"
+      ],
+      "Electronic": [
+        "Dorian",
+        "Najwajean",
+        "John Talabot"
+      ],
+      "Reggae": [
+        "Ska-P",
+        "Macaco"
+      ],
+      "Punk": [
+        "Eskorbuto",
+        "La Polla Records",
+        "Kortatu"
+      ],
+      "World": [
+        "Paco de Lucia",
+        "Manu Chao",
+        "Buika"
+      ],
+      "Classical": [
+        "Andrés Segovia",
+        "Alicia de Larrocha",
+        "Pablo Casals"
+      ]
     },
     "Sweden": {
-      "Pop":        ["ABBA", "Robyn", "Lykke Li", "Tove Lo", "Zara Larsson"],
-      "Indie":      ["The Tallest Man on Earth", "First Aid Kit", "Jose Gonzalez", "Peter Bjorn and John"],
-      "Electronic": ["The Knife", "Avicii", "Eric Prydz", "Fever Ray"],
-      "Jazz":       ["Esbjorn Svensson Trio", "Bobo Stenson", "Jan Johansson"],
-      "Hip Hop":    ["Yung Lean", "Bladee", "Silvana Imam"],
-      "Rock":       ["Refused", "The Hives", "Mando Diao", "The Hellacopters"],
-      "Folk":       ["Sofia Karlsson", "Sofia Jannok", "First Aid Kit"],
-      "Soul":       ["Seinabo Sey", "Snoh Aalegra"],
-      "Bossa Nova": ["Lisa Ekdahl"],
-      "Punk":       ["Refused", "Ebba Grön"],
-      "Disco":      ["Alcazar"],
-      "Classical":  ["Anne Sofie von Otter"]
+      "Pop": [
+        "ABBA",
+        "Robyn",
+        "Lykke Li",
+        "Tove Lo",
+        "Zara Larsson"
+      ],
+      "Indie": [
+        "The Tallest Man on Earth",
+        "First Aid Kit",
+        "Jose Gonzalez",
+        "Peter Bjorn and John"
+      ],
+      "Electronic": [
+        "The Knife",
+        "Avicii",
+        "Eric Prydz",
+        "Fever Ray"
+      ],
+      "Jazz": [
+        "Esbjorn Svensson Trio",
+        "Bobo Stenson",
+        "Jan Johansson"
+      ],
+      "Hip Hop": [
+        "Yung Lean",
+        "Bladee",
+        "Silvana Imam"
+      ],
+      "Rock": [
+        "Refused",
+        "The Hives",
+        "Mando Diao",
+        "The Hellacopters"
+      ],
+      "Folk": [
+        "Sofia Karlsson",
+        "Sofia Jannok",
+        "First Aid Kit"
+      ],
+      "Soul": [
+        "Seinabo Sey",
+        "Snoh Aalegra"
+      ],
+      "Bossa Nova": [
+        "Lisa Ekdahl"
+      ],
+      "Punk": [
+        "Refused",
+        "Ebba Grön"
+      ],
+      "Disco": [
+        "Alcazar"
+      ],
+      "Classical": [
+        "Anne Sofie von Otter"
+      ]
     },
     "Turkey": {
-      "Folk":       ["Selda Bagcan", "Baris Manco", "Asik Veysel", "Nesrin Sipahi"],
-      "Rock":       ["Erkin Koray", "Cem Karaca", "MFO", "Manga"],
-      "World":      ["Mustafa Sandal", "Sezen Aksu", "Tarkan"],
-      "Pop":        ["Sezen Aksu", "Tarkan", "Aleyna Tilki", "Hadise"],
-      "Hip Hop":    ["Ezhel", "Ceza", "Sagopa Kajmer", "Khontkar"],
-      "Electronic": ["Mercan Dede", "Mahmut Orhan"],
-      "Indie":      ["Adamlar", "Kalben", "Madrigal"],
-      "Classical":  ["Fazıl Say", "Idil Biret", "Ahmet Adnan Saygun"],
-      "Disco":      ["Ajda Pekkan", "Senay", "Nil Burak"],
-      "Reggae":     ["Sattas"]
+      "Folk": [
+        "Selda Bagcan",
+        "Baris Manco",
+        "Asik Veysel",
+        "Nesrin Sipahi"
+      ],
+      "Rock": [
+        "Erkin Koray",
+        "Cem Karaca",
+        "MFO",
+        "Manga"
+      ],
+      "World": [
+        "Mustafa Sandal",
+        "Sezen Aksu",
+        "Tarkan"
+      ],
+      "Pop": [
+        "Sezen Aksu",
+        "Tarkan",
+        "Aleyna Tilki",
+        "Hadise"
+      ],
+      "Hip Hop": [
+        "Ezhel",
+        "Ceza",
+        "Sagopa Kajmer",
+        "Khontkar"
+      ],
+      "Electronic": [
+        "Mercan Dede",
+        "Mahmut Orhan"
+      ],
+      "Indie": [
+        "Adamlar",
+        "Kalben",
+        "Madrigal"
+      ],
+      "Classical": [
+        "Fazıl Say",
+        "Idil Biret",
+        "Ahmet Adnan Saygun"
+      ],
+      "Disco": [
+        "Ajda Pekkan",
+        "Senay",
+        "Nil Burak"
+      ],
+      "Reggae": [
+        "Sattas"
+      ]
     },
     "United Kingdom": {
-      "Rock":       ["Radiohead", "The Beatles", "The Cure", "Arctic Monkeys", "Led Zeppelin", "Pink Floyd"],
-      "Indie":      ["The Smiths", "Black Country New Road", "Wet Leg", "Yard Act", "Squid", "Black Midi"],
-      "Jazz":       ["Nubya Garcia", "Ezra Collective", "Sons of Kemet", "Shabaka Hutchings"],
-      "Electronic": ["Aphex Twin", "Bonobo", "Jamie xx", "Four Tet", "Burial"],
-      "Soul":       ["Amy Winehouse", "Sade", "Cleo Sol", "Joss Stone"],
-      "Pop":        ["FKA twigs", "Charli XCX", "Adele", "Dua Lipa"],
-      "Hip Hop":    ["Little Simz", "Skepta", "Slowthai", "Dave", "Stormzy"],
-      "Punk":       ["The Clash", "Idles", "Fontaines DC", "Sex Pistols", "The Damned"],
-      "House":      ["Disclosure", "Joy Orbison", "Floating Points"],
-      "Techno":     ["Aphex Twin", "Surgeon", "Karenn"],
-      "Reggae":     ["Steel Pulse", "Aswad", "UB40"],
-      "Folk":       ["Nick Drake", "Laura Marling", "Fairport Convention"],
-      "Ambient":    ["Burial", "Brian Eno", "The Caretaker"],
-      "Funk":       ["Jamiroquai", "Cymande", "Average White Band"],
-      "World":      ["Ali Sethi", "Bonobo"]
+      "Rock": [
+        "Radiohead",
+        "The Beatles",
+        "The Cure",
+        "Arctic Monkeys",
+        "Led Zeppelin",
+        "Pink Floyd"
+      ],
+      "Indie": [
+        "The Smiths",
+        "Black Country New Road",
+        "Wet Leg",
+        "Yard Act",
+        "Squid",
+        "Black Midi"
+      ],
+      "Jazz": [
+        "Nubya Garcia",
+        "Ezra Collective",
+        "Sons of Kemet",
+        "Shabaka Hutchings"
+      ],
+      "Electronic": [
+        "Aphex Twin",
+        "Bonobo",
+        "Jamie xx",
+        "Four Tet",
+        "Burial"
+      ],
+      "Soul": [
+        "Amy Winehouse",
+        "Sade",
+        "Cleo Sol",
+        "Joss Stone"
+      ],
+      "Pop": [
+        "FKA twigs",
+        "Charli XCX",
+        "Adele",
+        "Dua Lipa"
+      ],
+      "Hip Hop": [
+        "Little Simz",
+        "Skepta",
+        "Slowthai",
+        "Dave",
+        "Stormzy"
+      ],
+      "Punk": [
+        "The Clash",
+        "Idles",
+        "Fontaines DC",
+        "Sex Pistols",
+        "The Damned"
+      ],
+      "House": [
+        "Disclosure",
+        "Joy Orbison",
+        "Floating Points"
+      ],
+      "Techno": [
+        "Aphex Twin",
+        "Surgeon",
+        "Karenn"
+      ],
+      "Reggae": [
+        "Steel Pulse",
+        "Aswad",
+        "UB40"
+      ],
+      "Folk": [
+        "Nick Drake",
+        "Laura Marling",
+        "Fairport Convention"
+      ],
+      "Ambient": [
+        "Burial",
+        "Brian Eno",
+        "The Caretaker"
+      ],
+      "Funk": [
+        "Jamiroquai",
+        "Cymande",
+        "Average White Band"
+      ],
+      "World": [
+        "Ali Sethi",
+        "Bonobo"
+      ]
     },
     "United States": {
-      "Jazz":       ["John Coltrane", "Miles Davis", "Bill Evans", "Alice Coltrane", "Charles Mingus"],
-      "Soul":       ["Aretha Franklin", "Bill Withers", "DAngelo", "Stevie Wonder", "Marvin Gaye"],
-      "Hip Hop":    ["A Tribe Called Quest", "Kendrick Lamar", "MF DOOM", "Outkast", "Tyler The Creator"],
-      "Funk":       ["Sly and the Family Stone", "Parliament", "James Brown", "Funkadelic"],
-      "Rock":       ["Fleetwood Mac", "The Velvet Underground", "Big Thief", "Nirvana", "The Strokes"],
-      "Indie":      ["Big Thief", "Phoebe Bridgers", "Vampire Weekend", "Arcade Fire", "Mitski"],
-      "Folk":       ["Bob Dylan", "Joni Mitchell", "Nick Drake", "Joan Baez"],
-      "Electronic": ["Flying Lotus", "Caribou", "Floating Points", "Oneohtrix Point Never"],
-      "Ambient":    ["Brian Eno", "Stars of the Lid", "Grouper", "William Basinski"],
-      "Pop":        ["Frank Ocean", "Solange", "Steve Lacy", "Billie Eilish", "Taylor Swift"],
-      "Punk":       ["Black Flag", "Dead Kennedys", "Bad Brains", "Green Day", "Bikini Kill"],
-      "Disco":      ["Donna Summer", "Chic", "Earth Wind and Fire", "Sister Sledge"],
-      "Techno":     ["Derrick May", "Juan Atkins", "Jeff Mills", "Carl Craig"],
-      "House":      ["Frankie Knuckles", "Larry Heard", "MK", "Honey Dijon"],
-      "Reggae":     ["Slightly Stoopid", "Stick Figure"],
-      "Classical":  ["Aaron Copland", "Philip Glass", "Steve Reich", "John Adams"],
-      "Bossa Nova": ["Stan Getz"],
-      "Cumbia":     ["Grupo Fantasma"]
+      "Jazz": [
+        "John Coltrane",
+        "Miles Davis",
+        "Bill Evans",
+        "Alice Coltrane",
+        "Charles Mingus"
+      ],
+      "Soul": [
+        "Aretha Franklin",
+        "Bill Withers",
+        "DAngelo",
+        "Stevie Wonder",
+        "Marvin Gaye"
+      ],
+      "Hip Hop": [
+        "A Tribe Called Quest",
+        "Kendrick Lamar",
+        "MF DOOM",
+        "Outkast",
+        "Tyler The Creator"
+      ],
+      "Funk": [
+        "Sly and the Family Stone",
+        "Parliament",
+        "James Brown",
+        "Funkadelic"
+      ],
+      "Rock": [
+        "Fleetwood Mac",
+        "The Velvet Underground",
+        "Big Thief",
+        "Nirvana",
+        "The Strokes"
+      ],
+      "Indie": [
+        "Big Thief",
+        "Phoebe Bridgers",
+        "Vampire Weekend",
+        "Arcade Fire",
+        "Mitski"
+      ],
+      "Folk": [
+        "Bob Dylan",
+        "Joni Mitchell",
+        "Nick Drake",
+        "Joan Baez"
+      ],
+      "Electronic": [
+        "Flying Lotus",
+        "Caribou",
+        "Floating Points",
+        "Oneohtrix Point Never"
+      ],
+      "Ambient": [
+        "Brian Eno",
+        "Stars of the Lid",
+        "Grouper",
+        "William Basinski"
+      ],
+      "Pop": [
+        "Frank Ocean",
+        "Solange",
+        "Steve Lacy",
+        "Billie Eilish",
+        "Taylor Swift"
+      ],
+      "Punk": [
+        "Black Flag",
+        "Dead Kennedys",
+        "Bad Brains",
+        "Green Day",
+        "Bikini Kill"
+      ],
+      "Disco": [
+        "Donna Summer",
+        "Chic",
+        "Earth Wind and Fire",
+        "Sister Sledge"
+      ],
+      "Techno": [
+        "Derrick May",
+        "Juan Atkins",
+        "Jeff Mills",
+        "Carl Craig"
+      ],
+      "House": [
+        "Frankie Knuckles",
+        "Larry Heard",
+        "MK",
+        "Honey Dijon"
+      ],
+      "Reggae": [
+        "Slightly Stoopid",
+        "Stick Figure"
+      ],
+      "Classical": [
+        "Aaron Copland",
+        "Philip Glass",
+        "Steve Reich",
+        "John Adams"
+      ],
+      "Bossa Nova": [
+        "Stan Getz"
+      ],
+      "Cumbia": [
+        "Grupo Fantasma"
+      ]
     }
   }
 }

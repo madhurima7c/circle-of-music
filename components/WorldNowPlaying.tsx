@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from 'react';
 import { useStore } from '@/lib/store';
-import { GENRES } from '@/lib/data';
+import { COUNTRIES, GENRES } from '@/lib/data';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
 import { toggleFind, useIsFind } from '@/lib/library';
@@ -13,7 +13,7 @@ import {
   spotifyEnabled, subscribeSpotify, isSpotifyConnected,
   connectSpotify, disconnectSpotify,
 } from '@/lib/spotify';
-import { ProgressBar, BrandIcon, useEmbedActive, RoundPlay } from '@/components/Overlay';
+import { ProgressBar, BrandIcon, useEmbedActive, RoundPlay, NoPairing } from '@/components/Overlay';
 
 /**
  * WorldNowPlaying — the World's single compact now-playing card
@@ -25,6 +25,7 @@ export function WorldNowPlaying() {
   const {
     tracks, trackIdx, status, isPlaying, autoplayBlocked,
     togglePlay, nextTrack, prevTrack, shuffle, toggleShuffle, countryName, genreIdx,
+    customCountry, playPlace, playPlaceNamed,
   } = useStore();
   const track = tracks[trackIdx];
   const [more, setMore] = useState(false);
@@ -35,7 +36,7 @@ export function WorldNowPlaying() {
   const embedMode = spotifyOn && embedActive;
 
   if (status === 'empty') return null;
-  const pending = status === 'populating' || status === 'error';
+  const pending = status === 'populating' || status === 'error' || status === 'noResults';
   const links = track ? trackLinks(track.artist, track.title, track.id) : null;
   const genre = GENRES[genreIdx] ?? '';
 
@@ -49,8 +50,24 @@ export function WorldNowPlaying() {
       aria-label={STR.player.nowPlaying}
     >
       {pending || !track ? (
-        <div className="wnp__pending">
-          {status === 'error' ? STR.card.noResults : STR.card.populating}
+        <div className="wnp__pending" data-nopair={status === 'noResults' ? 'true' : 'false'}>
+          {status === 'noResults' ? (
+            <NoPairing
+              key={`${countryName}|${genre}`}
+              country={countryName}
+              currentGenre={genre}
+              onPick={(gi) => {
+                // Same country, new genre — instant, like a globe tap.
+                if (customCountry) playPlaceNamed(customCountry, gi);
+                else {
+                  const ci = COUNTRIES.indexOf(countryName);
+                  if (ci >= 0) playPlace(ci, gi);
+                }
+              }}
+            />
+          ) : (
+            status === 'error' ? STR.card.noResults : STR.card.populating
+          )}
         </div>
       ) : (
         <>

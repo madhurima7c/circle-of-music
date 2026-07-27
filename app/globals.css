@@ -2694,6 +2694,78 @@ html, body {
   .pintro__ring, .pintro__orb, .pintro__hint { animation: none; }
 }
 
+
+/* ---------- NoPairing — honest empty state for a pairing with no music ----------
+ * Block CENTERED in the card, text LEFT-ALIGNED, equal side padding (the
+ * user's sketch: red rectangle inset in the pane). Shared by the Circle's
+ * center card pane and the World's now-playing card. */
+.nopair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  font-family: var(--font-sans);
+}
+.nopair__msg {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+}
+.nopair__try {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.nopair__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+}
+.nopair__link {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.nopair__link:hover,
+.nopair__link:focus-visible {
+  color: #fff;
+  text-decoration-color: currentColor;
+}
+.nopair__link:focus-visible { outline: 2px solid var(--playing, #9daaff); outline-offset: 2px; }
+
+/* World card: the pending pane is a normal flow box, not a positioned pane —
+ * give the block a static footing there and keep the same inner alignment. */
+.wnp__pending[data-nopair="true"] { padding: 22px 0; }
+.wnp__pending[data-nopair="true"] .nopair {
+  position: static;
+  transform: none;
+}
+
+
 @media (max-width: 640px) {
   .frame { inset: 0; }
 

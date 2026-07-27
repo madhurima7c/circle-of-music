@@ -14,7 +14,10 @@ import { buildPlaylist, type DeezerTrack } from './deezer';
 import { sequencePlaylist } from './sequence';
 import { primeFeatures, lookupFeatures } from './track-features';
 
-type Status = 'empty' | 'populating' | 'ready' | 'error';
+/** 'noResults' = the pipeline ran fine and found NOTHING for this pairing —
+ *  the honest empty card with genre suggestions. 'error' = a real failure
+ *  (network, Deezer down), where "try something different" is the truth. */
+type Status = 'empty' | 'populating' | 'ready' | 'error' | 'noResults';
 
 /**
  * Used by the gesture system to surface what just fired so a transient
@@ -282,7 +285,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const mapped = curatePlaylist(tracksIn);
       setTracks(mapped);
       resetPlayed();
-      setStatus(mapped.length ? 'ready' : 'error');
+      setStatus(mapped.length ? 'ready' : 'noResults');
       if (mapped.length) setIsPlaying(true);
     } catch (e) {
       console.warn('Deezer playlist fetch failed:', e);

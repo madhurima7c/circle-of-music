@@ -185,6 +185,8 @@ export const STR = {
   card: {
     populating: 'Populating music...',
     noResults: 'Could not find music\nfrom these pairing,\ntry something different.',
+    noPairing: 'No matching results for this pairing :(',
+    tryGenres: (country: string) => `Try these genres for ${country}`,
     upNext: 'Up next:',
     playlist: 'Playlist',
     noTracks: 'No tracks.',

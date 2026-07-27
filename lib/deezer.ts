@@ -64,28 +64,10 @@ export { jsonp };
 
 const API = 'https://api.deezer.com';
 
-/** Wheel genres that share territory with the primary pick — fallback seed lookup. */
-const RELATED_GENRES: Record<string, string[]> = {
-  'Bossa Nova': ['Jazz'],
-  Classical: ['Ambient'],
-  Cumbia: ['World', 'Folk'],
-  Disco: ['Funk', 'Soul'],
-  Punk: ['Rock', 'Indie'],
-  Electronic: ['House', 'Techno', 'Ambient'],
-  'Hip Hop': ['Soul', 'Funk'],
-  Rock: ['Indie', 'Punk'],
-  Indie: ['Rock', 'Pop'],
-  Jazz: ['Soul', 'Funk', 'World'],
-  Soul: ['Funk', 'Hip Hop'],
-  Funk: ['Soul', 'Hip Hop'],
-  Pop: ['Indie', 'Soul'],
-  Folk: ['World', 'Indie'],
-  World: ['Folk', 'Jazz'],
-  Afrobeats: ['Pop', 'Hip Hop'],
-  House: ['Electronic', 'Techno'],
-  Techno: ['Electronic', 'House'],
-  Ambient: ['Electronic', 'Classical'],
-};
+/* RELATED_GENRES lived here — the table that let a pairing borrow a
+ * neighbouring genre's seeds. Removed 2026-07-26: the borrowing is the thing
+ * that made Norway × Afrobeats play a-ha. scripts/audit-pairings.ts keeps its
+ * own copy purely to REPORT which pairings used to lean on it. */
 
 function withPreview(tracks: DeezerTrack[] | null | undefined): DeezerTrack[] {
   return (tracks || []).filter((t) => t && t.preview);
@@ -387,22 +369,12 @@ function orderedSeedArtists(country: string, genre: string | null, seeds: Seeds)
     return out;
   }
 
-  const primary = Array.isArray(bucket[genre]) ? [...bucket[genre]] : [];
-  const seen = new Set(primary.map((a) => a.trim()));
-  const related = RELATED_GENRES[genre] || [];
-
-  for (const g of related) {
-    const list = bucket[g];
-    if (!Array.isArray(list)) continue;
-    for (const a of list) {
-      const name = String(a).trim();
-      if (name && !seen.has(name)) {
-        seen.add(name);
-        primary.push(name);
-      }
-    }
-  }
-  return primary;
+  /* Direct seeds ONLY. This used to also borrow from RELATED_GENRES —
+   * Afrobeats quietly became Pop+Hip Hop — which is how Norway × Afrobeats
+   * played a-ha while the card claimed Afrobeats. A third of the wheel's 400
+   * pairings were playing a different genre than they displayed. The card
+   * now shows an honest empty state with real alternatives instead. */
+  return Array.isArray(bucket[genre]) ? [...bucket[genre]] : [];
 }
 
 async function enrichTrack(track: DeezerTrack): Promise<DeezerTrack> {
@@ -482,25 +454,6 @@ async function findArtistsViaMusicBrainz(country: string, genre: string): Promis
   }
 }
 
-/**
- * Asks our own server (`/api/curate`) for an LLM-generated artist list for a
- * pairing. The server proxies to Claude with the API key — the browser never
- * sees it. Returns [] on any failure so the caller can decide what to do.
- */
-async function curateRuntime(country: string, genre: string): Promise<string[]> {
-  try {
-    const res = await fetch('/api/curate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country, genre }),
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { artists?: string[] | null };
-    return Array.isArray(data.artists) ? data.artists : [];
-  } catch {
-    return [];
-  }
-}
 
 /** Case-insensitive union — keeps order from the primary list, appends any
  *  names from secondary that aren't already present. */
@@ -523,21 +476,15 @@ async function worldEntry(country: string): Promise<WorldEntry | null> {
   return worldSeedsCache?.[country] ?? null;
 }
 
-/** Genre-bucketed world artists (+ related-genre borrows), like
- *  orderedSeedArtists but for countries outside the wheel. Genre null =
- *  the country's most notable artists across every genre. */
+/** Genre-bucketed world artists, like orderedSeedArtists but for countries
+ *  outside the wheel. Genre null = the country's most notable artists across
+ *  every genre. */
 async function worldSeedArtists(country: string, genre: string | null): Promise<string[]> {
   const entry = await worldEntry(country);
   if (!entry) return [];
   if (genre === null) return [...entry.top];
-  const out = [...(entry.genres[genre] ?? [])];
-  const seen = new Set(out);
-  for (const g of RELATED_GENRES[genre] ?? []) {
-    for (const a of entry.genres[g] ?? []) {
-      if (!seen.has(a)) { seen.add(a); out.push(a); }
-    }
-  }
-  return out;
+  // Direct genre list only — no related-genre borrowing (see orderedSeedArtists).
+  return [...(entry.genres[genre] ?? [])];
 }
 
 function unionArtists(primary: string[], secondary: string[]): string[] {
@@ -602,6 +549,29 @@ async function fetchArtistTrackLists(names: string[], genre: string | null): Pro
   return lists;
 }
 
+/**
+ * The genres this country can genuinely play — the basis of the empty-state
+ * suggestions ("Try these genres for Norway").
+ *
+ * Only sources that guarantee a playable, genre-verified playlist count:
+ * seeds.json direct lists for wheel countries, world-seeds genre lists for
+ * everywhere else. MusicBrainz can serve genres beyond these at runtime, but
+ * a suggestion the user clicks must never itself land on the empty card, so
+ * anything we cannot promise stays off the list. Wheel order preserved.
+ */
+export async function genresWithMusicFor(country: string, seeds: Seeds): Promise<string[]> {
+  const wheelGenres = seeds.genres as string[];
+  const bucket = seeds?.artists?.[country as keyof typeof seeds.artists] as
+    | Record<string, string[]>
+    | undefined;
+  if (bucket) {
+    return wheelGenres.filter((g) => Array.isArray(bucket[g]) && bucket[g].length > 0);
+  }
+  const entry = await worldEntry(country);
+  if (!entry) return [];
+  return wheelGenres.filter((g) => (entry.genres[g] ?? []).length > 0);
+}
+
 export async function buildPlaylist({
   country,
   genre,
@@ -646,9 +616,12 @@ export async function buildPlaylist({
     queue.push(...roundRobinMerge(perArtist, QUEUE_MAX - queue.length, seen, seenKeys));
   }
 
-  /* Tier 2.5: still empty on a world country → the country's most notable
-   * artists across ANY genre. Hearing the place beats dead air. */
-  if (queue.length === 0) {
+  /* Tier 2.5: a GENRE-LESS world tap that still found nothing → the
+   * country's most notable artists across any genre. Only when no genre was
+   * asked for: with a genre on the card, filling the queue with the
+   * country's pop stars would be claiming they are that genre. An honest
+   * empty card beats a confident wrong one. */
+  if (queue.length === 0 && genre === null) {
     const entry = await worldEntry(country);
     if (entry?.top.length) {
       const perArtist = await Promise.all(
@@ -660,18 +633,10 @@ export async function buildPlaylist({
     }
   }
 
-  /* Tier 3: LLM fallback if all the above failed (needs a genre). */
-  if (queue.length === 0 && genre) {
-    const llmArtists = await curateRuntime(country, genre);
-    if (llmArtists.length) {
-      const perArtist = await Promise.all(
-        llmArtists.map((a) =>
-          searchArtistTracksStrict(a, genre, PER_ARTIST).catch(() => [] as DeezerTrack[]),
-        ),
-      );
-      queue.push(...roundRobinMerge(perArtist, QUEUE_MAX, seen, seenKeys));
-    }
-  }
+  /* The LLM guess tier that used to sit here is gone for the same reason as
+   * genre borrowing: a pairing we cannot back with verified artists now says
+   * so instead of improvising. (curateRuntime + /api/curate still exist for
+   * build-time seed curation; restore from git if ever needed at runtime.) */
 
   /* Enrich the head with full metadata; the tail ships as-is (it has cover
    * art already — enriching 150 tracks would be 150 extra API calls). */

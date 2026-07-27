@@ -7,7 +7,8 @@ import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useStore } from '@/lib/store';
-import { COUNTRIES, GENRES, formatDuration } from '@/lib/data';
+import { COUNTRIES, GENRES, SEEDS, formatDuration } from '@/lib/data';
+import { genresWithMusicFor } from '@/lib/deezer';
 import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
@@ -449,11 +450,65 @@ function EqualizerIcon({ playing }: { playing: boolean }) {
   );
 }
 
+/**
+ * NoPairing — the honest empty state for a pairing with no verified music.
+ *
+ * "No matching results for this pairing :(" plus a linked list of genres this
+ * country CAN play (seeds/world-seeds backed, so a suggestion never lands on
+ * this same card again). The text block is centered in the card; the text
+ * itself is left-aligned with equal side padding — per the user's sketch.
+ *
+ * `onPick` is supplied by each instrument: the Circle spins the genre wheel
+ * to the clicked card (setGenre → auto-commit), the World re-taps the same
+ * country with the new genre (playPlace/playPlaceNamed, no debounce).
+ */
+export function NoPairing({ country, currentGenre, onPick }: {
+  country: string;
+  currentGenre: string;
+  onPick: (genreIdx: number) => void;
+}) {
+  // Mount with null and never reset synchronously — callers key this
+  // component by pairing, so a new country/genre remounts it fresh.
+  const [genres, setGenres] = useState<string[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    genresWithMusicFor(country, SEEDS)
+      .then((list) => { if (live) setGenres(list.filter((g) => g !== currentGenre)); })
+      .catch(() => { if (live) setGenres([]); });
+    return () => { live = false; };
+  }, [country, currentGenre]);
+
+  return (
+    <div className="nopair">
+      <p className="nopair__msg">{STR.card.noPairing}</p>
+      {genres && genres.length > 0 && (
+        <>
+          <p className="nopair__try">{STR.card.tryGenres(country)}</p>
+          <ul className="nopair__list">
+            {genres.map((g) => (
+              <li key={g}>
+                <button
+                  type="button"
+                  className="nopair__link"
+                  onClick={() => onPick(GENRES.indexOf(g))}
+                >
+                  {g}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function CenterStack() {
   const {
     tracks, trackIdx, status, isPlaying, countryName, genreIdx,
     togglePlay, nextTrack, prevTrack, shuffle, toggleShuffle, autoplayBlocked,
     setTrackIdx, setIsPlaying, customCountry, divertAfterCurrent,
+    setGenre, playPlaceNamed,
   } = useStore();
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
   const country = countryName || '';
@@ -515,7 +570,7 @@ export function CenterStack() {
   // Stable HSL pair consumed by the pending-view gradient.
   const gradient = illustrationGradientPair(country, genre);
 
-  const pending  = status === 'populating' || status === 'error';
+  const pending  = status === 'populating' || status === 'error' || status === 'noResults';
   const hasTrack = status === 'ready' && !!track;
 
   /* ---------- GSAP polish (scoped to the card) ---------- */
@@ -590,9 +645,23 @@ export function CenterStack() {
                 <span className="center__card-rail__line" />
                 <span className="center__card-rail__label">{genre.toUpperCase()}</span>
               </div>
-              <p className="center__card-pane__msg">
-                {status === 'error' ? STR.card.noResults : STR.card.populating}
-              </p>
+              {status === 'noResults' ? (
+                <NoPairing
+                  key={`${country}|${genre}`}
+                  country={country}
+                  currentGenre={genre}
+                  onPick={(gi) => {
+                    // Custom (non-wheel) country: there is no wheel card to
+                    // spin — refetch the place with the new genre directly.
+                    if (customCountry) playPlaceNamed(customCountry, gi);
+                    else setGenre(gi);   // spins the wheel; auto-commit populates
+                  }}
+                />
+              ) : (
+                <p className="center__card-pane__msg">
+                  {status === 'error' ? STR.card.noResults : STR.card.populating}
+                </p>
+              )}
             </div>
 
             {/* Player — now row, progress, transport. Content-sized. */}
