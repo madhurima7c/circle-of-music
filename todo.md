@@ -158,7 +158,84 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
-## 🔴 PICK UP HERE (2026-07-26) — Kaggle pass 2 MERGED
+## 🔴 PICK UP HERE (2026-07-26, late) — globe re-crawl DONE
+
+Everything below is committed and pushed to BOTH remotes. Vercel is deploying
+`2145096`. No background jobs running.
+
+### The globe was re-crawled from scratch
+
+`npm run world-songs` for all 3,500 country×genre pairings, 20 genres, no
+failures, ~3h at concurrency 4 via `scripts/recrawl-all.sh`.
+
+    dots                        92,267 → 42,312  (-54%)
+    country-genre cells lit      2,848 → 1,777   (-38%)
+    at the artist's REAL CITY     33.4% → 72.8%
+    no origin at all              28.6% → 9.2%
+    artist filed under a country that is not theirs
+                                  49.0% → 23.2%
+    outside their filing polygon  0.37% → 0.42%  (unchanged; coastal cities
+                                  clipped by the 110m outlines)
+
+Fewer dots, but the survivors are **twice as likely to sit on a real city**.
+That is causal, not luck: the crawl only keeps artists whose country can be
+verified, and those are the same artists we have a CITY for.
+
+**What went dark was padding.** Algeria's Afrobeats was 5 songs by "Afrobeats
+Lounge"; Angola's was Rod Picott (American folk); Chad's was Chilean Newen
+Afrobeat; Belize's was a sleep-music compilation. The cut is largest exactly
+where a genre is regional (Bossa Nova 76→14 countries, Cumbia 118→22) and
+smallest where it is global (Folk 160→125, Hip Hop 164→106). Nigeria, Ghana
+and the UK still fill the 50-song cap.
+
+### Three bugs fixed on the way — all the same shape
+
+1. **`?? candidates[0]`** in `lib/deezer.ts` — an unmatched artist name
+   returned Deezer's FIRST search result, whose whole catalogue then joined
+   the playlist. "Alen Yian" → Alela Diane, a singer from Nevada City
+   California, playing under India. Now gated on name similarity: 734 exact,
+   59 accent variants kept (João Gilberto, Antônio Carlos Jobim), 1 dropped.
+   **Do not "simplify" this to a strict equality check** — 5 of the 6 names
+   that reach the fallback are legitimate variants.
+2. **The same bug again** in `build-world-songs.ts`'s own copy of the
+   resolver, where it baked wrong artists permanently into the dot data.
+3. **`normKey` drift** across 4 scripts — `recoord` could only match
+   single-word artist names, so every multi-word artist was invisible to it.
+
+### ⚠️ Deliberate trade, marked in the code
+
+Attribution is 23.2%, not 0. **Only the free-text source is vetoed on origin.**
+Vetoing MusicBrainz and the seed lists too empties Albania × Jazz, because
+Elina Duni — the Albanian jazz singer — moved to Switzerland at ten and both
+origin sources file her there. Diaspora is not an error. The strict
+"birthplace only" globe is a one-line change at the marked spot in
+`build-world-songs.ts`, but it is a decision about what a dot MEANS.
+
+### ▶️ Next
+
+- [ ] **Look at the globe.** It is visibly sparser. If it reads as too empty,
+  the lever is NOT the country gate (that removes real junk) — it is giving
+  thin countries a "nearest real scene" fallback, the pattern `ParticleToast`
+  already uses on the Circle.
+- [ ] **337 merged artists have no dots** — they are in world-seeds `top` but
+  have no verified genre, and the crawl reads only the genre lists. Correct
+  as-is; plotting them would assert a genre nobody checked.
+- [ ] **Dot stacking**: multiple songs by one artist jitter around their city,
+  so one artist reads as a tight cluster. Pre-existing, more visible now that
+  dots are city-accurate. Consider one marker per artist with a track count.
+- [ ] 490 artists still quarantined (`ambiguous-resolved.json`, gitignored).
+- [ ] `npm run audit` against the merged roster — the genre-rule fixes in
+  `c9b2d00` never reached the pre-existing 2,427 artists.
+
+### New tooling
+
+- `npm run audit:dots [-- --baseline <dir>]` — placement / attribution /
+  coverage / integrity. **Attribution is the one that matters**: a dot can be
+  geometrically perfect and still a lie.
+- `npm run mine:charts`, `npm run mine:ambiguous`, `npm run origins:csv`,
+  `scripts/recrawl-all.sh`.
+
+## 🟡 Kaggle pass 2 (2026-07-26)
 
 ### Shipped (`a081173`, `0243ffb`, both remotes) — no background jobs running
 
