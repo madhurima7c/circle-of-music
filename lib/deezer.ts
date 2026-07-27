@@ -130,20 +130,101 @@ export async function searchArtists(name: string, limit = 12): Promise<DeezerArt
   return data?.data || [];
 }
 
-/** Prefer exact normalized name, then containment, else first hit. */
+/** Damerau-Levenshtein, capped — adjacent transpositions cost 1, so the
+ *  "Gornika"/"Gorniak" class of typo stays close. */
+function editDistance(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  if (!m || !n) return Math.max(m, n);
+  const d: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return d[m][n];
+}
+
+/**
+ * How much of the shorter name is accounted for by the longer one, 0..1,
+ * weighted by CHARACTERS rather than word count.
+ *
+ * Word-based rather than whole-string, because the real variations are word
+ * level: "Parekh and Singh" / "Parekh & Singh", "Utada Hikaru" / "Hikaru
+ * Utada" (order), "The Brown Indian Band" / "Brown Indian Band" (article).
+ *
+ * Weighting by length is what separates a distinctive word from a common one.
+ * Counting words, "Chris Perry" and "Katy Perry" score 0.5 on a shared
+ * surname — enough to pass, and wrong. Counting characters, "perry" carries
+ * only 5 of the 10 that "chrisperry" needs, while "racionais" carries 9 of
+ * the 12 in "racionaismcs", so the real variant survives and the namesake
+ * does not.
+ *
+ * A near-miss counts only for words of 5+ characters. That is the line that
+ * keeps "Gornika"/"Gorniak" (a real typo) while rejecting "Kim"/"King" —
+ * both one edit apart, but on short words one edit is a different word.
+ *
+ * The denominator is the LONGER name, not the shorter one. Dividing by the
+ * shorter makes any name fully contained in another score a perfect 1.0, so
+ * "The Band" would match "The Brown Indian Band" and "Peter Cat" would match
+ * "Peter Cat Recording Co." — different acts. Scoring against the longer name
+ * charges for the words the candidate is missing.
+ */
+function nameSimilarity(a: string, b: string): number {
+  const wa = a.split(' ').filter(Boolean);
+  const wb = b.split(' ').filter(Boolean);
+  if (!wa.length || !wb.length) return 0;
+  const lenOf = (w: string[]) => w.reduce((n, x) => n + x.length, 0);
+  const [short, long] = lenOf(wa) <= lenOf(wb) ? [wa, wb] : [wb, wa];
+  const total = Math.max(lenOf(wa), lenOf(wb));
+  if (!total) return 0;
+  let matched = 0;
+  for (const w of short) {
+    const hit = long.some((x) =>
+      x === w || (w.length >= 5 && x.length >= 5 && editDistance(w, x) <= 1),
+    );
+    if (hit) matched += w.length;
+  }
+  return matched / total;
+}
+
+/** Below this, a Deezer hit is a different artist, not a spelling variant. */
+const ARTIST_MATCH_MIN = 0.6;
+
+/**
+ * Resolve a seed name to a Deezer artist — or to nothing.
+ *
+ * Returning null matters as much as returning a match. This used to end in
+ * `return sub || candidates[0]`, handing back Deezer's first result whenever
+ * nothing matched. For a name Deezer has never heard of, that is an arbitrary
+ * artist whose ENTIRE catalogue then joins the playlist: "Alen Yian", a
+ * MusicBrainz name for India × Jazz, resolved to Alela Diane, and a
+ * singer-songwriter from Nevada City, California ended up filed under India.
+ *
+ * Deleting the fallback outright would have been worse. Across 794 seed names
+ * it fired 6 times and 5 were genuine rescues — apostrophes (Racionais MC's),
+ * ampersands (Parekh & Singh), reversed order (Hikaru Utada), our own typo
+ * (Edyta Gorniak), punctuation (Fontaines D.C.). So the fallback stays and is
+ * gated on the names actually resembling each other.
+ */
 export function pickBestArtistMatch(seedName: string, candidates: DeezerArtist[]): DeezerArtist | null {
   if (!candidates?.length) return null;
   const t = normName(seedName);
   const exact = candidates.find((a) => normName(a.name) === t);
   if (exact) return exact;
-  const starts = candidates.find(
-    (a) => normName(a.name).startsWith(t) || t.startsWith(normName(a.name)),
-  );
-  if (starts) return starts;
-  const sub = candidates.find(
-    (a) => normName(a.name).includes(t) || t.includes(normName(a.name)),
-  );
-  return sub || candidates[0];
+
+  let best: DeezerArtist | null = null;
+  let bestScore = 0;
+  for (const a of candidates) {
+    const score = nameSimilarity(t, normName(a.name));
+    if (score > bestScore) { bestScore = score; best = a; }
+  }
+  return bestScore >= ARTIST_MATCH_MIN ? best : null;
 }
 
 export async function getArtistTopTracks(artistId: number, limit = 40): Promise<DeezerTrack[]> {
