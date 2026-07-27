@@ -20,7 +20,8 @@
     "mine:charts": "tsx scripts/mine-chart-artists.ts",
     "features": "tsx scripts/build-track-features.ts",
     "mine:ambiguous": "tsx scripts/resolve-ambiguous.ts",
-    "origins:csv": "tsx scripts/apply-artist-countries.ts"
+    "origins:csv": "tsx scripts/apply-artist-countries.ts",
+    "audit:dots": "tsx scripts/audit-world-songs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
