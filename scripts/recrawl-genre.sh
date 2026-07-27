@@ -13,11 +13,15 @@ SLUG=$(printf '%s' "$GENRE" | tr '[:upper:] ' '[:lower:]-')
 LOG="/tmp/recrawl/${SLUG}.log"
 mkdir -p /tmp/recrawl
 
+# macOS ships bash 3.2, where expanding an EMPTY array under `set -u` is an
+# unbound-variable error. The `${arr[@]+...}` guard is what makes the no-limit
+# path (the real one) work at all — a smoke test with RECRAWL_LIMIT set never
+# exercises it, which is exactly how the first run died instantly.
 LIMIT_ARG=()
 [ -n "${RECRAWL_LIMIT:-}" ] && LIMIT_ARG=(--limit "$RECRAWL_LIMIT")
 
 echo "start  $GENRE"
-if npx tsx scripts/build-world-songs.ts --fresh --genres "$GENRE" "${LIMIT_ARG[@]}" > "$LOG" 2>&1; then
+if npx tsx scripts/build-world-songs.ts --fresh --genres "$GENRE" ${LIMIT_ARG[@]+"${LIMIT_ARG[@]}"} > "$LOG" 2>&1; then
   n=$(node -e "
     try {
       const j = require('./public/world-songs/${SLUG}.json');
