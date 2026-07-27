@@ -158,7 +158,36 @@ Product plan (research + decisions): `~/.claude/plans/follow-this-guide-to-crypt
 - Liked-songs count badge on the dock heart removed (read as an error state).
 - **Tablet breakpoint** (641–900px): new `TABLET_CAMERA/TUNING` in Stage (offset 5.6 / radius 3.2 / cardSize 0.85) — desktop camera pushed the wheels fully off-canvas on portrait iPads; + a window-resize fallback for environments where matchMedia change events don't fire. Real-iPad feel check still on the user.
 
-## 🔴 PICK UP HERE (2026-07-26, night) — honest empty state SHIPPED (`cb4484a`)
+## 🔴 PICK UP HERE (2026-07-27) — 11 dead pairings are now real scenes
+
+User researched the FALLBACK pairings; ~105 candidates were verified on
+Deezer (identity + playable previews + catalog fit) and 60 seeded across 11
+pairings (see commit for the full lists). **Audit: FALLBACK 19 → 8, DIRECT
+221 → 231.** Dots crawled + recoorded for all new scenes; placement 0.42%.
+
+**Verification rejects worth remembering** (the traps are real):
+- Homonyms: Virus→French rapper, Weekend→rock band, Akcent→1-fan shell,
+  Begum X→"Begut". But Boys and Ivan LOOKED risky and were right — always
+  check the resolved page's tracks ("Szalona", "Fotonovela").
+- Wrong home: Jungle Weed is French (artists.csv), despite the sitar.
+- Catalog mismatch: never seed an artist whose TOP TRACKS aren't the genre
+  (Googoosh under Bossa Nova would play Persian pop mislabeled).
+- Unplayable: all Ghana/Nigeria classical composers have 0 Deezer previews —
+  historically real, absent from this catalog.
+
+**Still honestly empty (8):** Ghana×Classical, Nigeria×Classical,
+Iran×Reggae, Mexico×Bossa Nova (user confirmed empty), Pakistan×Reggae
+(dropped per user — candidates were pop/neo-Sufi catalogs), Pakistan×Bossa
+Nova, South Korea×Bossa Nova, South Korea×Reggae (last three: unresearched).
+
+### ▶️ Next
+- [ ] User to research the last 3 unresearched pairings if desired (South
+  Korea has a real bossa scene — "Bossa nostra" cafés; worth one search).
+- [ ] The 136 RELATED pairings now rely on MusicBrainz or show the empty
+  card — spot-check popular ones.
+- [ ] Real-device checks of the empty-state card (verified in preview only).
+
+## 🟡 Empty state (2026-07-26, night)
 
 **The two instruments now give the same answer to the same question.** A
 pairing with no verified music shows "No matching results for this pairing :("
