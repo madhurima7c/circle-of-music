@@ -35,6 +35,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { pickBestArtistMatch } from '../lib/deezer';   // one guarded matcher, not a copy
+import { eachRow } from './csv-stream';
 
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public', 'world-songs');
@@ -316,6 +317,7 @@ function coordsFor(artist: string, geoNameKey: string, songIdx: number): { la: n
 
 // Track genre-verification failures for logging
 let verifySkips = 0;
+let countrySkips = 0;
 
 async function songsFor(geoNameKey: string, genre: string): Promise<Song[]> {
   const iso = geoIso[geoNameKey];
@@ -361,22 +363,32 @@ async function songsFor(geoNameKey: string, genre: string): Promise<Song[]> {
 
     // Genre verification for non-MB/non-seed sources.
     const source = artistSource.get(normName(name)) ?? 'unknown';
+    /* COUNTRY CHECK — applied to source D only, and deliberately so.
+     *
+     * Source D is a free-text "<genre> <country>" Deezer search: it returns
+     * anything containing the genre word, from anywhere. That is what put
+     * "Afrobeats Lounge" and "London Afrobeat Collective" under Laos, Chilean
+     * Newen Afrobeat under Chad, and sleep-music compilations under Belize.
+     * It has to PROVE the artist belongs here; unverifiable means rejected.
+     *
+     * The other three sources are NOT vetoed on origin, and that is a
+     * judgement call worth recording. They are already country-scoped —
+     * MusicBrainz tag queries per country, hand-curated seeds, Deezer-verified
+     * world seeds — so they carry real evidence of association. Vetoing them
+     * on birthplace empties exactly the countries that can least afford it:
+     * Albania x Jazz drops to nothing because Elina Duni, the Albanian jazz
+     * singer, moved to Switzerland at ten and both origin sources file her
+     * there. Diaspora is not an error, and `recoord` draws these dots inside
+     * the filing country anyway.
+     *
+     * If we ever want the strict "birthplace only" globe, this is the line to
+     * change — but it is a product decision about what a dot MEANS, not a bug
+     * fix, and it costs the small scenes most. */
+    const known = knownCountryOf(name);
+    const here = canonCountry(seedName);
+    if (source === 'dz' && known !== here) { countrySkips++; continue; }
+
     if (source === 'dz') {
-      /* Source D is a free-text search for "<genre> <country>", so it returns
-       * anything with the genre word in it, from anywhere. Genre was verified
-       * but COUNTRY never was, which is how "Afrobeats Lounge" and "London
-       * Afrobeat Collective" ended up filed under Laos, and sleep-music
-       * compilations under Belize.
-       *
-       * These artists must now prove they belong to this country. An origin we
-       * cannot confirm is a rejection, not a pass — this source is the least
-       * trustworthy one we have, and it is padding exactly the small countries
-       * where a wrong dot is most visible. */
-      const known = origins[normName(name)];
-      if (!known || normName(known.country ?? '') !== normName(seedName)) {
-        verifySkips++;
-        continue;
-      }
       // Deezer-found artists: verify via Deezer genre_id AND cross-check
       // with ENAO (if the country has ENAO data for this genre).
       if (!deezerGenreMatches(artist.genre_id, genre)) {
@@ -408,6 +420,73 @@ async function songsFor(geoNameKey: string, genre: string): Promise<Song[]> {
   return songs;
 }
 
+/* ---------- local country truth ----------
+ *
+ * `kaggle_datasets/artists.csv` carries a MusicBrainz country for 662k
+ * artists. Loading it once turns every country check into a Map lookup,
+ * which matters twice over: MusicBrainz's 1 req/sec would otherwise put a
+ * hard floor of many hours on this crawl, and a local index can verify
+ * artists the network pass would have had no budget to ask about.
+ *
+ * The file is optional. Without it the crawl still runs — it just falls back
+ * to origins.json alone and rejects more source-D artists, which is the safe
+ * direction.
+ */
+const artistCountry = new Map<string, string>();
+
+async function loadArtistCountries(): Promise<void> {
+  const csv = path.join(ROOT, 'kaggle_datasets', 'artists.csv');
+  if (!existsSync(csv)) {
+    console.log('(no kaggle_datasets/artists.csv — country checks fall back to origins.json)');
+    return;
+  }
+  const started = Date.now();
+  await eachRow(csv, (r) => {
+    const c = r.country_mb;                 // country_lastfm conflates language with origin
+    if (!c) return;
+    for (const n of [r.artist_mb, r.artist_lastfm]) {
+      const k = normName(n || '');
+      if (k && !artistCountry.has(k)) artistCountry.set(k, c);
+    }
+  });
+  console.log(`country index: ${artistCountry.size.toLocaleString()} artists (${((Date.now() - started) / 1000).toFixed(0)}s)`);
+}
+
+/** artists.csv / origins.json country names vs our GeoJSON names. */
+const COUNTRY_SYNONYM: Record<string, string> = {
+  'united states': 'united states of america',
+  'czech republic': 'czechia',
+  'bosnia and herzegovina': 'bosnia and herz',
+  'dominican republic': 'dominican rep',
+  'central african republic': 'central african rep',
+  'democratic republic of the congo': 'dem rep congo',
+  'republic of the congo': 'congo',
+  'ivory coast': 'cote d ivoire',
+  'north macedonia': 'macedonia',
+  'equatorial guinea': 'eq guinea',
+  'south sudan': 's sudan',
+  'solomon islands': 'solomon is',
+  'east timor': 'timor leste',
+  'swaziland': 'eswatini',
+  'western sahara': 'w sahara',
+};
+const canonCountry = (c: string) => {
+  const n = normName(c);
+  return COUNTRY_SYNONYM[n] ?? n;
+};
+
+/**
+ * What we believe about where an artist is from — origins.json first (it is
+ * curated and hand-corrected), then the bulk index.
+ */
+function knownCountryOf(artistName: string): string | null {
+  const k = normName(artistName);
+  const o = origins[k];
+  if (o?.country) return canonCountry(o.country);
+  const c = artistCountry.get(k);
+  return c ? canonCountry(c) : null;
+}
+
 /* ---------- main ---------- */
 type GenreFile = Record<string, Song[] | string[]> & { __done?: string[] };
 
@@ -421,6 +500,7 @@ async function main() {
   const limit = Number(pick('limit') ?? 0) || Infinity;
   const fresh = args.includes('--fresh');
 
+  await loadArtistCountries();
   mkdirSync(OUT_DIR, { recursive: true });
   const genres = seeds.genres.filter((g) => !onlyGenres || onlyGenres.includes(g));
   const allCountries = Object.keys(geoIso).filter((c) => !onlyCountries || onlyCountries.includes(c));
@@ -442,7 +522,7 @@ async function main() {
       .filter(([k]) => k !== '__done')
       .reduce((n, [, v]) => n + (v as Song[]).length, 0);
     console.log(`\n=== ${genre}: ${done.size} countries done, ${todo.length} to go, ${total} songs so far ===`);
-    verifySkips = 0;
+    verifySkips = 0; countrySkips = 0;
 
     for (const country of todo) {
       const songs = await songsFor(country, genre);
@@ -451,7 +531,7 @@ async function main() {
       data.__done = [...done];
       total += songs.length;
       writeFileSync(file, JSON.stringify(data));
-      console.log(`  ${genre} · ${country}: +${songs.length} (genre total ${total})${verifySkips ? ` [${verifySkips} genre-filtered]` : ''}`);
+      console.log(`  ${genre} · ${country}: +${songs.length} (genre total ${total})${verifySkips ? ` [${verifySkips} genre-filtered]` : ''}${countrySkips ? ` [${countrySkips} wrong-country]` : ''}`);
     }
   }
   console.log('\ndone.');
