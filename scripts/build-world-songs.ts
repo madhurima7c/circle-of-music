@@ -34,6 +34,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { pickBestArtistMatch } from '../lib/deezer';   // one guarded matcher, not a copy
 
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public', 'world-songs');
@@ -58,7 +59,7 @@ const worldSeeds = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'world-seeds.j
 >;
 const origins = JSON.parse(readFileSync(path.join(ROOT, 'lib', 'origins.json'), 'utf8')) as Record<
   string,
-  { lat: number; lng: number } | null
+  { lat: number; lng: number; country?: string; precision?: string } | null
 >;
 const geo = JSON.parse(
   readFileSync(path.join(ROOT, 'public', 'geo', 'countries-110m.geojson'), 'utf8'),
@@ -263,13 +264,24 @@ type DzTrack = {
 };
 type DzArtistFull = DzArtist & { genre_id?: number };
 
+/**
+ * Resolve a name to a Deezer artist, or to nothing.
+ *
+ * This used to end in `?? hits[0]`, taking Deezer's first result for a name
+ * Deezer had never heard of — the same fault that put Alela Diane, from
+ * Nevada City California, into India x Jazz on the Circle side. Here it is
+ * worse, because the wrong artist's whole catalogue is then BAKED into
+ * public/world-songs and drawn as dots.
+ *
+ * `pickBestArtistMatch` keeps the useful part of that fallback — spelling and
+ * word-order variants — and rejects everything else. See lib/deezer.ts.
+ */
 async function resolveArtist(name: string): Promise<DzArtistFull | null> {
   const data = await deezer<{ data?: DzArtistFull[] }>(
-    `/search/artist?q=${encodeURIComponent(name)}&limit=5`,
+    `/search/artist?q=${encodeURIComponent(name)}&limit=10`,
   );
   const hits = data?.data ?? [];
-  const target = normName(name);
-  return hits.find((a) => normName(a.name) === target) ?? hits[0] ?? null;
+  return (pickBestArtistMatch(name, hits) as DzArtistFull | null) ?? null;
 }
 
 async function topTracks(artistId: number): Promise<DzTrack[]> {
@@ -350,6 +362,21 @@ async function songsFor(geoNameKey: string, genre: string): Promise<Song[]> {
     // Genre verification for non-MB/non-seed sources.
     const source = artistSource.get(normName(name)) ?? 'unknown';
     if (source === 'dz') {
+      /* Source D is a free-text search for "<genre> <country>", so it returns
+       * anything with the genre word in it, from anywhere. Genre was verified
+       * but COUNTRY never was, which is how "Afrobeats Lounge" and "London
+       * Afrobeat Collective" ended up filed under Laos, and sleep-music
+       * compilations under Belize.
+       *
+       * These artists must now prove they belong to this country. An origin we
+       * cannot confirm is a rejection, not a pass — this source is the least
+       * trustworthy one we have, and it is padding exactly the small countries
+       * where a wrong dot is most visible. */
+      const known = origins[normName(name)];
+      if (!known || normName(known.country ?? '') !== normName(seedName)) {
+        verifySkips++;
+        continue;
+      }
       // Deezer-found artists: verify via Deezer genre_id AND cross-check
       // with ENAO (if the country has ENAO data for this genre).
       if (!deezerGenreMatches(artist.genre_id, genre)) {
