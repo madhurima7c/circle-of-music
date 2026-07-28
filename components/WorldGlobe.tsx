@@ -34,6 +34,11 @@ type SongDot = {
   lng: number;
   /** Saved to the local library — drawn as a heart instead of a dot. */
   liked?: boolean;
+  /** How many of this artist's songs this marker stands for (1 = just one).
+   *  Only the FIRST song of an artist gets a marker; the rest ride along. */
+  trackCount?: number;
+  /** The artist's other songs here, so a click can still pick among them. */
+  siblings?: SongDot[];
 };
 
 /** public/world-songs/<slug>.json — built by `npm run world-songs`. */
@@ -476,7 +481,31 @@ export default function WorldGlobe() {
         });
       }
     }
-    return out;
+    /* ONE MARKER PER ARTIST, PER COUNTRY, PER GENRE.
+     *
+     * The dataset holds up to five songs per artist and each was jittered
+     * around the same city, so one artist rendered as a smudge of near-
+     * identical dots — invisible while everything sat on country centroids,
+     * obvious now that placement is city-accurate. The first song keeps the
+     * marker and carries the others as `siblings`, so clicking still has the
+     * whole set to play and nothing is lost from the queue. */
+    const byArtist = new Map<string, SongDot>();
+    const collapsed: SongDot[] = [];
+    for (const d of out) {
+      const key = `${d.genreIdx}|${d.geoKey}|${normKey(d.artist)}`;
+      const head = byArtist.get(key);
+      if (!head) {
+        const marker = { ...d, trackCount: 1, siblings: [] as SongDot[] };
+        byArtist.set(key, marker);
+        collapsed.push(marker);
+      } else {
+        head.trackCount = (head.trackCount ?? 1) + 1;
+        head.siblings!.push(d);
+        // A liked song anywhere in the group makes the artist's marker a heart.
+        if (d.liked) head.liked = true;
+      }
+    }
+    return collapsed;
   }, [selectedGenres, songFiles, worldSeeds, labelPoints, likedIds, finds, showAllLiked]);
   const likedShown = useMemo(() => dots.filter((d) => d.liked).length, [dots]);
 
@@ -792,6 +821,19 @@ export default function WorldGlobe() {
    * genre that is playing: the previous selection is replaced, not added to,
    * so pressing shuffle twice never leaves two genres lit.
    */
+  const railRef = useRef<HTMLDivElement | null>(null);
+
+  /** Bring a genre chip into view — the rail lists 20 and shows ~15, so a
+   *  shuffle that lands on Rock or World would otherwise light the globe with
+   *  no visible sign of WHAT was picked. */
+  const revealGenre = (gi: number) => {
+    requestAnimationFrame(() => {
+      const chip = railRef.current?.querySelector(`[data-genre-idx="${gi}"]`);
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !document.hidden;
+      chip?.scrollIntoView({ block: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
+    });
+  };
+
   const shuffle = () => {
     const playable = features.filter(f => PLAYABLE_GEO_NAMES.has(f.properties.NAME));
     if (!playable.length) return;
@@ -821,6 +863,7 @@ export default function WorldGlobe() {
     // one lights up.
     setSelectedGenres([gi]);
     selectedGenresRef.current = [gi];
+    revealGenre(gi);
     setSelectedGeo(name);
     chainActive.current = false;
     dotByQueueIdx.current = [];
@@ -833,6 +876,23 @@ export default function WorldGlobe() {
   };
   const shuffleRef = useRef(shuffle);
   shuffleRef.current = shuffle;
+
+  /* COLD ARRIVAL — land on /world with nothing chosen and the globe is dark,
+   * which reads as broken rather than as an invitation. Shuffle once, so the
+   * first thing a newcomer sees is a country lit and music playing.
+   *
+   * Only when genuinely cold: arriving with a genre already picked, or with
+   * something already playing (crossing over from the Circle), must not be
+   * hijacked. Waits for the country polygons, since shuffle picks from them. */
+  const autoShuffled = useRef(false);
+  useEffect(() => {
+    if (autoShuffled.current) return;
+    if (!features.length) return;
+    if (selectedGenres.length || status !== 'empty') { autoShuffled.current = true; return; }
+    autoShuffled.current = true;
+    const t = setTimeout(() => shuffleRef.current(), 400);
+    return () => clearTimeout(t);
+  }, [features.length, selectedGenres.length, status]);
   useEffect(() => {
     const onShuffle = () => shuffleRef.current();
     window.addEventListener('world:shuffle', onShuffle);
@@ -1243,6 +1303,7 @@ export default function WorldGlobe() {
       {/* Genre rail — multi-select (max five). Every genre shows its own
           fixed color as a swatch; selecting fills the chip with it. */}
       <div
+        ref={railRef}
         className="world-genres"
         role="listbox"
         aria-label="Genre"
@@ -1261,6 +1322,7 @@ export default function WorldGlobe() {
               aria-selected={active}
               data-active={active ? 'true' : 'false'}
               className="world-genre-chip"
+              data-genre-idx={i}
               style={{
                 ['--chip-c' as string]: genreColor(g),
                 ['--chip-ink' as string]: genreInk(g),
@@ -1427,6 +1489,13 @@ export default function WorldGlobe() {
               <span className="song-hover__about">
                 {STR.card.aboutFallback(genreName, country, releaseYear(date))}
               </span>
+              {/* One marker stands for the artist's whole set here — say how
+                  many, so the collapsed dots don't read as missing music. */}
+              {isDot && (hoverDot!.trackCount ?? 1) > 1 && (
+                <span className="song-hover__more">
+                  {STR.world.moreHere(hoverDot!.trackCount!)}
+                </span>
+              )}
             </div>
           </div>
         );

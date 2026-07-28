@@ -29,6 +29,7 @@ export const STR = {
     backName: 'Back to the hub',
     backDesc: 'The front door.',
     backCta: 'Home →',
+    moreHere: (n: number) => `${n} songs from this artist here`,
     tapHint: 'Pick a genre to light up its songs around the world · tap any country to hear its music',
     learnMore: 'Listen to full song',
     maxGenres: 'Select 5 genres at a time',

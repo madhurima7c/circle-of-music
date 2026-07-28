@@ -261,9 +261,24 @@ export default function Wheel({
   const isLeft      = position[0] < 0;
   const activeAngle = isLeft ? 0 : Math.PI;
 
+  /**
+   * Which way the list runs around the circle.
+   *
+   * Card i sits at `dir * i * angleStep`, and y = sin(angle). With a single
+   * direction the two wheels read OPPOSITE ways: the right wheel is active at
+   * π, where increasing angle moves down the screen, but the left wheel is
+   * active at 0, where increasing angle moves UP. So the left wheel ran
+   * Z→A downward while its letter ladder ran A→Z downward — the ladder
+   * promised alphabetical order the wheel did not keep.
+   *
+   * Flipping the left wheel puts both in alphabetical order top-to-bottom,
+   * and incidentally makes the two wheels agree with each other.
+   */
+  const dir = isLeft ? -1 : 1;
+
   useEffect(() => {
-    targetRot.current = activeAngle - selectedIdx * angleStep;
-  }, [selectedIdx, activeAngle, angleStep]);
+    targetRot.current = activeAngle - dir * selectedIdx * angleStep;
+  }, [selectedIdx, activeAngle, angleStep, dir]);
 
   /* ---- drag state ---- */
   const [dragging, setDragging] = useState(false);
@@ -367,6 +382,7 @@ export default function Wheel({
         items={items}
         total={total}
         angleStep={angleStep}
+        dir={dir}
         wheelRotRef={wheelRot}
         cursorRef={cursorRef}
         activeAngle={activeAngle}
@@ -401,6 +417,7 @@ function CircleRing({
   items,
   total,
   angleStep,
+  dir,
   wheelRotRef,
   cursorRef,
   activeAngle,
@@ -425,6 +442,7 @@ function CircleRing({
   items: readonly string[];
   total: number;
   angleStep: number;
+  dir: number;
   wheelRotRef: React.RefObject<number>;
   cursorRef: React.RefObject<WheelCursor>;
   activeAngle: number;
@@ -507,7 +525,7 @@ function CircleRing({
       const g = refs.current[i];
       if (!g) continue;
 
-      const localAngle     = i * angleStep;
+      const localAngle     = dir * i * angleStep;
       const baseWorldAngle = localAngle + wheelRot;
 
       // ----- distance to active position (shortest path around circle) -----
