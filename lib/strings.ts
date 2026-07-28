@@ -232,6 +232,7 @@ export const STR = {
     deselectAll: 'Deselect all',
     clearSelected: 'Clear',
     addToPlaylist: 'Add to playlist',
+    savedTo: 'Saved — add to a playlist',
   },
 
   player: {

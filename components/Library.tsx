@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { useStore } from '@/lib/store';
-import { formatDuration } from '@/lib/data';
+import { GENRES, formatDuration } from '@/lib/data';
 import {
   useFinds, usePlaylists, removeFind, findToTrack,
   createPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
@@ -43,7 +43,7 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
 
   const finds = useFinds();
   const playlists = usePlaylists();
-  const { loadQueue } = useStore();
+  const { loadQueue, setNowPlayingOrigin } = useStore();
 
   const [view, setView] = useState<'all' | string>('all');
   const [creating, setCreating] = useState(false);
@@ -63,9 +63,28 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
     ? activePlaylist.trackIds.map(id => byId.get(id)).filter((f): f is Find => !!f)
     : finds;
 
+  /**
+   * Play a liked song, and take the instrument you're on to where it's from.
+   *
+   * World  → fly the camera to the song (the globe resolves the coordinates;
+   *          it owns the dot/origin/country fallback chain).
+   * Circle → flip the wheels to that country × genre. setNowPlayingOrigin is
+   *          the right lever: it moves the cards WITHOUT refetching, so the
+   *          song you clicked is what plays rather than a fresh pairing.
+   */
   const playFrom = (idx: number) => {
     if (!rows.length) return;
+    const f = rows[idx];
     loadQueue(rows.map(findToTrack), idx);
+    if (!f) return;
+    if (pathname === '/world') {
+      window.dispatchEvent(new CustomEvent('world:flyto', {
+        detail: { id: f.id, artist: f.artist, country: f.country },
+      }));
+    } else {
+      const gi = GENRES.indexOf(f.genre);
+      if (gi >= 0 && f.country) setNowPlayingOrigin(f.country, gi);
+    }
   };
 
   const switchView = (v: string) => {

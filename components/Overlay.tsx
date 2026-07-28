@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useStore } from '@/lib/store';
-import { COUNTRIES, GENRES, SEEDS, formatDuration } from '@/lib/data';
+import { COUNTRIES, GENRES, SEEDS, formatDuration, type Track } from '@/lib/data';
 import { genresWithMusicFor } from '@/lib/deezer';
 import { illustrationGradientPair } from '@/lib/illustration';
 import { trackLinks } from '@/lib/links';
 import { STR } from '@/lib/strings';
-import { toggleFind, useIsFind, useFinds } from '@/lib/library';
+import { toggleFind, isFind, useIsFind, useFinds, usePlaylists, createPlaylist, addToPlaylist } from '@/lib/library';
 import { storyFor, releaseYear } from '@/lib/stories';
 import { audioBus } from '@/lib/audio-bus';
 import { LikedSongs } from '@/components/Library';
@@ -451,6 +451,104 @@ function EqualizerIcon({ playing }: { playing: boolean }) {
 }
 
 /**
+ * LikePicker — the small panel the ♥ opens.
+ *
+ * Liking and filing are separate acts. Pressing ♥ saves the song straight
+ * away (it lands in All liked), and this panel is how you ALSO file it into a
+ * playlist — so the fast path stays one click and nothing is ever stranded
+ * waiting for a decision. Unliking from here removes it everywhere.
+ */
+export function LikePicker({ track, country, genre, onClose }: {
+  track: Track;
+  country: string;
+  genre: string;
+  onClose: () => void;
+}) {
+  const playlists = usePlaylists();
+  const saved = useIsFind(track.id);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
+
+  // Built inside the handlers, never during render — Date.now() in a
+  // render-time expression is an impure call.
+  const buildFind = useCallback(() => ({
+    id: track.id, title: track.title, artist: track.artist,
+    album: track.album, image: track.image, preview: track.preview,
+    country, genre, savedAt: Date.now(),
+    releaseDate: track.releaseDate ?? null,
+    duration: track.duration ?? null,
+  }), [track, country, genre]);
+
+  const fileInto = (playlistId: string) => {
+    if (!isFind(track.id)) toggleFind(buildFind());   // filing implies liking
+    addToPlaylist(playlistId, track.id);
+    onClose();
+  };
+
+  const submitNew = () => {
+    const n = name.trim();
+    if (!n) return;
+    if (!isFind(track.id)) toggleFind(buildFind());
+    const pl = createPlaylist(n);
+    addToPlaylist(pl.id, track.id);
+    setName('');
+    setCreating(false);
+    onClose();
+  };
+
+  return (
+    <div className="likepick" role="dialog" aria-label={STR.library.addToPlaylist}>
+      <div className="likepick__head">
+        <span className="likepick__title">{saved ? STR.library.savedTo : STR.library.addToPlaylist}</span>
+        <button className="likepick__close" onClick={onClose} aria-label={STR.library.close}>
+          <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+            <path d="M3 3l6 6M9 3l-6 6" />
+          </svg>
+        </button>
+      </div>
+
+      {playlists.length > 0 && (
+        <ul className="likepick__list">
+          {playlists.map((pl) => (
+            <li key={pl.id}>
+              <button className="likepick__item" onClick={() => fileInto(pl.id)}>
+                <span className="likepick__item-name">{pl.name}</span>
+                <span className="likepick__item-n">{pl.trackIds.length}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {creating ? (
+        <div className="likepick__new">
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') submitNew(); if (e.key === 'Escape') setCreating(false); }}
+            placeholder={STR.playlists.namePlaceholder}
+            aria-label={STR.playlists.namePlaceholder}
+          />
+          <button onClick={submitNew}>{STR.playlists.create}</button>
+        </div>
+      ) : (
+        <button className="likepick__add" onClick={() => setCreating(true)}>+ {STR.playlists.newPlaylist}</button>
+      )}
+
+      {saved && (
+        <button
+          className="likepick__unlike"
+          onClick={() => { toggleFind(buildFind()); onClose(); }}
+        >
+          {STR.card.unsave}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
  * NoPairing — the honest empty state for a pairing with no verified music.
  *
  * "No matching results for this pairing :(" plus a linked list of genres this
@@ -511,6 +609,9 @@ export function CenterStack() {
     setGenre, playPlaceNamed,
   } = useStore();
   const spotifyOn = useSyncExternalStore(subscribeSpotify, isSpotifyConnected, () => false);
+  const [likeOpen, setLikeOpen] = useState(false);
+  const [likeAt, setLikeAt] = useState<{ x: number; y: number } | null>(null);
+  const heartBtnRef = useRef<HTMLButtonElement | null>(null);
   const country = countryName || '';
   const genre   = GENRES[genreIdx]      ?? '';
   const track   = tracks[trackIdx];
@@ -586,9 +687,22 @@ export function CenterStack() {
     row?.scrollIntoView({ block: 'nearest', behavior: canAnimate() ? 'smooth' : 'auto' });
   }, [trackIdx, hasTrack]);
 
-  // Fresh pairing / track → close the share menu.
-  useEffect(() => { setShareOpen(false); }, [pairingKey]);
-  useEffect(() => { setShareOpen(false); }, [track?.id]);
+  // Fresh pairing or track → close the transient menus. One effect, not the
+  // two identical ones this replaced.
+  useEffect(() => {
+    setShareOpen(false);
+    setLikeOpen(false);
+  }, [pairingKey, track?.id]);
+
+  // Outside click closes the like picker.
+  useEffect(() => {
+    if (!likeOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.ctrl-heart-wrap')) setLikeOpen(false);
+    };
+    window.addEventListener('mousedown', onDown);
+    return () => window.removeEventListener('mousedown', onDown);
+  }, [likeOpen]);
 
   // Playlist entrance: when a fresh pairing becomes ready, the now-playing
   // row, transport, and queue rise and stagger in together.
@@ -732,25 +846,39 @@ export function CenterStack() {
                         here on our platform, or save it to Spotify from the
                         embed above. Playback lives in the round button (or in
                         the embed), never here. */}
-                    <button
-                      className="ctrl ctrl--heart"
-                      data-saved={saved ? 'true' : 'false'}
-                      disabled={!track}
-                      onClick={() => track && toggleFind({
-                        id: track.id, title: track.title, artist: track.artist,
-                        album: track.album, image: track.image, preview: track.preview,
-                        country, genre, savedAt: Date.now(),
-                        releaseDate: track.releaseDate ?? null,
-                        duration: track.duration ?? null,
-                      })}
-                      title={saved ? STR.card.unsave : STR.card.save}
-                      aria-label={saved ? STR.card.unsave : STR.card.save}
-                      aria-pressed={saved}
-                    >
-                      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-                      </svg>
-                    </button>
+                    <div className="ctrl-heart-wrap">
+                      <button
+                        ref={heartBtnRef}
+                        className="ctrl ctrl--heart"
+                        data-saved={saved ? 'true' : 'false'}
+                        disabled={!track}
+                        onClick={() => {
+                          if (!track) return;
+                          // One click always likes it — the picker is for
+                          // filing, never a gate in front of saving.
+                          if (!saved) toggleFind({
+                            id: track.id, title: track.title, artist: track.artist,
+                            album: track.album, image: track.image, preview: track.preview,
+                            country, genre, savedAt: Date.now(),
+                            releaseDate: track.releaseDate ?? null,
+                            duration: track.duration ?? null,
+                          });
+                          if (!likeOpen && heartBtnRef.current) {
+                            const r = heartBtnRef.current.getBoundingClientRect();
+                            setLikeAt({ x: r.left + r.width / 2, y: r.top - 10 });
+                          }
+                          setLikeOpen(o => !o);
+                        }}
+                        title={saved ? STR.card.unsave : STR.card.save}
+                        aria-label={saved ? STR.card.unsave : STR.card.save}
+                        aria-pressed={saved}
+                        aria-expanded={likeOpen}
+                      >
+                        <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                        </svg>
+                      </button>
+                    </div>
                     <button className="ctrl" onClick={nextTrack} title={STR.card.next} aria-label={STR.card.next}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 6l10 6-10 6V6z" />
@@ -833,6 +961,25 @@ export function CenterStack() {
       )}
 
       {/* Share — full menu with names (body portal to escape card clip). */}
+      {/* Body-level portal for the same reason the share menu is one: the
+          card sets `isolation: isolate`, so anything rendered inside it is
+          trapped below the root-level Spotify strip and clipped by the card
+          edge. Anchored to the ♥'s live rect. */}
+      {likeOpen && track && likeAt && typeof document !== 'undefined' && createPortal(
+        <div
+          className="likepick-anchor"
+          style={{ left: likeAt.x, top: likeAt.y }}
+        >
+          <LikePicker
+            track={track}
+            country={country}
+            genre={genre}
+            onClose={() => setLikeOpen(false)}
+          />
+        </div>,
+        document.body,
+      )}
+
       {shareOpen && links && shareAt && typeof document !== 'undefined' && createPortal(
         <>
           <div className="listen-scrim" onClick={() => setShareOpen(false)} />

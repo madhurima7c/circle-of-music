@@ -116,6 +116,33 @@ function heartMaterial(color: string): THREE.SpriteMaterial {
   return m;
 }
 
+/**
+ * A heart with a white rim: two stacked sprites, a larger white one behind a
+ * genre-coloured one. A SpriteMaterial's `color` multiplies the whole
+ * texture, so an outline baked into a single texture would be tinted along
+ * with the fill — stacking is what keeps the rim white against any genre.
+ */
+function makeHeartObject(color: string): THREE.Group {
+  const g = new THREE.Group();
+  const rim = new THREE.Sprite(heartMaterial('#ffffff'));
+  rim.scale.set(HEART_SCALE, HEART_SCALE, 1);
+  const fill = new THREE.Sprite(heartMaterial(color));
+  fill.scale.set(HEART_SCALE * HEART_FILL, HEART_SCALE * HEART_FILL, 1);
+  fill.position.z = 0.001;                 // in front of the rim, same billboard
+  g.add(rim, fill);
+  return g;
+}
+
+/** Re-tint an existing heart group in place (objects are recycled). */
+function updateHeartObject(g: THREE.Group, color: string) {
+  const [rim, fill] = g.children as THREE.Sprite[];
+  if (!rim || !fill) return;
+  rim.material = heartMaterial('#ffffff');
+  rim.scale.set(HEART_SCALE, HEART_SCALE, 1);
+  fill.material = heartMaterial(color);
+  fill.scale.set(HEART_SCALE * HEART_FILL, HEART_SCALE * HEART_FILL, 1);
+}
+
 const dotMaterials = new Map<string, THREE.SpriteMaterial>();
 function dotMaterial(color: string): THREE.SpriteMaterial {
   let m = dotMaterials.get(color);
@@ -132,6 +159,7 @@ function dotMaterial(color: string): THREE.SpriteMaterial {
 }
 const DOT_SCALE = 0.3;       // world units (globe radius = 100) ≈ tiny flat dot
 const HEART_SCALE = 0.85;    // a liked song should be findable at a glance
+const HEART_FILL = 0.62;     // coloured centre inside the white rim
 const DOT_ALTITUDE = 0.012;  // a hair above the 0.01 country caps
 const HEART_ALTITUDE = 0.014; // slightly proud of the dots so it never z-fights
 
@@ -259,7 +287,9 @@ export default function WorldGlobe() {
     if (!g || !size.w) return;
     const controls = g.controls();
     controls.enablePan = false;
-    controls.minDistance = 120;   // allow the close country zoom
+    // 102 = altitude 0.02 on a radius-100 globe: close enough that dots in one
+    // city separate instead of merging into a blob (the Google-Maps feel).
+    controls.minDistance = 102;
     controls.maxDistance = 520;
     controls.enableDamping = true;
     controls.dampingFactor = 0.12;
@@ -449,6 +479,38 @@ export default function WorldGlobe() {
     return out;
   }, [selectedGenres, songFiles, worldSeeds, labelPoints, likedIds, finds, showAllLiked]);
   const likedShown = useMemo(() => dots.filter((d) => d.liked).length, [dots]);
+
+  /* Playing a song from the liked list flies the camera to it.
+   *
+   * Coordinates are resolved HERE rather than passed in, because the globe is
+   * the only place that knows all three fallbacks: the song's own dot if the
+   * dataset has it, the artist's origin, then the country it was found in. */
+  useEffect(() => {
+    const onFly = (e: Event) => {
+      const d = (e as CustomEvent<{ id: number; artist: string; country: string }>).detail;
+      if (!d) return;
+      const g = globeRef.current;
+      if (!g) return;
+      const hit = dotsRef.current.find((x) => x.trackId === d.id);
+      let lat: number | undefined, lng: number | undefined;
+      if (hit) { lat = hit.lat; lng = hit.lng; }
+      else {
+        const o = originFor(d.artist);
+        if (o) { lat = o.lat; lng = o.lng; }
+        else {
+          const lp = labelPointsRef.current.get(geoName(d.country)) ?? labelPointsRef.current.get(d.country);
+          if (lp) { lat = lp.lat; lng = lp.lng; }
+        }
+      }
+      if (lat == null || lng == null) return;
+      setSelectedGeo(geoName(d.country) || null);
+      g.pointOfView({ lat, lng, altitude: 0.35 }, 1100);
+    };
+    window.addEventListener('world:flyto', onFly as EventListener);
+    return () => window.removeEventListener('world:flyto', onFly as EventListener);
+  }, []);
+  const labelPointsRef = useRef(labelPoints);
+  labelPointsRef.current = labelPoints;
   const dotsRef = useRef(dots);
   dotsRef.current = dots;
 
@@ -674,7 +736,7 @@ export default function WorldGlobe() {
     const f = features.find(x => x.properties.NAME === selectedGeo);
     if (!f) return;
     globeRef.current?.pointOfView(
-      { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X, altitude: 0.7 },
+      { lat: f.properties.LABEL_Y, lng: f.properties.LABEL_X, altitude: 0.55 },
       1000,
     );
   }, [selectedGeo, features]);
@@ -770,7 +832,7 @@ export default function WorldGlobe() {
    * directly (pointOfView keeps the current lat/lng). Slider 0 = far out,
    * 1 = close in. Opening reads the live altitude so the thumb starts true. */
   const [zoomVal, setZoomVal] = useState(0.45);
-  const ALT_MIN = 0.35, ALT_MAX = 4.0;   // within the controls' distance clamp
+  const ALT_MIN = 0.04, ALT_MAX = 4.0;   // within the controls' distance clamp
   const applyZoom = useCallback((v: number) => {
     const clamped = Math.min(1, Math.max(0, v));
     setZoomVal(clamped);
@@ -1080,12 +1142,9 @@ export default function WorldGlobe() {
           customLayerData={dots}
           customThreeObject={(d: object) => {
             const dot = d as SongDot;
-            const liked = !!dot.liked;
-            const sprite = new THREE.Sprite(
-              liked ? heartMaterial(colorFor(dot.genreIdx)) : dotMaterial(colorFor(dot.genreIdx)),
-            );
-            const sc = liked ? HEART_SCALE : DOT_SCALE;
-            sprite.scale.set(sc, sc, 1);
+            if (dot.liked) return makeHeartObject(colorFor(dot.genreIdx));
+            const sprite = new THREE.Sprite(dotMaterial(colorFor(dot.genreIdx)));
+            sprite.scale.set(DOT_SCALE, DOT_SCALE, 1);
             return sprite;
           }}
           customThreeObjectUpdate={(obj: object, d: object) => {
@@ -1095,16 +1154,20 @@ export default function WorldGlobe() {
             };
             const liked = !!dot.liked;
             const pos = g?.getCoords?.(dot.lat, dot.lng, liked ? HEART_ALTITUDE : DOT_ALTITUDE);
-            const sprite = obj as THREE.Sprite;
-            if (pos) sprite.position.set(pos.x, pos.y, pos.z);
+            const o3 = obj as THREE.Object3D;
+            if (pos) o3.position.set(pos.x, pos.y, pos.z);
             // Re-applied on update because react-globe.gl recycles objects
-            // across data changes — a dot that becomes liked (or stops being
-            // liked) has to swap texture and size in place.
-            sprite.material = liked
-              ? heartMaterial(colorFor(dot.genreIdx))
-              : dotMaterial(colorFor(dot.genreIdx));
-            const sc = liked ? HEART_SCALE : DOT_SCALE;
-            sprite.scale.set(sc, sc, 1);
+            // across data changes. A group is a heart, a bare sprite a dot;
+            // when a song's liked state flips, the object TYPE changes, so
+            // only re-style when the kind still matches — react-globe.gl
+            // rebuilds via customThreeObject otherwise.
+            if (liked && (o3 as THREE.Group).isGroup) {
+              updateHeartObject(o3 as THREE.Group, colorFor(dot.genreIdx));
+            } else if (!liked && (o3 as THREE.Sprite).isSprite) {
+              const sprite = o3 as THREE.Sprite;
+              sprite.material = dotMaterial(colorFor(dot.genreIdx));
+              sprite.scale.set(DOT_SCALE, DOT_SCALE, 1);
+            }
           }}
           onCustomLayerHover={onDotHover}
           onCustomLayerClick={(d: object) => { void playDotRef.current(d as SongDot); }}

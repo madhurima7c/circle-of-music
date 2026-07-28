@@ -2832,6 +2832,165 @@ html, body {
 .world-liked-badge__close svg { color: currentColor; }
 
 
+
+/* ---------- Liked popup + like picker: LIGHT MODE ----------
+ * Matches .contact-card (white plate, #17171a ink) so every message box on
+ * the platform reads the same. Written as an override block rather than by
+ * editing the ~40 dark rules above — additive, and the dark original stays
+ * intact and revertable in one delete.
+ * Placed after those rules, so equal specificity wins on order. */
+.liked {
+  background: #ffffff;
+  color: #17171a;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+.liked__side {
+  background: #f6f6f8;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+.liked__side-sub { color: rgba(23, 23, 26, 0.45); }
+.liked__pl { color: rgba(23, 23, 26, 0.86); }
+.liked__pl:hover { background: rgba(0, 0, 0, 0.05); }
+.liked__pl[data-active="true"] { background: rgba(0, 0, 0, 0.09); }
+.liked__pl[data-dragover="true"] {
+  background: rgba(29, 43, 223, 0.12);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.liked__pl-count { color: rgba(23, 23, 26, 0.45); }
+.liked__pl--new { color: rgba(23, 23, 26, 0.55); }
+.liked__new input {
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: #fff;
+  color: #17171a;
+}
+.liked__side-foot { border-top: 1px solid rgba(0, 0, 0, 0.08); }
+.liked__hint, .liked__notice { color: rgba(23, 23, 26, 0.45); }
+.liked__notice { color: #1c7a45; }
+.liked__head { border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+.liked__close { color: rgba(23, 23, 26, 0.5); }
+.liked__close:hover { color: #17171a; }
+.liked__delete { color: rgba(23, 23, 26, 0.5); }
+.liked__delete:hover { color: #d5304f; }
+.liked__empty { color: rgba(23, 23, 26, 0.5); }
+.liked__row:hover { background: rgba(0, 0, 0, 0.04); }
+.liked__row[data-selected="true"] { background: rgba(29, 43, 223, 0.08); }
+.liked__row-artist { color: rgba(23, 23, 26, 0.58); }
+.liked__row-ctx { color: rgba(23, 23, 26, 0.45); }
+.liked__row-dur { color: rgba(23, 23, 26, 0.45); }
+.liked__row-share, .liked__row-remove { color: rgba(23, 23, 26, 0.45); }
+.liked__row-share:hover, .liked__row-remove:hover { color: #17171a; }
+.liked__export-btn {
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  color: rgba(23, 23, 26, 0.75);
+}
+.liked__export-btn:hover { color: #17171a; border-color: rgba(0, 0, 0, 0.3); }
+.liked__export-menu {
+  background: #fff;
+  color: #17171a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.07);
+}
+.liked__export-menu button { color: #17171a; }
+.liked__export-menu button:hover { background: rgba(0, 0, 0, 0.05); }
+.liked__globe-btn { border-color: rgba(0, 0, 0, 0.16); color: rgba(23, 23, 26, 0.8); }
+.liked__globe-btn:hover, .liked__globe-btn:focus-visible { color: #17171a; border-color: rgba(0, 0, 0, 0.4); }
+.liked__sel-count { color: rgba(23, 23, 26, 0.6); }
+.liked__bulk-clear, .liked__bulk-move-btn {
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  color: rgba(23, 23, 26, 0.75);
+}
+.liked__bulk-clear:hover, .liked__bulk-move-btn:hover { color: #17171a; }
+.liked__bulk-move-menu {
+  background: #fff;
+  color: #17171a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.07);
+}
+.liked__bulk-move-menu button { color: #17171a; }
+.liked__bulk-move-menu button:hover { background: rgba(0, 0, 0, 0.05); }
+
+/* ---------- Like picker — the ♥'s "add to playlist" panel ---------- */
+.ctrl-heart-wrap { position: relative; display: inline-flex; }
+/* Body-portalled: anchored at the ♥'s screen position, panel grows upward. */
+/* The anchor is a zero-size fixed point at the ♥. Offsetting the panel with
+ * `bottom` against a zero-height containing block resolved off-screen, so the
+ * anchor itself is translated: shift left by half its own width and up by its
+ * full height, which lands the panel centred just above the button. */
+.likepick-anchor {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, -100%);
+}
+.likepick {
+  position: static;
+  width: 232px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px 10px 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #17171a;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.26), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  font-family: var(--font-plex-sans), sans-serif;
+  text-align: left;
+}
+.likepick__head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.likepick__title {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(23, 23, 26, 0.55);
+}
+.likepick__close {
+  margin-left: auto;
+  display: grid; place-items: center;
+  width: 18px; height: 18px;
+  border: 0; border-radius: 50%;
+  background: transparent;
+  color: rgba(23, 23, 26, 0.45);
+  cursor: pointer;
+}
+.likepick__close:hover { color: #17171a; background: rgba(0, 0, 0, 0.06); }
+.likepick__list { list-style: none; margin: 0 0 4px; padding: 0; display: flex; flex-direction: column; }
+.likepick__item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 7px 8px;
+  border: 0; border-radius: 8px;
+  background: transparent; color: inherit;
+  font: inherit; font-size: 12.5px;
+  text-align: left; cursor: pointer;
+}
+.likepick__item:hover { background: rgba(0, 0, 0, 0.05); }
+.likepick__item-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.likepick__item-n { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: rgba(23, 23, 26, 0.4); }
+.likepick__add {
+  width: 100%; padding: 7px 8px;
+  border: 0; border-radius: 8px;
+  background: transparent; color: var(--accent);
+  font: inherit; font-size: 12px; text-align: left; cursor: pointer;
+}
+.likepick__add:hover { background: rgba(29, 43, 223, 0.07); }
+.likepick__new { display: flex; gap: 6px; padding: 4px 2px; }
+.likepick__new input {
+  min-width: 0; flex: 1;
+  padding: 6px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.18); border-radius: 6px;
+  background: #fff; color: #17171a;
+  font: inherit; font-size: 12px;
+}
+.likepick__new button {
+  border: 0; padding: 0 10px; border-radius: 6px;
+  background: var(--accent); color: #fff;
+  font: inherit; font-size: 11px; cursor: pointer;
+}
+.likepick__unlike {
+  width: 100%; margin-top: 4px; padding: 7px 8px;
+  border: 0; border-top: 1px solid rgba(0, 0, 0, 0.08); border-radius: 0 0 8px 8px;
+  background: transparent; color: #d5304f;
+  font: inherit; font-size: 12px; text-align: left; cursor: pointer;
+}
+.likepick__unlike:hover { background: rgba(213, 48, 79, 0.07); }
+
+
 @media (max-width: 640px) {
   .frame { inset: 0; }
 
