@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { useStore } from '@/lib/store';
 import { formatDuration } from '@/lib/data';
@@ -15,6 +16,31 @@ import { STR } from '@/lib/strings';
 import { BrandIcon } from '@/components/Overlay';
 
 export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  /** Lay every liked song over the globe as hearts.
+   *
+   * The globe owns the toggle (it listens for `world:liked`), so from the
+   * Circle we have to navigate first and fire once the World has mounted —
+   * dispatching before then would hit no listener. */
+  const viewOnGlobe = () => {
+    onClose();
+    if (pathname === '/world') {
+      window.dispatchEvent(new Event('world:liked'));
+      return;
+    }
+    router.push('/world');
+    // One frame after the route settles; the globe registers its listener on
+    // mount. Retried briefly so a slow mount can't swallow the toggle.
+    let tries = 0;
+    const fire = () => {
+      window.dispatchEvent(new Event('world:liked'));
+      if (++tries < 3) setTimeout(fire, 400);
+    };
+    setTimeout(fire, 500);
+  };
+
   const finds = useFinds();
   const playlists = usePlaylists();
   const { loadQueue } = useStore();
@@ -240,6 +266,20 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
             <span className="liked__head-title">
               {activePlaylist ? activePlaylist.name : STR.playlists.all}
             </span>
+            {rows.length > 0 && (
+              <button
+                className="liked__globe-btn"
+                onClick={viewOnGlobe}
+                title={STR.library.viewOnGlobeHint}
+              >
+                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden>
+                  <circle cx="8" cy="8" r="6.2" />
+                  <ellipse cx="8" cy="8" rx="2.6" ry="6.2" />
+                  <path d="M1.9 6h12.2M1.9 10h12.2" strokeLinecap="round" />
+                </svg>
+                {STR.library.viewOnGlobe}
+              </button>
+            )}
             {someSelected && (
               <>
                 <span className="liked__sel-count">{selected.size}</span>

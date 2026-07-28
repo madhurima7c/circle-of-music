@@ -2142,12 +2142,15 @@ html, body {
 .center__spotify-connect[data-connected="true"] { text-decoration: none; }
 
 /* Divert toast — "Bhutan coming soon — brought you nearby." A canvas
-   (particle-to-text) floating just above the now-playing card, centered,
-   with an ⓘ that opens the full explanation. Typography painted inside
-   the canvas, sampled from .center__album. */
+   (particle-to-text) message with an ⓘ that opens the full explanation.
+   Typography painted inside the canvas, sampled from .center__album.
+
+   Sits BELOW the playlist frame, 16px clear of it. It used to sit above
+   (`bottom: calc(100% + 16px)`), which tucked it underneath the fixed top
+   nav — the one place on the screen guaranteed to hide it. */
 .divert-toast {
   position: absolute;
-  bottom: calc(100% + 16px);
+  top: calc(100% + 16px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -2764,6 +2767,69 @@ html, body {
   position: static;
   transform: none;
 }
+
+
+
+/* ---------- Liked songs on the globe ---------- */
+
+/* "View on the globe" — sits in the liked list's header row. */
+.liked__globe-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid var(--line, rgba(255,255,255,0.14));
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.75;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.liked__globe-btn:hover,
+.liked__globe-btn:focus-visible { opacity: 1; border-color: currentColor; }
+
+/* Badge shown while every liked song is laid over the globe, so the extra
+   hearts read as a mode rather than a glitch — and can be turned off. */
+.world-liked-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 13px;
+  border-radius: 999px;
+  background: rgba(16, 17, 29, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.world-liked-badge svg { color: #ff6b8a; flex: none; }
+.world-liked-badge__close {
+  display: grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  cursor: pointer;
+  flex: none;
+}
+.world-liked-badge__close:hover { background: rgba(255, 255, 255, 0.2); }
+.world-liked-badge__close svg { color: currentColor; }
 
 
 @media (max-width: 640px) {

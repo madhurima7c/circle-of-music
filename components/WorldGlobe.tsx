@@ -12,6 +12,7 @@ import { originForLive } from '@/lib/origins-live';
 import { normKey, releaseYear } from '@/lib/stories';
 import { STR } from '@/lib/strings';
 import { genreColor, genreInk } from '@/lib/genre-colors';
+import { useFinds, type Find } from '@/lib/library';
 import GEO_ISO from '@/lib/geo-iso.json';
 
 type Feature = {
@@ -31,6 +32,8 @@ type SongDot = {
   trackId?: number;
   lat: number;
   lng: number;
+  /** Saved to the local library — drawn as a heart instead of a dot. */
+  liked?: boolean;
 };
 
 /** public/world-songs/<slug>.json — built by `npm run world-songs`. */
@@ -76,6 +79,43 @@ function getDotTexture(): THREE.Texture {
   dotTexture = new THREE.CanvasTexture(c);
   return dotTexture;
 }
+/**
+ * A heart, drawn once to a canvas and reused as a sprite texture — the same
+ * trick as the dot. Bigger canvas than the dot because a heart needs the
+ * extra pixels to read at ~10px on screen; the sprite scale does the rest.
+ */
+let heartTexture: THREE.Texture | null = null;
+function getHeartTexture(): THREE.Texture {
+  if (heartTexture) return heartTexture;
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  // Two lobes and a point, in a 128 box with a little breathing room.
+  ctx.moveTo(64, 116);
+  ctx.bezierCurveTo(8, 76, 12, 30, 40, 22);
+  ctx.bezierCurveTo(56, 18, 64, 32, 64, 40);
+  ctx.bezierCurveTo(64, 32, 72, 18, 88, 22);
+  ctx.bezierCurveTo(116, 30, 120, 76, 64, 116);
+  ctx.closePath();
+  ctx.fill();
+  heartTexture = new THREE.CanvasTexture(c);
+  return heartTexture;
+}
+
+const heartMaterials = new Map<string, THREE.SpriteMaterial>();
+function heartMaterial(color: string): THREE.SpriteMaterial {
+  let m = heartMaterials.get(color);
+  if (!m) {
+    m = new THREE.SpriteMaterial({
+      map: getHeartTexture(), color, transparent: true, depthWrite: false,
+    });
+    heartMaterials.set(color, m);
+  }
+  return m;
+}
+
 const dotMaterials = new Map<string, THREE.SpriteMaterial>();
 function dotMaterial(color: string): THREE.SpriteMaterial {
   let m = dotMaterials.get(color);
@@ -91,7 +131,9 @@ function dotMaterial(color: string): THREE.SpriteMaterial {
   return m;
 }
 const DOT_SCALE = 0.3;       // world units (globe radius = 100) ≈ tiny flat dot
+const HEART_SCALE = 0.85;    // a liked song should be findable at a glance
 const DOT_ALTITUDE = 0.012;  // a hair above the 0.01 country caps
+const HEART_ALTITUDE = 0.014; // slightly proud of the dots so it never z-fights
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
@@ -271,6 +313,27 @@ export default function WorldGlobe() {
     return best;
   }, [seedPoints]);
 
+  /* ---------- liked songs ----------
+   * Matching is by Deezer track id, which both a Find and a globe dot carry,
+   * so a song saved anywhere — Circle included — lights up wherever it
+   * already lives on the globe. No coordinates are invented for these. */
+  const finds = useFinds();
+  const likedIds = useMemo(() => new Set(finds.map((f) => f.id)), [finds]);
+
+  /** "View on the globe" from the liked list: lay EVERY liked song over
+   *  whatever genres are lit, including ones from genres that are not.
+   *  Off by default — normally hearts follow genre selection like dots do. */
+  const [showAllLiked, setShowAllLiked] = useState(false);
+  useEffect(() => {
+    // Sets ON rather than toggling: the Circle fires this a few times while
+    // waiting for the globe to mount, and a toggle would land on whichever
+    // parity the retries happened to end on. Turning it off is the badge's job.
+    const on = () => setShowAllLiked(true);
+    window.addEventListener('world:liked', on);
+    return () => window.removeEventListener('world:liked', on);
+  }, []);
+
+
   const dots = useMemo<SongDot[]>(() => {
     if (!selectedGenres.length || !labelPoints.size) return [];
     const out: SongDot[] = [];
@@ -299,6 +362,7 @@ export default function WorldGlobe() {
               trackId: s.i,
               lat: s.la,
               lng: s.ln,
+              liked: likedIds.has(s.i),
             });
           }
         }
@@ -339,8 +403,52 @@ export default function WorldGlobe() {
         }
       }
     }
+
+    /* Liked songs the dot set doesn't already contain.
+     *
+     * Two sources of these: songs liked on the Circle that the world-songs
+     * crawl never picked up, and deep cuts outside the 50-per-pairing cap.
+     * Placed at the artist's real origin where we know it, else anchored on
+     * the country the song was discovered in — never invented from nothing,
+     * so a like with neither is simply not drawn.
+     *
+     * Only added when "view on the globe" is on. Otherwise hearts obey the
+     * genre rail exactly like dots, and a like whose genre isn't selected
+     * stays hidden. */
+    if (showAllLiked) {
+      const placed = new Set(out.filter((d) => d.trackId != null).map((d) => d.trackId));
+      for (const f of finds) {
+        if (placed.has(f.id)) continue;
+        const gi = GENRES.indexOf(f.genre);
+        const o = originFor(f.artist);
+        let lat: number | undefined;
+        let lng: number | undefined;
+        if (o) { lat = o.lat; lng = o.lng; }
+        else {
+          const lp = labelPoints.get(geoName(f.country)) ?? labelPoints.get(f.country);
+          if (lp) {
+            const h = hashCode(`${f.artist}|${f.id}`);
+            lat = lp.lat + ((h % 100) / 100 - 0.5) * 3.2;
+            lng = lp.lng + (((h >> 7) % 100) / 100 - 0.5) * 3.2;
+          }
+        }
+        if (lat == null || lng == null) continue;   // unplaceable → not drawn
+        out.push({
+          id: `liked|${f.id}`,
+          genreIdx: gi >= 0 ? gi : (selectedGenres[0] ?? 0),
+          geoKey: geoName(f.country),
+          country: f.country,
+          artist: f.artist,
+          title: f.title,
+          trackId: f.id,
+          lat, lng,
+          liked: true,
+        });
+      }
+    }
     return out;
-  }, [selectedGenres, songFiles, worldSeeds, labelPoints]);
+  }, [selectedGenres, songFiles, worldSeeds, labelPoints, likedIds, finds, showAllLiked]);
+  const likedShown = useMemo(() => dots.filter((d) => d.liked).length, [dots]);
   const dotsRef = useRef(dots);
   dotsRef.current = dots;
 
@@ -972,8 +1080,12 @@ export default function WorldGlobe() {
           customLayerData={dots}
           customThreeObject={(d: object) => {
             const dot = d as SongDot;
-            const sprite = new THREE.Sprite(dotMaterial(colorFor(dot.genreIdx)));
-            sprite.scale.set(DOT_SCALE, DOT_SCALE, 1);
+            const liked = !!dot.liked;
+            const sprite = new THREE.Sprite(
+              liked ? heartMaterial(colorFor(dot.genreIdx)) : dotMaterial(colorFor(dot.genreIdx)),
+            );
+            const sc = liked ? HEART_SCALE : DOT_SCALE;
+            sprite.scale.set(sc, sc, 1);
             return sprite;
           }}
           customThreeObjectUpdate={(obj: object, d: object) => {
@@ -981,9 +1093,18 @@ export default function WorldGlobe() {
             const g = globeRef.current as unknown as {
               getCoords?: (lat: number, lng: number, alt: number) => { x: number; y: number; z: number };
             };
-            const pos = g?.getCoords?.(dot.lat, dot.lng, DOT_ALTITUDE);
-            if (pos) (obj as THREE.Sprite).position.set(pos.x, pos.y, pos.z);
-            (obj as THREE.Sprite).material = dotMaterial(colorFor(dot.genreIdx));
+            const liked = !!dot.liked;
+            const pos = g?.getCoords?.(dot.lat, dot.lng, liked ? HEART_ALTITUDE : DOT_ALTITUDE);
+            const sprite = obj as THREE.Sprite;
+            if (pos) sprite.position.set(pos.x, pos.y, pos.z);
+            // Re-applied on update because react-globe.gl recycles objects
+            // across data changes — a dot that becomes liked (or stops being
+            // liked) has to swap texture and size in place.
+            sprite.material = liked
+              ? heartMaterial(colorFor(dot.genreIdx))
+              : dotMaterial(colorFor(dot.genreIdx));
+            const sc = liked ? HEART_SCALE : DOT_SCALE;
+            sprite.scale.set(sc, sc, 1);
           }}
           onCustomLayerHover={onDotHover}
           onCustomLayerClick={(d: object) => { void playDotRef.current(d as SongDot); }}
@@ -1127,6 +1248,27 @@ export default function WorldGlobe() {
       </div>
 
       {toast && <div className="world-toast" role="status">{toast}</div>}
+
+      {/* Liked-songs overlay is on — say so, and give it a way off. Without
+          this the extra hearts look like a glitch rather than a mode. */}
+      {showAllLiked && (
+        <div className="world-liked-badge" role="status">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden>
+            <path d="M12 21s-7.5-4.6-9.5-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.5 12c-2 4.4-9.5 9-9.5 9z" />
+          </svg>
+          <span>{STR.library.likedOnGlobe(likedShown)}</span>
+          <button
+            type="button"
+            className="world-liked-badge__close"
+            onClick={() => setShowAllLiked(false)}
+            aria-label={STR.library.hideLiked}
+          >
+            <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+              <path d="M3 3l6 6M9 3l-6 6" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Country hover — delayed pill. Hidden when any song/marker card is
           showing so the two hovers never overlap. */}
