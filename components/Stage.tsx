@@ -1,7 +1,7 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Wheel, { type WheelTuning } from './Wheel';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
@@ -109,34 +109,67 @@ export default function Stage() {
     else setGenre(i);
   };
 
-  // Phone / portrait-tablet / desktop breakpoints — each swaps in its own
-  // camera + wheel tuning so the active cards always peek from the edges.
-  const [mode, setMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  /* Viewport-driven framing.
+   *
+   * Phones keep their own fixed preset (they get PhoneIntro anyway). Above
+   * that, the tablet and desktop values are the two ANCHORS of a continuous
+   * blend rather than a step: stepping at 900px left everything from 901 to
+   * ~1200 with the desktop camera, whose wheelOffsetX of 7.5 pushes the cards
+   * clean off a 1024-wide iPad — "FRANCE" rendered as "RANCE".
+   *
+   * Height counts too. A short window (1280×600) has the same problem as a
+   * narrow one, so the blend runs on an effective width that a squat viewport
+   * pulls down. */
+  const [vp, setVp] = useState({ w: 1440, h: 900 });
   useEffect(() => {
-    const phone  = window.matchMedia('(max-width: 640px)');
-    const tablet = window.matchMedia('(max-width: 900px)');
-    const apply = () =>
-      setMode(phone.matches ? 'mobile' : tablet.matches ? 'tablet' : 'desktop');
+    const apply = () => setVp({ w: window.innerWidth, h: window.innerHeight });
     apply();
-    phone.addEventListener('change', apply);
-    tablet.addEventListener('change', apply);
-    // Fallback: some embedded/emulated browsers never fire matchMedia
-    // change events — plain resize keeps the mode honest everywhere.
     window.addEventListener('resize', apply);
-    return () => {
-      phone.removeEventListener('change', apply);
-      tablet.removeEventListener('change', apply);
-      window.removeEventListener('resize', apply);
-    };
+    // Some embedded/emulated browsers never fire matchMedia change events —
+    // plain resize keeps this honest everywhere.
+    return () => window.removeEventListener('resize', apply);
   }, []);
 
-  const cam = mode === 'mobile' ? MOBILE_CAMERA : mode === 'tablet' ? TABLET_CAMERA : DESKTOP_CAMERA;
-  const tun = mode === 'mobile' ? MOBILE_TUNING : mode === 'tablet' ? TABLET_TUNING : DESKTOP_TUNING;
+  const { cam, tun, camKey } = useMemo(() => {
+    const effective = Math.min(vp.w, vp.h * 1.7);
+    // Three anchors, blended piecewise. Anchoring only tablet↔desktop left
+    // 641–900 pinned to the tablet preset, and at 768 (iPad portrait) its
+    // wheelOffsetX of 5.6 put BOTH wheels past the edge — the Circle's two
+    // wheels, the whole instrument, reduced to slivers.
+    const lo  = effective <= 900 ? MOBILE_CAMERA : TABLET_CAMERA;
+    const hi  = effective <= 900 ? TABLET_CAMERA : DESKTOP_CAMERA;
+    const loT = effective <= 900 ? MOBILE_TUNING : TABLET_TUNING;
+    const hiT = effective <= 900 ? TABLET_TUNING : DESKTOP_TUNING;
+    const t = effective <= 900
+      ? Math.max(0, Math.min(1, (effective - 640) / (900 - 640)))
+      : Math.max(0, Math.min(1, (effective - 900) / (1440 - 900)));
+    const mix = (a: number, b: number) => a + (b - a) * t;
+    return {
+      cam: {
+        cameraZ:      mix(lo.cameraZ,      hi.cameraZ),
+        fov:          mix(lo.fov,          hi.fov),
+        wheelOffsetX: mix(lo.wheelOffsetX, hi.wheelOffsetX),
+      },
+      tun: {
+        ...DESKTOP_TUNING,
+        radius:        mix(loT.radius,        hiT.radius),
+        cardSize:      mix(loT.cardSize,      hiT.cardSize),
+        popZ:          mix(loT.popZ,          hiT.popZ),
+        popScale:      mix(loT.popScale,      hiT.popScale),
+        paddingAmount: mix(loT.paddingAmount, hiT.paddingAmount),
+      },
+      // R3F reads `camera` only on mount, so the Canvas has to remount for a
+      // new framing to take. Bucketed to ~6 steps rather than keyed on the
+      // raw value, so dragging a window edge doesn't rebuild the scene on
+      // every pixel — the tuning still moves continuously.
+      camKey: `${effective <= 900 ? 's' : 'd'}${Math.round(t * 5)}`,
+    };
+  }, [vp.w, vp.h]);
 
   return (
     <div className="absolute inset-0 z-[2]">
       <Canvas
-        key={mode}
+        key={camKey}
         camera={{ position: [0, 0, cam.cameraZ], fov: cam.fov, near: 0.1, far: 100 }}
         dpr={[1, 2]}
         gl={{ alpha: true, antialias: true }}
