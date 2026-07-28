@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { Track } from './data';
 
 /**
@@ -26,7 +26,20 @@ export type Find = {
   savedAt: number;      // epoch ms
   releaseDate?: string | null; // optional — older saved finds predate it
   duration?: number | null;    // optional — full-track seconds
+  /**
+   * Whether this is in "All liked". Absent means TRUE — every find saved
+   * before this field existed was, by definition, liked.
+   *
+   * A record can outlive the like: unliking a song that sits in a playlist
+   * keeps it here with `liked: false` so the playlist row still resolves.
+   * Playlists reference finds by id, so deleting outright would silently
+   * empty a curated playlist.
+   */
+  liked?: boolean;
 };
+
+/** Absent `liked` means an older record, which was liked by definition. */
+export const isLiked = (f: Find) => f.liked !== false;
 
 /** A named, ordered collection of saved finds (Spotify-style playlist). */
 export type Playlist = {
@@ -76,28 +89,49 @@ function subscribe(cb: () => void) {
 
 /* ---------- mutators ---------- */
 
+/** Is this song in "All liked"? Drives the ♥ state. */
 export function isFind(id: number): boolean {
-  return read().some(f => f.id === id);
+  return read().some(f => f.id === id && isLiked(f));
 }
 
-/** Save if absent, remove if present. Returns the new saved-state. */
+/** Like if not liked, unlike if liked. Returns the new liked-state. */
 export function toggleFind(find: Find): boolean {
   const list = read();
-  if (list.some(f => f.id === find.id)) {
-    write(list.filter(f => f.id !== find.id));
-    return false;
+  const existing = list.find(f => f.id === find.id);
+  if (existing && isLiked(existing)) { removeFind(find.id); return false; }
+  if (existing) {
+    // Was kept for a playlist — re-like it WITHOUT touching country/genre, so
+    // the library still records where you first found it.
+    write(list.map(f => (f.id === find.id ? { ...f, liked: true } : f)));
+    return true;
   }
-  write([{ ...find, savedAt: Date.now() }, ...list]);
+  write([{ ...find, savedAt: Date.now(), liked: true }, ...list]);
   return true;
 }
 
+/** In any playlist? Then the record has to survive an unlike. */
+function inAnyPlaylist(id: number): boolean {
+  return readPlaylists().some(p => p.trackIds.includes(id));
+}
+
+/**
+ * Unlike. Drops out of "All liked" but STAYS in any playlist it was filed
+ * into — playlists are independent collections, so unliking must not quietly
+ * gut someone's curation. A song in no playlist is deleted outright.
+ */
 export function removeFind(id: number) {
-  write(read().filter(f => f.id !== id));
+  const list = read();
+  write(inAnyPlaylist(id)
+    ? list.map(f => (f.id === id ? { ...f, liked: false } : f))
+    : list.filter(f => f.id !== id));
 }
 
 export function removeFinds(ids: number[]) {
   const set = new Set(ids);
-  write(read().filter(f => !set.has(f.id)));
+  write(read().flatMap(f => {
+    if (!set.has(f.id)) return [f];
+    return inAnyPlaylist(f.id) ? [{ ...f, liked: false }] : [];
+  }));
 }
 
 export function exportFinds(): string {
@@ -206,8 +240,15 @@ export function removeBulkFromPlaylist(playlistId: string, trackIds: number[]) {
 const serverFinds = (): Find[] => EMPTY;
 const serverFalse = () => false;
 
-export function useFinds(): Find[] {
+/** Everything we hold, liked or merely filed — resolves playlist rows. */
+export function useAllFinds(): Find[] {
   return useSyncExternalStore(subscribe, read, serverFinds);
+}
+
+/** "All liked" — the ♥ library. Excludes records kept only for a playlist. */
+export function useFinds(): Find[] {
+  const all = useSyncExternalStore(subscribe, read, serverFinds);
+  return useMemo(() => (all.some(f => !isLiked(f)) ? all.filter(isLiked) : all), [all]);
 }
 
 const serverPlaylists = (): Playlist[] => EMPTY_PL;

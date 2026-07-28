@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '@/lib/store';
 import { GENRES, formatDuration } from '@/lib/data';
 import {
-  useFinds, usePlaylists, removeFind, findToTrack,
+  useFinds, useAllFinds, usePlaylists, removeFind, findToTrack,
   createPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
   removeFinds, addBulkToPlaylist, removeBulkFromPlaylist,
   type Find,
@@ -41,7 +41,8 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
     setTimeout(fire, 500);
   };
 
-  const finds = useFinds();
+  const finds = useFinds();          // All liked
+  const allFinds = useAllFinds();    // + records kept only for a playlist
   const playlists = usePlaylists();
   const { loadQueue, setNowPlayingOrigin } = useStore();
 
@@ -58,7 +59,9 @@ export function LikedSongs({ open, onClose }: { open: boolean; onClose: () => vo
   if (!open) return null;
 
   const activePlaylist = view === 'all' ? null : playlists.find(p => p.id === view) ?? null;
-  const byId = new Map(finds.map(f => [f.id, f]));
+  // Playlist rows resolve from EVERY record, not just liked ones: unliking a
+  // filed song keeps it here with liked:false so the playlist stays intact.
+  const byId = new Map(allFinds.map(f => [f.id, f]));
   const rows: Find[] = activePlaylist
     ? activePlaylist.trackIds.map(id => byId.get(id)).filter((f): f is Find => !!f)
     : finds;
