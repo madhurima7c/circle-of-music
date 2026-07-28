@@ -572,6 +572,46 @@ export async function genresWithMusicFor(country: string, seeds: Seeds): Promise
   return wheelGenres.filter((g) => (entry.genres[g] ?? []).length > 0);
 }
 
+/* ---------- world-songs feedback ----------
+ *
+ * `public/world-songs/<genre>.json` is the globe's dataset: artists that
+ * already passed the crawl's country AND genre gates. The Circle never read
+ * it, which left 153 pairings looking thin — France × Funk had no seed
+ * artists at all while the globe held 12 verified French funk acts, and Ghana
+ * × Soul the same.
+ *
+ * This is how a pairing gets its length back WITHOUT genre borrowing: more
+ * artists who genuinely belong to the pairing, rather than a neighbouring
+ * genre's roster wearing the wrong label.
+ */
+const worldSongsCache = new Map<string, Record<string, unknown> | null>();
+
+async function worldSongArtists(country: string, genre: string | null): Promise<string[]> {
+  if (!genre) return [];
+  const slug = genre.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (!worldSongsCache.has(slug)) {
+    try {
+      const res = await fetch(`/world-songs/${slug}.json`);
+      worldSongsCache.set(slug, res.ok ? await res.json() : null);
+    } catch {
+      worldSongsCache.set(slug, null);
+    }
+  }
+  const file = worldSongsCache.get(slug);
+  const entry = file?.[country];
+  if (!Array.isArray(entry)) return [];
+  // Most-listed artists first — the crawl wrote them popularity-ordered.
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of entry as Array<{ a?: string }>) {
+    const a = String(s?.a ?? '').trim();
+    if (!a) continue;
+    const k = normName(a);
+    if (k && !seen.has(k)) { seen.add(k); out.push(a); }
+  }
+  return out;
+}
+
 export async function buildPlaylist({
   country,
   genre,
@@ -601,15 +641,18 @@ export async function buildPlaylist({
   /* Tiers 1+2: MusicBrainz ∪ seeds.json artists. Countries outside the
    * wheel have no seeds.json bucket — world-seeds.json (all nations,
    * Wikidata-sourced + Deezer-verified) takes its place. */
-  const [mbArtists, seedArtists] = await Promise.all([
+  const [mbArtists, seedArtists, songArtists] = await Promise.all([
     genre ? findArtistsViaMusicBrainz(country, genre) : Promise.resolve([] as string[]),
     Promise.resolve(orderedSeedArtists(country, genre, seeds)),
+    worldSongArtists(country, genre),
   ]);
   const worldArtists = seedArtists.length ? [] : await worldSeedArtists(country, genre);
-  // Seeds first (hand-picked quality), then MusicBrainz discoveries in
-  // MB relevance-score order — the round-robin below interleaves them.
-  const combined = unionArtists(unionArtists(worldArtists, seedArtists), mbArtists)
-    .slice(0, ARTIST_CAP);
+  // Order = trust: hand-picked seeds, then the globe's verified roster, then
+  // MusicBrainz discoveries in relevance order. The round-robin interleaves.
+  const combined = unionArtists(
+    unionArtists(unionArtists(worldArtists, seedArtists), songArtists),
+    mbArtists,
+  ).slice(0, ARTIST_CAP);
 
   if (combined.length && queue.length < QUEUE_MAX) {
     const perArtist = await fetchArtistTrackLists(combined, genre);

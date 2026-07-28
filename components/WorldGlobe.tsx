@@ -509,6 +509,8 @@ export default function WorldGlobe() {
     window.addEventListener('world:flyto', onFly as EventListener);
     return () => window.removeEventListener('world:flyto', onFly as EventListener);
   }, []);
+  const worldSeedsRef = useRef(worldSeeds);
+  worldSeedsRef.current = worldSeeds;
   const labelPointsRef = useRef(labelPoints);
   labelPointsRef.current = labelPoints;
   const dotsRef = useRef(dots);
@@ -781,10 +783,53 @@ export default function WorldGlobe() {
 
   // Spin to a random curated country and play it (the radio.garden moment).
   // Triggered from the shared dock's shuffle button via a window event.
+  /**
+   * Shuffle picks a COUNTRY AND A GENRE, together, every time.
+   *
+   * It used to pick only a country, so arriving at /world directly — with no
+   * genre ever chosen — shuffled into a genre-less country tap and the globe
+   * stayed dark. Now the genre rail always ends up showing exactly the one
+   * genre that is playing: the previous selection is replaced, not added to,
+   * so pressing shuffle twice never leaves two genres lit.
+   */
   const shuffle = () => {
     const playable = features.filter(f => PLAYABLE_GEO_NAMES.has(f.properties.NAME));
     if (!playable.length) return;
-    onClick(playable[Math.floor(Math.random() * playable.length)]);
+    const country = playable[Math.floor(Math.random() * playable.length)];
+    const name = (country as Feature).properties.NAME;
+
+    /* Prefer a genre this country can actually play — shuffle is how a
+     * newcomer arrives, and landing them on the empty card is a bad first
+     * impression.
+     *
+     * The candidate list comes from the SEED data, not from `songFiles`:
+     * those genre files load lazily, so right after the first shuffle only
+     * one is in memory and every later shuffle re-picked that same genre.
+     * (Observed: it locked onto Ambient and never moved.) */
+    const wsEntry = worldSeedsRef.current?.[name];
+    const seedBucket = (SEEDS.artists as Record<string, Record<string, string[]>>)[seedCountry(name) ?? name];
+    const withMusic: number[] = [];
+    GENRES.forEach((g, i) => {
+      const hasSeed = (seedBucket?.[g] ?? []).length > 0;
+      const hasWorld = (wsEntry?.genres?.[g] ?? []).length > 0;
+      if (hasSeed || hasWorld) withMusic.push(i);
+    });
+    const pool = withMusic.length ? withMusic : GENRES.map((_, i) => i);
+    const gi = pool[Math.floor(Math.random() * pool.length)];
+
+    // REPLACE the rail selection so the old genre's dots clear as the new
+    // one lights up.
+    setSelectedGenres([gi]);
+    selectedGenresRef.current = [gi];
+    setSelectedGeo(name);
+    chainActive.current = false;
+    dotByQueueIdx.current = [];
+    const idx = seedCountryIdx(name);
+    if (idx >= 0) playPlace(idx, gi); else playPlaceNamed(name, gi);
+    globeRef.current?.pointOfView(
+      { lat: (country as Feature).properties.LABEL_Y, lng: (country as Feature).properties.LABEL_X, altitude: 0.55 },
+      900,
+    );
   };
   const shuffleRef = useRef(shuffle);
   shuffleRef.current = shuffle;
