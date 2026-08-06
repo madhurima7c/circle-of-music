@@ -2,6 +2,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useState } from 'react';
+import { button, folder, useControls, Leva } from 'leva';
 import Wheel, { type WheelTuning } from './Wheel';
 import { useStore } from '@/lib/store';
 import { COUNTRIES, GENRES } from '@/lib/data';
@@ -130,7 +131,7 @@ export default function Stage() {
     return () => window.removeEventListener('resize', apply);
   }, []);
 
-  const { cam, tun, camKey } = useMemo(() => {
+  const { cam: respCam, tun: respTun, camKey } = useMemo(() => {
     const effective = Math.min(vp.w, vp.h * 1.7);
     // Three anchors, blended piecewise. Anchoring only tablet↔desktop left
     // 641–900 pinned to the tablet preset, and at 768 (iPad portrait) its
@@ -166,10 +167,85 @@ export default function Stage() {
     };
   }, [vp.w, vp.h]);
 
+  /* ---------- Live tuning panel (leva) — a DEV tool ----------
+   * Shown in local dev, or on any deploy when the URL carries ?tune, and
+   * never on phones (it would cover the screen) or for ordinary production
+   * visitors. When shown ("tuneOn"), its dials OVERRIDE the responsive values
+   * above with a fixed desktop framing so you can dial the look in and then
+   * bake the numbers back into DESKTOP_TUNING / DESKTOP_CAMERA / LIGHTS.
+   * The dials are always declared (hooks rules); they only APPLY when tuneOn. */
+  const isMobile = vp.w <= 640;
+  const [allowTune, setAllowTune] = useState(false);
+  useEffect(() => {
+    const dev = process.env.NODE_ENV !== 'production';
+    const param = new URLSearchParams(window.location.search).has('tune');
+    setAllowTune(dev || param);
+  }, []);
+  const tuneOn = allowTune && !isMobile;
+
+  const [camDial, setCamDial] = useControls('Camera', () => ({
+    cameraZ:      { value: DESKTOP_CAMERA.cameraZ,      min: 4,  max: 16, step: 0.1 },
+    fov:          { value: DESKTOP_CAMERA.fov,          min: 20, max: 80, step: 1   },
+    wheelOffsetX: { value: DESKTOP_CAMERA.wheelOffsetX, min: 3,  max: 12, step: 0.1, label: 'wheel center X' },
+  }));
+  const [lightDial, setLightDial] = useControls('Lighting', () => ({
+    ambient: { value: LIGHTS.ambient, min: 0,   max: 2,  step: 0.05 },
+    sky:     { value: LIGHTS.sky,     min: 0,   max: 2,  step: 0.05 },
+    key:     { value: LIGHTS.key,     min: 0,   max: 2,  step: 0.05 },
+    fill:    { value: LIGHTS.fill,    min: 0,   max: 2,  step: 0.05 },
+    keyX:    { value: LIGHTS.keyX,    min: -12, max: 12, step: 0.5  },
+    keyY:    { value: LIGHTS.keyY,    min: -12, max: 12, step: 0.5  },
+  }));
+  // One schema, instantiated twice so the Country (left) and Genre (right)
+  // cards tune INDEPENDENTLY. Both start from DESKTOP_TUNING, so dials you
+  // don't touch keep the two wheels mirror-identical; move a folder to make
+  // just that wheel's cards differ.
+  const wheelSchema = () => ({
+    Layout: folder({
+      radius:        { value: DESKTOP_TUNING.radius,        min: 2,    max: 8,    step: 0.1  },
+      cardSize:      { value: DESKTOP_TUNING.cardSize,      min: 0.2,  max: 1.6,  step: 0.01 },
+      cardThickness: { value: DESKTOP_TUNING.cardThickness, min: 0.01, max: 0.30, step: 0.01 },
+    }),
+    Rotation: folder({
+      spineAngleDeg: { value: DESKTOP_TUNING.spineAngleDeg, min: -90, max: 90, step: 1,    label: 'Y · spine (°)' },
+      xTiltDeg:      { value: DESKTOP_TUNING.xTiltDeg,      min: -90, max: 90, step: 1,    label: 'X · tilt (°)'  },
+      extraZDeg:     { value: DESKTOP_TUNING.extraZDeg,     min: -90, max: 90, step: 1,    label: 'Z · extra (°)' },
+      tangentAmount: { value: DESKTOP_TUNING.tangentAmount, min: 0,   max: 2,  step: 0.05, label: 'tangent align' },
+      flipSpine:     { value: DESKTOP_TUNING.flipSpine,                                    label: 'flip spine side' },
+    }),
+    'Active card': folder({
+      popZ:     { value: DESKTOP_TUNING.popZ,     min: 0,  max: 3,   step: 0.05 },
+      popScale: { value: DESKTOP_TUNING.popScale, min: 0,  max: 2,   step: 0.05 },
+      recedeZ:  { value: DESKTOP_TUNING.recedeZ,  min: -1, max: 0.5, step: 0.05 },
+    }),
+    Padding: folder({
+      paddingAmount: { value: DESKTOP_TUNING.paddingAmount, min: 0,   max: 0.5, step: 0.005, label: 'gap size (rad)' },
+      paddingDecay:  { value: DESKTOP_TUNING.paddingDecay,  min: 0.2, max: 5,   step: 0.1,   label: 'gap falloff'    },
+    }),
+  });
+  const [countryDial, setCountryDial] = useControls('Country cards (left)', wheelSchema);
+  const [genreDial,   setGenreDial]   = useControls('Genre cards (right)',  wheelSchema);
+  useControls('Reset', () => ({
+    'Reset all to defaults': button(() => {
+      setCamDial({ ...DESKTOP_CAMERA });
+      setLightDial({ ...LIGHTS });
+      setCountryDial({ ...DESKTOP_TUNING });
+      setGenreDial({ ...DESKTOP_TUNING });
+    }),
+  }));
+
+  const cam     = tuneOn ? camDial : respCam;
+  const tunLeft:  WheelTuning = tuneOn ? { ...DESKTOP_TUNING, ...countryDial } : respTun;
+  const tunRight: WheelTuning = tuneOn ? { ...DESKTOP_TUNING, ...genreDial }   : respTun;
+  const lights  = tuneOn ? lightDial : LIGHTS;
+
   return (
     <div className="absolute inset-0 z-[2]">
+      <Leva hidden={!tuneOn} collapsed />
       <Canvas
-        key={camKey}
+        /* R3F reads `camera` only on mount, so a camera change needs a remount.
+           While tuning, key on the camera values so cameraZ/fov update live. */
+        key={tuneOn ? `tune-${cam.cameraZ}-${cam.fov}` : camKey}
         camera={{ position: [0, 0, cam.cameraZ], fov: cam.fov, near: 0.1, far: 100 }}
         dpr={[1, 2]}
         gl={{ alpha: true, antialias: true }}
@@ -178,16 +254,16 @@ export default function Stage() {
         {/* Warm key + soft fill so tilted cards catch light like real
             record sleeves; hemisphere gives a natural sky/ground gradient,
             the camera point light a laminate catch-highlight. */}
-        <ambientLight intensity={LIGHTS.ambient} />
-        <hemisphereLight args={['#fff7ea', '#8a8478', LIGHTS.sky]} />
-        <directionalLight position={[LIGHTS.keyX, LIGHTS.keyY, 5]} intensity={LIGHTS.key} />
-        <directionalLight position={[-6, 2, 4]} intensity={LIGHTS.fill} />
+        <ambientLight intensity={lights.ambient} />
+        <hemisphereLight args={['#fff7ea', '#8a8478', lights.sky]} />
+        <directionalLight position={[lights.keyX, lights.keyY, 5]} intensity={lights.key} />
+        <directionalLight position={[-6, 2, 4]} intensity={lights.fill} />
         <pointLight position={[0, 1, 6]} intensity={0.35} />
 
         <Suspense fallback={null}>
           {/* left circle — countries */}
           <Wheel
-            {...tun}
+            {...tunLeft}
             items={COUNTRIES}
             selectedIdx={countryIdx}
             position={[-cam.wheelOffsetX, 0, 0]}
@@ -198,7 +274,7 @@ export default function Stage() {
           />
           {/* right circle — genres */}
           <Wheel
-            {...tun}
+            {...tunRight}
             items={GENRES}
             selectedIdx={genreIdx}
             position={[cam.wheelOffsetX, 0, 0]}

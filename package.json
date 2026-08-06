@@ -21,7 +21,9 @@
     "features": "tsx scripts/build-track-features.ts",
     "mine:ambiguous": "tsx scripts/resolve-ambiguous.ts",
     "origins:csv": "tsx scripts/apply-artist-countries.ts",
-    "audit:dots": "tsx scripts/audit-world-songs.ts"
+    "audit:dots": "tsx scripts/audit-world-songs.ts",
+    "audit:genres": "tsx scripts/audit-genres.ts",
+    "audit:sheet": "tsx scripts/genre-review-sheet.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
@@ -31,6 +33,7 @@
     "@react-three/fiber": "^9.6.1",
     "@vercel/analytics": "^2.0.1",
     "gsap": "^3.15.0",
+    "leva": "^0.10.1",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
