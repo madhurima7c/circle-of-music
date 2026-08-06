@@ -17,19 +17,17 @@ import { NavGlobe } from '@/components/NavGlobe';
  * instrument's motion on hover: the card ring turns (CSS), the 3D globe
  * spins (NavGlobe), the shades gradient drifts (CSS).
  *
- * Glass tuning: open any route with `?tune` (e.g. /world?tune) for a
- * dial kit — blur, frost, radius, border, shadow + Sharp/Pill presets.
- * Values persist in localStorage so a tuned look sticks everywhere.
+ * The frame's glass look (blur, frost, radius, border, shadow) is fixed in
+ * GLASS_DEFAULTS and applied on mount.
  */
 
-const GLASS_KEY = 'navGlass.v2'; // v2: pill default (old saved radii ignored)
 const GLASS_DEFAULTS = {
   blur: 16,      // px of backdrop blur
   radius: 999,   // pill — CSS clamps to half the bar height
   frost: 0.14,   // white tint opacity
   sat: 170,      // % backdrop saturation
   border: 0.28,  // border opacity
-  shadow: 0.22,  // drop-shadow opacity
+  shadow: 0.08,  // drop-shadow opacity
 };
 type Glass = typeof GLASS_DEFAULTS;
 
@@ -41,52 +39,6 @@ function applyGlass(el: HTMLElement, g: Glass) {
   el.style.setProperty('--glass-border', `${g.border}`);
   el.style.setProperty('--glass-shadow', `${g.shadow}`);
 }
-function loadGlass(): Glass {
-  try {
-    const raw = localStorage.getItem(GLASS_KEY);
-    if (raw) return { ...GLASS_DEFAULTS, ...JSON.parse(raw) };
-  } catch { /* fresh browser */ }
-  return GLASS_DEFAULTS;
-}
-
-/** The dial kit — only mounts when the URL carries `?tune`. */
-function NavTuner({ target }: { target: React.RefObject<HTMLElement | null> }) {
-  const [g, setG] = useState<Glass>(GLASS_DEFAULTS);
-  useEffect(() => { setG(loadGlass()); }, []);
-  useEffect(() => {
-    if (target.current) applyGlass(target.current, g);
-    try { localStorage.setItem(GLASS_KEY, JSON.stringify(g)); } catch { /* private mode */ }
-  }, [g, target]);
-
-  const dial = (key: keyof Glass, label: string, min: number, max: number, step: number) => (
-    <label className="navtune__row">
-      <span>{label}</span>
-      <input
-        type="range" min={min} max={max} step={step} value={g[key]}
-        onChange={(e) => setG(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-      />
-      <em>{g[key]}</em>
-    </label>
-  );
-
-  return (
-    <div className="navtune" role="group" aria-label="Nav glass tuning">
-      <div className="navtune__title">nav glass</div>
-      {dial('blur', 'blur', 0, 40, 1)}
-      {dial('frost', 'frost', 0, 0.5, 0.01)}
-      {dial('radius', 'radius', 0, 48, 1)}
-      {dial('sat', 'saturate', 100, 220, 5)}
-      {dial('border', 'border', 0, 0.6, 0.02)}
-      {dial('shadow', 'shadow', 0, 0.6, 0.02)}
-      <div className="navtune__presets">
-        <button onClick={() => setG(prev => ({ ...prev, radius: 14 }))}>Sharp</button>
-        <button onClick={() => setG(prev => ({ ...prev, radius: 999 }))}>Pill</button>
-        <button onClick={() => setG(GLASS_DEFAULTS)}>Reset</button>
-      </div>
-    </div>
-  );
-}
-
 /* The card-ring mark — the 8-square version (matches app/icon.svg and the
  * favicon, so the nav and the browser tab now show the same logo).
  * Every rect is `currentColor`, which is what lets CSS drive it: the nav sets
@@ -124,17 +76,14 @@ export function ExperienceNav() {
   const [shadesHover, setShadesHover] = useState(false);
   const shadesRef = useRef<HTMLButtonElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
-  const [tune, setTune] = useState(false);
 
-  // Re-apply any saved glass tuning; show the dial kit on `?tune`.
+  // Apply the frame's fixed glass look (blur/frost/radius/border/shadow).
   useEffect(() => {
-    if (navRef.current) applyGlass(navRef.current, loadGlass());
-    setTune(new URLSearchParams(window.location.search).has('tune'));
+    if (navRef.current) applyGlass(navRef.current, GLASS_DEFAULTS);
   }, [pathname]);
 
   return (
     <>
-    {tune && <NavTuner target={navRef} />}
     <nav ref={navRef} className="xnav" data-theme={theme} aria-label="Experiences">
       <Link
         href="/circle"
