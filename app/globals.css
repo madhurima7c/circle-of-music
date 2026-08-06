@@ -2145,11 +2145,8 @@ html, body {
 
 /* Spotify strip — the embed widget while connected. FULL opacity (the
    widget downgrades to 30s clips when it detects it's hidden — opacity:0
-   killed full playback) but parked BEHIND the opaque now-playing card at
-   a lower z-index: occluded, so the user never sees it, yet by every
-   check the iframe can run (display/visibility/opacity/viewport) it is
-   a normal on-screen player. pointer-events:none so stray clicks fall
-   through to the app. Height = the embed's compact 80px layout. */
+   killed full playback). pointer-events:none so stray clicks fall
+   through to the app when unseated. */
 .spotify-strip {
   position: fixed;
   height: 80px;
@@ -2157,19 +2154,19 @@ html, body {
   pointer-events: none;
 }
 .spotify-strip iframe { display: block; }
-/* Circle: centered under the 300px-wide playlist card (card z-index ≥30). */
-.spotify-strip--circle {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 280px;
-  z-index: 2;
-}
-/* World: tucked behind the 264px now-playing card (right 24 / bottom 36). */
-.spotify-strip--world {
-  right: 32px;
-  bottom: 44px;
-  width: 240px;
+/* Unseated (no measured card slot, or the preview is the sounding source):
+   parked OFF-SCREEN. Off-screen — not display:none/opacity:0 — keeps the
+   iframe playing and logged-in by every check it can run (the embed module
+   itself was designed around this parking). The old alternative — tucking
+   it BEHIND the card at z-index 2 — silently broke when `.frame` gained
+   `isolation: isolate` (2026-07-24): the frame paints as one atomic layer
+   at the root, so the card's z-index 30 can no longer occlude a root-level
+   fixed strip, and the "hidden" widget floated over the playlist. */
+.spotify-strip--parked {
+  left: -9999px;
+  bottom: 0;
+  width: 320px;
+  height: 152px;
   z-index: 2;
 }
 /* Seated over the card's reserved slot — real, clickable UI (its ▶ is the
@@ -2958,8 +2955,6 @@ html, body {
   .frame { inset: 0; }
 
   /* Cards are narrower on phones — shrink the strip to stay covered. */
-  .spotify-strip--circle { width: 200px; }
-  .spotify-strip--world  { width: 200px; right: 20px; bottom: 104px; }
 
   .title { font-size: 24px !important; top: 20px !important; }
 

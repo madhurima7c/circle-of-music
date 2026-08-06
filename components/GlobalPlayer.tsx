@@ -466,17 +466,18 @@ export function GlobalPlayer() {
 
       {/* Spotify strip — the embed's home while connected. It stays mounted
           for the WHOLE connected session (not gated on hasTrack) so the iframe
-          is never re-parented / reloaded between tracks. Preferred seat: the
-          card's reserved slot (visible, clickable — it IS the progress row
-          while connected). With no slot on the page it tucks BEHIND the opaque
-          now-playing card at full opacity: occluded for the user, but "visible"
-          by every check the iframe can run (opacity:0 made the embed downgrade
-          to 30s clips). */}
+          is never re-parented / reloaded between tracks. Seated over the
+          card's reserved slot while the embed is the sounding source (visible,
+          clickable — it IS the progress row); otherwise parked OFF-SCREEN at
+          full opacity, still playing/logged-in by every check the iframe can
+          run. Never "tucked behind the card": `.frame`'s isolation:isolate
+          makes the card's z-index unable to occlude a root-level strip, so
+          the tuck rendered ON TOP of the playlist (the floating-widget bug). */}
       {spotifyOn && (
         <div
           className={slotRect
             ? 'spotify-strip spotify-strip--slot'
-            : `spotify-strip spotify-strip--${pathname === '/world' ? 'world' : 'circle'}`}
+            : 'spotify-strip spotify-strip--parked'}
           style={slotRect ? { left: slotRect.left, top: slotRect.top, width: slotRect.width } : undefined}
           ref={stripRef}
           aria-label="Spotify player"
