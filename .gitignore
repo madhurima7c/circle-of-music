@@ -74,3 +74,8 @@ chart-proposals.json
 # reviewable output of npm run mine:ambiguous
 ambiguous-resolved.json
 lib/.ambiguous-cache.json
+
+# genre-verification pass (npm run audit:genres) — generated report + resume cache
+genre-audit.json
+genre-audit.md
+.genre-audit-cache.json
