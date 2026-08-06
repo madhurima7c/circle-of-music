@@ -37,6 +37,10 @@ import {
  * embed never starts) falls back to the 30s Deezer preview — never dead air.
  */
 const serverFalse = () => false;
+// A freshly-detected 30s clip stays up as a clickable Spotify widget for this
+// long before falling back to the Deezer preview — the window in which a tap on
+// the embed's ▶ can grant access and upgrade the track to full length in place.
+const CLIP_GRACE_MS = 4000;
 
 export function GlobalPlayer() {
   const {
@@ -72,12 +76,15 @@ export function GlobalPlayer() {
   const [freshNonce, setFreshNonce] = useState(0);
   const stripRef = useRef<HTMLDivElement | null>(null);
   // Connected but NOT logged in at Spotify: the embed serves ~30s clips.
-  // The user wants Deezer previews in that state (and no visible iframe),
-  // so a clip-length playing update bails the CURRENT track to the preview
-  // (via clipBail, armed per track) and remembers clip mode for the session
-  // — later tracks skip the embed entirely. Cleared by a fresh Connect.
+  // Rather than permanently routing the whole session to Deezer (which never
+  // let the user reach the widget's own ▶ to GRANT Spotify access), a clip
+  // gets a short GRACE window per track: the visible, clickable embed stays up
+  // so a tap can upgrade THIS track to full length in place. Only if the window
+  // lapses still-clip does clipBail fall back to the Deezer preview — for this
+  // track alone, not the session, so the next track attempts the embed again
+  // and a login granted at any point is picked up automatically.
   const clipBail = useRef<(() => void) | null>(null);
-  const clipMode = useRef(false);
+  const clipGraceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // The Circle card renders a reserved [data-spotify-slot] row while
   // connected; the strip seats itself over it (fixed overlay — the iframe
   // itself can never move into the card's DOM without reloading). When no
@@ -125,18 +132,23 @@ export function GlobalPlayer() {
 
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
-  /* The visible Spotify strip is the embed's home while connected. Attach
-     BEFORE the track effect below so a new controller lands inside it. */
-  const hasTrack = !!track;
+  /* The visible Spotify strip is the embed's home while connected. Attach it
+     the moment we're connected and keep it attached for the WHOLE connected
+     session — independent of whether a track is momentarily loaded. An iframe
+     cannot be re-parented without reloading (which drops the Spotify login and
+     restarts as 30s clips), so the host must never come and go with track
+     transitions; only connect/disconnect may change it. Tying this to hasTrack
+     was the "Spotify window keeps detaching" bug: every brief track === null
+     (queue swap, genre advance, end-of-queue) tore the iframe down. */
   useEffect(() => {
-    attachEmbedHost(spotifyOn && hasTrack ? stripRef.current : null);
-  }, [spotifyOn, hasTrack]);
+    attachEmbedHost(spotifyOn ? stripRef.current : null);
+  }, [spotifyOn]);
 
   /* Connect click → rebuild the iframe now (already-logged-in case) and
      again when focus returns from the login popup (fresh-login case). */
   useEffect(() => {
     let pendingFocus = false;
-    const rebuild = () => { clipMode.current = false; destroyEmbed(); setFreshNonce(n => n + 1); };
+    const rebuild = () => { destroyEmbed(); setFreshNonce(n => n + 1); };
     const onConnect = () => { pendingFocus = true; rebuild(); };
     const onFocus = () => { if (pendingFocus) { pendingFocus = false; rebuild(); } };
     window.addEventListener('spotify:connect-click', onConnect);
@@ -152,6 +164,7 @@ export function GlobalPlayer() {
       setEmbedStateListener(null);
       destroyEmbed();
       setExt(null);
+      if (clipGraceTimer.current) { clearTimeout(clipGraceTimer.current); clipGraceTimer.current = null; }
       return;
     }
     setEmbedStateListener((s) => {
@@ -165,9 +178,20 @@ export function GlobalPlayer() {
       }
       if (!s.paused) embedStarted.current = true;
       // Clip-length duration while sounding = the iframe can't see a Spotify
-      // login. Revert this track (and the session) to the Deezer preview.
+      // login yet. Don't bail straight to Deezer (that races the user before
+      // they can tap the widget's ▶ to grant access). Arm a one-shot grace
+      // timer and keep the clip sounding + the widget clickable. If a login is
+      // granted meanwhile, the embed re-reports a FULL-length duration (which
+      // skips this branch), embedPrev catches up, and the timer's re-check is a
+      // no-op. Only a still-clip at expiry falls back — for THIS track alone.
       if (!s.paused && s.duration > 0 && s.duration <= 31500) {
-        clipBail.current?.();
+        if (!clipGraceTimer.current) {
+          clipGraceTimer.current = setTimeout(() => {
+            clipGraceTimer.current = null;
+            const dur = embedPrev.current?.duration ?? s.duration;
+            if (viaSpotify.current && dur > 0 && dur <= 31500) clipBail.current?.();
+          }, CLIP_GRACE_MS);
+        }
         return;
       }
       // The widget is visible UI now — if the user plays/pauses INSIDE it,
@@ -216,9 +240,14 @@ export function GlobalPlayer() {
     if (viaSpotify.current) embedPause(); // old song must not keep sounding
     viaSpotify.current = false;
     embedPrev.current = null;
-    setExt(null);   // embed is no longer the source → strip leaves the slot NOW
+    // NB: do NOT clear ext here. Clearing it flips embedMode false for the whole
+    // async Spotify resolve, so the card's reserved slot unmounts and the now-row
+    // flashes in — the visible "Spotify window keeps detaching" flicker. ext is
+    // cleared only when we actually commit to Deezer (playPreview / bail), never
+    // on a Spotify→Spotify handoff.
 
     const playPreview = () => {
+      setExt(null);   // committing to Deezer → the strip leaves the slot now
       if (!track?.preview) {
         audio.pause();
         audio.removeAttribute('src');
@@ -233,12 +262,19 @@ export function GlobalPlayer() {
       audio.play().catch(() => { setAutoplayBlocked(true); setIsPlaying(false); });
     };
 
-    // Not connected — or connected but the embed only serves 30s clips
-    // (not logged in at Spotify): Deezer previews are the sound source.
-    if (!(spotifyOn && track) || clipMode.current) {
+    // Not connected: Deezer previews are the sound source. (When connected but
+    // logged out, we still ATTEMPT the embed every track — the grace window in
+    // the state listener handles the clip case per track, so a Spotify login
+    // granted at any point is picked up on the very next track.)
+    if (!(spotifyOn && track)) {
       playPreview();
       return;
     }
+
+    // Hold the embed slot open with a loading clock BEFORE the async resolve,
+    // so embedMode stays true and the reserved slot never unmounts during the
+    // handoff. Refreshed with the real clock once playback reports in.
+    setExt({ pos: 0, dur: 0, seek: (sec) => embedSeek(sec) });
 
     // Silence the <audio> NOW, before the async Spotify resolve — leaving the
     // OLD track's preview sounding while the embed spins up is the
@@ -251,6 +287,8 @@ export function GlobalPlayer() {
     let stallTimer: ReturnType<typeof setTimeout> | undefined;
     embedStarted.current = false;
     clipBail.current = null;
+    // A grace timer armed for the previous track must not bail this one.
+    if (clipGraceTimer.current) { clearTimeout(clipGraceTimer.current); clipGraceTimer.current = null; }
     resolveSpotifyUri(track.artist, track.title)
       .then((uri) => (uri && !cancelled ? embedPlay(uri) : false))
       .then((ok) => {
@@ -274,12 +312,12 @@ export function GlobalPlayer() {
             setExt(null);
             playPreview();
           };
-          // Clip-mode bail: the embed IS sounding but only with a ~30s clip
-          // (no login) — cut it off, remember for the session, go Deezer.
+          // Grace lapsed still-clip: fall back to the Deezer preview for THIS
+          // track only. No session flag — the next track attempts the embed
+          // again, so a Spotify login granted later is picked up automatically.
           clipBail.current = () => {
             clipBail.current = null;
             if (cancelled) return;
-            clipMode.current = true;
             embedPause();
             viaSpotify.current = false;
             embedPrev.current = null;
@@ -297,7 +335,11 @@ export function GlobalPlayer() {
         }
       })
       .catch(() => { if (!cancelled) playPreview(); });
-    return () => { cancelled = true; if (stallTimer) clearTimeout(stallTimer); };
+    return () => {
+      cancelled = true;
+      if (stallTimer) clearTimeout(stallTimer);
+      if (clipGraceTimer.current) { clearTimeout(clipGraceTimer.current); clipGraceTimer.current = null; }
+    };
     // freshNonce: bumped after "Connect Spotify" so a FRESH iframe (which can
     // see the new login) replaces the stale logged-out one for this track.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -422,13 +464,15 @@ export function GlobalPlayer() {
         onEnded={onEnded}
       />
 
-      {/* Spotify strip — the embed's home while connected. Preferred seat:
-          the card's reserved slot (visible, clickable — it IS the progress
-          row while connected). With no slot on the page it tucks BEHIND the
-          opaque now-playing card at full opacity: occluded for the user,
-          but "visible" by every check the iframe can run (opacity:0 made
-          the embed downgrade to 30s clips). */}
-      {spotifyOn && hasTrack && (
+      {/* Spotify strip — the embed's home while connected. It stays mounted
+          for the WHOLE connected session (not gated on hasTrack) so the iframe
+          is never re-parented / reloaded between tracks. Preferred seat: the
+          card's reserved slot (visible, clickable — it IS the progress row
+          while connected). With no slot on the page it tucks BEHIND the opaque
+          now-playing card at full opacity: occluded for the user, but "visible"
+          by every check the iframe can run (opacity:0 made the embed downgrade
+          to 30s clips). */}
+      {spotifyOn && (
         <div
           className={slotRect
             ? 'spotify-strip spotify-strip--slot'
